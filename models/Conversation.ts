@@ -15,16 +15,16 @@ import ConversationMessage from "./ConversationMessage";
 @Entity()
 export default class Conversation extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ManyToMany(() => User, (user) => user.conversations, {
     cascade: true,
   })
   @JoinTable()
-  users: User[];
+  users!: User[];
 
   @OneToMany(
     () => ConversationMessage,
@@ -33,5 +33,5 @@ export default class Conversation extends BaseEntity {
       onDelete: "CASCADE",
     },
   )
-  messages: ConversationMessage[];
+  messages!: ConversationMessage[];
 }

@@ -22,7 +22,6 @@ import {
   StarBorder as StarBorderIcon,
   Star as StarIcon,
   Delete as DeleteIcon,
-  Image as ImageIcon,
 } from "@material-ui/icons";
 import InfiniteScroll from "react-infinite-scroller";
 import Cookies from "js-cookie";

@@ -7,7 +7,6 @@ import {
   PrimaryGeneratedColumn,
   OneToOne,
   JoinColumn,
-  In,
   ManyToMany,
   JoinTable,
 } from "typeorm";
@@ -29,69 +28,69 @@ import ConversationMessage from "./ConversationMessage";
 @Entity()
 export default class User extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @Column({ unique: true })
   @MinLength(1)
   @MaxLength(24)
-  username: string;
+  username!: string;
 
   @Column({ nullable: true })
   @MaxLength(24)
   @IsOptional()
-  displayname: string;
+  displayname!: string;
 
   @MinLength(8)
   @IsOptional()
   @Column({ nullable: true, select: false })
-  password: string;
+  password!: string;
 
   @Column({ unique: true })
   @IsEmail()
-  email: string;
+  email!: string;
 
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   @MaxLength(280)
-  description: string;
+  description!: string;
 
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   @MaxLength(50)
   @IsUrl()
-  link: string;
+  link!: string;
 
   @Column({ nullable: true, select: false })
   @IsOptional()
-  githubId: string;
+  githubId!: string;
 
   @Column({ nullable: true, select: false })
   @IsOptional()
-  googleId: string;
+  googleId!: string;
 
   @Column({ nullable: true })
   @IsOptional()
   @MinLength(1)
   @MaxLength(50)
-  location: string;
+  location!: string;
 
   @Column({ nullable: true, default: "blue" })
-  color: string;
+  color!: string;
 
   @OneToMany(() => Message, (message) => message.user, {
     onDelete: "CASCADE",
   })
-  messages: Message[];
+  messages!: Message[];
 
   @OneToMany(() => Like, (like) => like.user, {
     onDelete: "CASCADE",
   })
-  likes: Like[];
+  likes!: Like[];
 
   @OneToMany(
     () => ConversationMessage,
@@ -100,29 +99,29 @@ export default class User extends BaseEntity {
       onDelete: "CASCADE",
     },
   )
-  conversationMessages: ConversationMessage[];
+  conversationMessages!: ConversationMessage[];
 
   @ManyToMany(() => Conversation)
   @JoinTable()
-  conversations: Conversation[];
+  conversations!: Conversation[];
 
   @OneToMany(() => Repost, (repost) => repost.user, {
     onDelete: "CASCADE",
   })
-  reposts: Repost[];
+  reposts!: Repost[];
 
   @OneToMany(() => Follow, (follow) => follow.follower, {
     onDelete: "CASCADE",
   })
-  following: Follow[];
+  following!: Follow[];
 
   @OneToMany(() => Follow, (follow) => follow.following, {
     onDelete: "CASCADE",
   })
-  followers: Follow[];
+  followers!: Follow[];
 
   @OneToOne(() => Message, { onDelete: "CASCADE" })
   @JoinColumn()
   @IsOptional()
-  pinned: Message;
+  pinned!: Message;
 }

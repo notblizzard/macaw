@@ -4,8 +4,6 @@ import Repost from "../models/Repost";
 import uploader from "../uploader";
 import { Like as TypeORMLike, In } from "typeorm";
 import passport from "passport";
-import Conversation from "../models/Conversation";
-import ConversationMessage from "../models/ConversationMessage";
 
 const router = Router();
 
@@ -37,11 +35,12 @@ const getPinned = async (
   messages: Message[],
   pinId: number,
   skip: number,
-): Promise<Message[]> => {
-  const messagePinned = await Message.findOne({
+): Promise<Message[] | boolean> => {
+  const messagePinned: Message | undefined = await Message.findOne({
     where: { id: pinId },
     relations: ["user", "likes", "reposts"],
   });
+  if (!messagePinned) return false;
   if (skip === 1) {
     messages = messages.filter((message) => message.id !== messagePinned.id);
     messages.unshift(messagePinned);
@@ -50,11 +49,9 @@ const getPinned = async (
 };
 
 interface RequestUser extends Request {
-  user?: {
-    id: number;
-    username: string;
-    email: string;
-  };
+  id: number;
+  username: string;
+  email: string;
 }
 
 interface ProfileUser extends User {
@@ -69,7 +66,7 @@ interface ProfileUserMessage extends Message {
   messageCreatedAt?: Date;
 }
 
-router.get("/api/message/search", async (req: RequestUser, res) => {
+router.get("/api/message/search", async (req, res) => {
   const skip = Number(req.query.page);
   const qs = `%${req.query.qs}%`;
 
@@ -90,8 +87,9 @@ router.get("/api/message/search", async (req: RequestUser, res) => {
   messages = messages.sort((a, b) => Number(b.createdAt) - Number(a.createdAt));
 
   if (req.user) {
-    const authUser: User = await User.findOne({
-      where: { id: req.user.id },
+    // user exists. no need to check if undefined.
+    const authUser: User | undefined = await User.findOne({
+      where: { id: (req.user as RequestUser).id },
       relations: [
         "following",
         "following.following",
@@ -100,7 +98,7 @@ router.get("/api/message/search", async (req: RequestUser, res) => {
         "likes.message",
       ],
     });
-    messages = getLikes(messages, authUser);
+    messages = getLikes(messages, authUser as User);
   }
   // only get list of users if user is on first page
   if (skip === 1) {
@@ -121,15 +119,17 @@ router.get("/api/message/search", async (req: RequestUser, res) => {
 router.post(
   "/api/message/delete",
   passport.authenticate("jwt", { session: false }),
-  async (req: RequestUser, res) => {
-    if (!req.user) return res.json({ success: false, error: "invalid user." });
-
-    const user: User = await User.findOne({
-      where: { id: req.user.id },
+  async (req, res) => {
+    const user: User | undefined = await User.findOne({
+      where: { id: (req.user as RequestUser).id },
       relations: ["pinned"],
     });
 
-    const message: Message = await Message.findOne({
+    if (!user) {
+      return res.json({ success: false, error: "user does not exist." });
+    }
+
+    const message: Message | undefined = await Message.findOne({
       where: { id: req.body.id },
       relations: ["user"],
     });
@@ -137,7 +137,7 @@ router.post(
     if (!message) {
       return res.json({ success: false, error: "message does not exist." });
     }
-    if (message.user.id !== req.user.id) {
+    if (message.user.id !== (req.user as RequestUser).id) {
       return res.json({
         success: false,
         error: "you are not the owner of this message.",
@@ -153,7 +153,7 @@ router.post(
 router.get(
   "/api/message/dashboard",
   passport.authenticate("jwt", { session: false }),
-  async (req: RequestUser, res) => {
+  async (req, res) => {
     if (!req.user) return res.json({ success: false, error: "invalid user" });
     const skip = Number(req.query.page);
     const relations = [
@@ -170,8 +170,8 @@ router.get(
       "reposts.user",
     ];
     skip === 1 && relations.push("pinned");
-    const user: ProfileUser = await User.findOne({
-      where: { id: req.user.id },
+    const user: ProfileUser | undefined = await User.findOne({
+      where: { id: (req.user as RequestUser).id },
       relations,
       select: ["displayname", "id", "color"],
     });
@@ -214,15 +214,16 @@ router.get(
       (a, b) => Number(b.createdAt) - Number(a.createdAt),
     );
     if (user.pinned && skip === 1) {
-      messages = await getPinned(messages, user.pinned.id, skip);
+      // pinned message does exist, so we can skip the boolean check.
+      messages = (await getPinned(messages, user.pinned.id, skip)) as Message[];
     }
     user.isDifferentUser = false;
     return res.json({ success: true, user, messages });
   },
 );
 
-router.get("/api/message/dialog", async (req: RequestUser, res) => {
-  const message: Message = await Message.findOne({
+router.get("/api/message/dialog", async (req, res) => {
+  const message: Message | undefined = await Message.findOne({
     where: { id: req.query.id }, // messageId
     relations: [
       "user",
@@ -243,7 +244,7 @@ router.get("/api/message/dialog", async (req: RequestUser, res) => {
   return res.json({ success: true, message });
 });
 
-router.get("/api/message/profile", async (req: RequestUser, res) => {
+router.get("/api/message/profile", async (req, res) => {
   const skip = Number(req.query.page);
   const relations = [
     "followers",
@@ -261,7 +262,7 @@ router.get("/api/message/profile", async (req: RequestUser, res) => {
   // only get pinned message if user is viewing first page
   skip === 1 && relations.push("pinned");
 
-  const user: ProfileUser = await User.findOne({
+  const user: ProfileUser | undefined = await User.findOne({
     where: { username: TypeORMLike(req.query.username) },
     relations,
     select: ["displayname", "id", "color"],
@@ -296,12 +297,13 @@ router.get("/api/message/profile", async (req: RequestUser, res) => {
 
   messages = getReposts(user.reposts, messages);
 
-  if (user.pinned) messages = await getPinned(messages, user.pinned.id, skip);
-
+  if (user.pinned) {
+    messages = (await getPinned(messages, user.pinned.id, skip)) as Message[];
+  }
   if (req.user) {
     // see if the current auth user liked any messages the ':username' has made.
-    const authUser: User = await User.findOne({
-      where: { id: req.user.id },
+    const authUser: User | undefined = await User.findOne({
+      where: { id: (req.user as RequestUser).id },
       relations: [
         "following",
         "following.following",
@@ -310,9 +312,9 @@ router.get("/api/message/profile", async (req: RequestUser, res) => {
         "likes.message",
       ],
     });
-    messages = getLikes(messages, authUser);
+    messages = getLikes(messages, authUser as User);
     // todo fix | user.isFollowingUser =
-    user.isDifferentUser = user.id !== req.user.id;
+    user.isDifferentUser = user.id !== (req.user as RequestUser).id;
   }
   return res.json({ success: true, user, messages });
 });
@@ -321,10 +323,10 @@ router.post(
   "/api/message/new",
   uploader.single("file"),
   passport.authenticate("jwt", { session: false }),
-  async (req: RequestUser, res) => {
-    if (!req.user) return res.json({ error: "Invalid auth." });
-
-    const user: User = await User.findOne({ username: req.user.username });
+  async (req, res) => {
+    const user: User | undefined = await User.findOne({
+      username: (req.user as RequestUser).username,
+    });
     if (!user) return res.json({ error: "User does not exist." });
 
     const message: Message = new Message();
@@ -340,21 +342,23 @@ router.post(
 router.post(
   "/api/message/pin",
   passport.authenticate("jwt", { session: false }),
-  async (req: RequestUser, res) => {
-    const user: User = await User.findOne({
-      where: { id: req.user.id },
+  async (req, res) => {
+    const user: User | undefined = await User.findOne({
+      where: { id: (req.user as RequestUser).id },
       relations: ["reposts", "reposts.message", "messages"],
     });
     if (!user)
       return res.json({ success: false, error: "user does not exist" });
-    const message: Message = await Message.findOne({
+    const message: Message | undefined = await Message.findOne({
       where: { id: req.body.id },
       relations: ["likes", "user"],
     });
-
+    if (!message) {
+      return res.json({ success: false, error: "message does not exist." });
+    }
     // check if user actually owns the message
     if (user.messages.map((m) => m.id).includes(message.id)) {
-      user.pinned = message;
+      user.pinned = message as Message;
       await user.save();
       return res.json({ success: true, pin: true, pinned: user.pinned });
     } else {
@@ -369,14 +373,14 @@ router.post(
 router.post(
   "/api/message/repost",
   passport.authenticate("jwt", { session: false }),
-  async (req: RequestUser, res) => {
-    const user: User = await User.findOne({
-      where: { id: req.user.id },
+  async (req, res) => {
+    const user: User | undefined = await User.findOne({
+      where: { id: (req.user as RequestUser).id },
       relations: ["reposts"],
     });
     if (!user)
       return res.json({ success: false, error: "user does not exist" });
-    const message: Message = await Message.findOne({
+    const message: Message | undefined = await Message.findOne({
       where: { id: req.body.id },
       relations: ["likes", "user"],
     });
@@ -405,14 +409,15 @@ router.post(
 router.post(
   "/api/message/like",
   passport.authenticate("jwt", { session: false }),
-  async (req: RequestUser, res) => {
-    const user: User = await User.findOne({
-      where: { id: req.user.id },
+  async (req, res) => {
+    const user: User | undefined = await User.findOne({
+      where: { id: (req.user as RequestUser).id },
       relations: ["likes"],
     });
-    if (user.id !== req.user.id) return false;
+    if (!user) return false;
+    if (user.id !== (req.user as RequestUser).id) return false;
 
-    const message: Message = await Message.findOne({
+    const message: Message | undefined = await Message.findOne({
       where: { id: req.body.id },
       relations: ["likes", "user"],
     });

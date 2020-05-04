@@ -8,7 +8,6 @@ import {
 } from "@material-ui/icons";
 import UserTooltip from "./UserTooltip";
 import PropTypes from "prop-types";
-import UserInfoCard from "./UserInfoCard";
 
 const UserInfo = ({ user, color }): JSX.Element => {
   return (

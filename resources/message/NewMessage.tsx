@@ -70,16 +70,14 @@ const NewMessage = ({ open, onClose, color }): JSX.Element => {
     formData.append("data", text);
     formData.append("file", fileRef.current.files[0]);
 
-    fetch("/api/message/new", {
+    await fetch("/api/message/new", {
       credentials: "include",
       headers: {
         "X-XSRF-TOKEN": Cookies.get("XSRF-TOKEN"),
       },
       method: "POST",
       body: formData,
-    })
-      .then((res) => res.json())
-      .then((data) => {});
+    });
   };
 
   return (

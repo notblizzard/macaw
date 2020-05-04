@@ -57,6 +57,7 @@ UserStat.propTypes = {
     user: PropTypes.any,
     color: PropTypes.string,
   }),
+  color: PropTypes.string,
 };
 
 export default UserStat;

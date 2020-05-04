@@ -14,18 +14,18 @@ import Message from "./Message";
 @Entity()
 export default class Like extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @ManyToOne(() => User, (user) => user.likes, {
     onDelete: "CASCADE",
   })
-  user: User;
+  user!: User;
 
   @ManyToOne(() => Message, (message) => message.likes, {
     onDelete: "CASCADE",
   })
-  message: Message;
+  message!: Message;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 }

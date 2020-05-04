@@ -7,11 +7,9 @@ import {
   fade,
   Typography,
   Button,
-  Container,
-  Box,
   Grid,
 } from "@material-ui/core";
-import { useHistory, Redirect } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 
 const useStyles = makeStyles((theme: Theme) => ({
   search: {

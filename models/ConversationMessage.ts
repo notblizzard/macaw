@@ -15,24 +15,24 @@ import Conversation from "./Conversation";
 @Entity()
 export default class ConversationMessage extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ManyToOne(() => User, (user) => user.conversationMessages, {
     onDelete: "CASCADE",
     nullable: true,
   })
-  user: User;
+  user!: User;
 
   @ManyToOne(() => Conversation, (conversation) => conversation.messages, {
     onDelete: "CASCADE",
     nullable: true,
   })
-  conversation: Conversation;
+  conversation!: Conversation;
 
   @Column()
   @MinLength(1)
-  data: string;
+  data!: string;
 }

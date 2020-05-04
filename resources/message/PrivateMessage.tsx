@@ -168,7 +168,7 @@ const PrivateMessage = ({ open, onClose, color }): JSX.Element => {
       setConversations(updatedConversations);
       scrollToBottom();
     });
-    return () => socket.off("new message");
+    return (): SocketIOClient.Emitter => socket.off("new message");
   }, [conversations]);
 
   const handleTabChange = (e, newValue): void => {

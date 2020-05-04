@@ -6,8 +6,9 @@ import Google, {
   OAuth2Strategy as GoogleStrategy,
 } from "passport-google-oauth";
 import Github, { Strategy as GitHubStrategy } from "passport-github2";
-import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
+import { Strategy as JwtStrategy } from "passport-jwt";
 import { validate } from "class-validator";
+import { Request } from "express";
 
 interface PassportUser {
   id: string;
@@ -33,9 +34,11 @@ interface GoogleProfile extends Google.Profile {
 
 function register(
   username: string,
-  password: any,
+  password: string,
   email: string,
-  next: { (err: any, user: any): void; (arg0: null, arg1: User): any },
+  next: {
+    (err: string[] | null, user: User | undefined): void;
+  },
 ): void {
   const user: User = new User();
   user.username = username;
@@ -45,7 +48,7 @@ function register(
     async (errors) => {
       if (errors.length > 0) {
         const errorList = errors.flatMap((x) => Object.values(x.constraints));
-        return next(errorList, null);
+        return next(errorList, undefined);
       }
       bcrypt.hash(password, 10, async (_err, hash) => {
         user.password = hash;
@@ -60,7 +63,7 @@ passport.serializeUser((user: PassportUser, done) => {
   done(null, user.id);
 });
 
-passport.deserializeUser(async (id, done) => {
+passport.deserializeUser(async (id: number, done) => {
   const user = await User.findOne(id);
   done(null, user);
 });
@@ -138,7 +141,7 @@ passport.use(
 export { passport, register };
 
 const options = {
-  jwtFromRequest: (req) => req.cookies.token,
+  jwtFromRequest: (req: Request): string => req.cookies.token,
   secretOrKey: process.env.JWT_SECRET_KEY,
 };
 

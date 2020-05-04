@@ -17,36 +17,36 @@ import Repost from "./Repost";
 @Entity()
 export default class Message extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
   @MinLength(1)
   @MaxLength(280)
-  data: string;
+  data!: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
-  file: string;
+  file!: string;
 
   @ManyToOne(() => User, (user) => user.messages, {
     onDelete: "CASCADE",
   })
-  user: User;
+  user!: User;
 
   @OneToMany(() => Like, (like) => like.message, {
     onDelete: "CASCADE",
   })
-  likes: Like[];
+  likes!: Like[];
 
   @OneToMany(() => Repost, (repost) => repost.message, {
     onDelete: "CASCADE",
   })
-  reposts: Repost[];
+  reposts!: Repost[];
 
   @Column({ nullable: true })
-  userId: number;
+  userId!: number;
 }

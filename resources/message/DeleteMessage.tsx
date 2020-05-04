@@ -46,15 +46,13 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
   },
 }));
-const DeleteMessage = ({ open, handleClose, messageId }) => {
+const DeleteMessage = ({ open, handleClose, messageId }): JSX.Element => {
   const classes = useStyles();
 
-  const handleMessageDelete = async () => {
-    axios.post("/api/message/delete", { id: messageId }).then((res) => {
-      if (res.data.success) {
-      }
-    });
+  const handleMessageDelete = async (): Promise<void> => {
+    await axios.post("/api/message/delete", { id: messageId });
   };
+
   return (
     <Dialog
       open={open}

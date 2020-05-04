@@ -1,25 +1,20 @@
 import { Router, Request } from "express";
-import { User, Message, Like } from "../models";
-import Repost from "../models/Repost";
-import uploader from "../uploader";
-import { Like as TypeORMLike, In } from "typeorm";
+import { User } from "../models";
+import { Like as TypeORMLike } from "typeorm";
 import passport from "passport";
 import Conversation from "../models/Conversation";
-import ConversationMessage from "../models/ConversationMessage";
 
 const router = Router();
 
 interface RequestUser extends Request {
-  user: {
-    id: number;
-  };
+  id: number;
 }
 router.get(
   "/api/conversation/conversations",
   passport.authenticate("jwt", { session: false }),
-  async (req: RequestUser, res) => {
-    const user: User = await User.findOne({
-      where: { id: req.user.id },
+  async (req, res) => {
+    const user: User | undefined = await User.findOne({
+      where: { id: (req.user as RequestUser).id },
       relations: [
         "conversations",
         "conversations.users",
@@ -55,44 +50,41 @@ router.get(
   },
 );*/
 
-router.post(
-  "/api/conversation/new-conversation",
-  async (req: RequestUser, res) => {
-    const user = await User.findOne({
-      where: { id: req.user.id },
-      relations: ["conversations", "conversationMessages"],
+router.post("/api/conversation/new-conversation", async (req, res) => {
+  const user = await User.findOne({
+    where: { id: (req.user as RequestUser).id },
+    relations: ["conversations", "conversationMessages"],
+  });
+  const userSendingTo: User | undefined = await User.findOne({
+    where: { username: TypeORMLike(req.body.username) },
+    relations: ["conversations", "conversationMessages"],
+  });
+  if (!userSendingTo) {
+    return res.json({
+      success: false,
+      error: "user you're sending to doesnt exist",
     });
-    const userSendingTo: User = await User.findOne({
-      where: { username: TypeORMLike(req.body.username) },
-      relations: ["conversations", "conversationMessages"],
-    });
-    if (!userSendingTo) {
-      return res.json({
-        success: false,
-        error: "user you're sending to doesnt exist",
-      });
-    }
+  }
 
-    const overlap = user.conversations.filter((x) => {
-      userSendingTo.conversations.filter((y) => {
-        return x.id === y.id;
-      });
+  const overlap = user?.conversations.filter((x) => {
+    userSendingTo.conversations.filter((y) => {
+      return x.id === y.id;
     });
+  });
 
-    if (overlap.length === 0) {
-      const conversation = new Conversation();
-      conversation.users = [];
-      conversation.users.push(user, userSendingTo);
-      await conversation.save();
-      user.conversations.push(conversation);
-      userSendingTo.conversations.push(conversation);
-      await user.save();
-      await userSendingTo.save();
-      return res.json({ success: true });
-    } else {
-      return res.json({ success: false, error: "conversation already exists" });
-    }
-  },
-);
+  if (overlap?.length === 0) {
+    const conversation = new Conversation();
+    conversation.users = [];
+    conversation.users.push(user as User, userSendingTo);
+    await conversation.save();
+    user?.conversations.push(conversation);
+    userSendingTo.conversations.push(conversation);
+    await user?.save();
+    await userSendingTo.save();
+    return res.json({ success: true });
+  } else {
+    return res.json({ success: false, error: "conversation already exists" });
+  }
+});
 
 export default router;

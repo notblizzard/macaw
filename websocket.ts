@@ -25,14 +25,17 @@ export default (io: Server): void => {
       socket.userId = data.id;
     });
     socket.on("new message", async (data) => {
-      const user: User = await User.findOne(data.userId);
+      const user: User | undefined = await User.findOne(data.userId);
 
       if (!user) return false;
-      const conversation: Conversation = await Conversation.findOne({
-        where: { id: data.conversationId },
-        relations: ["users"],
-      });
-      const otherUserId = conversation.users.filter(
+      const conversation: Conversation | undefined = await Conversation.findOne(
+        {
+          where: { id: data.conversationId },
+          relations: ["users"],
+        },
+      );
+      if (!conversation) return false;
+      const otherUserId = conversation?.users.filter(
         (user) => user.id !== socket.userId,
       )[0].id;
       if (!conversation) return false;

@@ -14,18 +14,18 @@ import Message from "./Message";
 @Entity()
 export default class Repost extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ManyToOne(() => User, (user) => user.messages, {
     onDelete: "CASCADE",
   })
-  user: User;
+  user!: User;
 
   @ManyToOne(() => Message, (message) => message.reposts, {
     onDelete: "CASCADE",
   })
-  message: Message;
+  message!: Message;
 }

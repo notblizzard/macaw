@@ -13,20 +13,20 @@ import User from "./User";
 @Entity()
 export default class Follow extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @ManyToOne((type) => User, (user) => user.following, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
   })
-  following: User;
+  following!: User;
 
   @ManyToOne((type) => User, (user) => user.followers, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
   })
-  follower: User;
+  follower!: User;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 }

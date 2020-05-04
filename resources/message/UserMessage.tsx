@@ -20,7 +20,6 @@ import {
   StarBorder as StarBorderIcon,
   Star as StarIcon,
   Delete as DeleteIcon,
-  Image as ImageIcon,
 } from "@material-ui/icons";
 
 import { Link } from "react-router-dom";
@@ -284,13 +283,13 @@ const UserMessage = ({ dashboard, username, color }): JSX.Element => {
     setOpenDelete(false);
   };
 
-  const showMessagesWithMediaOnly = () => {
+  const showMessagesWithMediaOnly = (): void => {
     const messagesFiltered = messages.filter((message) => message.file);
     setFilteredMessages(messagesFiltered);
     setMediaOnly(true);
   };
 
-  const showAllMessages = () => {
+  const showAllMessages = (): void => {
     setFilteredMessages(messages);
     setMediaOnly(false);
   };
@@ -516,6 +515,7 @@ const UserMessage = ({ dashboard, username, color }): JSX.Element => {
 UserMessage.propTypes = {
   dashboard: PropTypes.bool,
   username: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), // can be "undefined"
+  color: PropTypes.string,
 };
 
 export default UserMessage;

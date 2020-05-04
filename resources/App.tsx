@@ -11,7 +11,6 @@ import axios from "axios";
 import CreateIcon from "@material-ui/icons/CreateOutlined";
 import Navbar from "./Navbar";
 import { Fab, Container } from "@material-ui/core";
-import { makeStyles } from "@material-ui/core/styles";
 import NewMessage from "./message/NewMessage";
 import Settings from "./user/Settings";
 import Profile from "./user/Profile";

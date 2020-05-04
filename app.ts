@@ -28,7 +28,7 @@ app.use(body.json());
 app.use(
   session({
     store: new RedisStore({ client: redisClient }),
-    secret: process.env.SECRET_KEY,
+    secret: process.env.SECRET_KEY as string,
     resave: false,
     cookie: {
       httpOnly: true,

@@ -79,32 +79,31 @@ const Settings = ({ handleColor }): JSX.Element => {
     description: "",
     color: "",
   });
-  const [] = useState("");
   const [, setErrors] = useState({});
   const classes = useStyles();
   const history = useHistory();
 
-  const handleChangeUsername = (e) => {
+  const handleChangeUsername = (e): void => {
     setSettings({ ...settings, username: e.target.value });
   };
 
-  const handleChangeDisplayname = (e) => {
+  const handleChangeDisplayname = (e): void => {
     setSettings({ ...settings, displayname: e.target.value });
   };
-  const handleChangeEmail = (e) => {
+  const handleChangeEmail = (e): void => {
     setSettings({ ...settings, email: e.target.value });
   };
-  const handleChangeLocation = (e) => {
+  const handleChangeLocation = (e): void => {
     setSettings({ ...settings, location: e.target.value });
   };
-  const handleChangeLink = (e) => {
+  const handleChangeLink = (e): void => {
     setSettings({ ...settings, link: e.target.value });
   };
-  const handleChangeDescription = (e) => {
+  const handleChangeDescription = (e): void => {
     setSettings({ ...settings, description: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e): void => {
     e.preventDefault();
     axios.post("/api/user/settings/", settings).then((res) => {
       if (res.data.success) {
@@ -123,11 +122,11 @@ const Settings = ({ handleColor }): JSX.Element => {
     });
   };
 
-  const handleRadioChange = (e) => {
+  const handleRadioChange = (e): void => {
     setSettings({ ...settings, color: (e.target as HTMLInputElement).value });
   };
 
-  const handleBoth = (e) => {
+  const handleBoth = (e): void => {
     handleRadioChange(e);
     handleColor(e);
   };

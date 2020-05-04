@@ -9,6 +9,7 @@
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "sourceMap": true,
+    "strict": true,
     "jsx": "react",
     "forceConsistentCasingInFileNames": false
   },
