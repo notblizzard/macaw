@@ -1,0 +1,214 @@
+@import "~bootstrap/scss/bootstrap";
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans&display=swap");
+
+$green: #23a07d;
+$blue: #3e7cb1;
+$purple: #38023b;
+$red: #e26361;
+$yellow: #ffbd00;
+$orange: #f17300;
+
+$colors: (
+  "green": $green,
+  "blue": $blue,
+  "purple": $purple,
+  "red": $red,
+  "yellow": $yellow,
+  "orange": $orange,
+  "default": $blue,
+);
+
+@mixin radio($color) {
+  color: $color !important;
+  width .Mui-checked {
+    color: $color !important;
+  }
+}
+
+@mixin floatingCreateMessageButton($color) {
+  position: fixed !important;
+  bottom: 0;
+  right: 0;
+  margin: 2rem !important;
+  background-color: $color !important;
+  color: #eee !important;
+  &:hover {
+    background-color: darken($color, 10%) !important;
+  }
+}
+
+@mixin profileLink($color) {
+  text-decoration: none;
+  &:hover {
+    .message-displayname {
+      color: $color;
+      text-decoration: underline;
+      text-decoration-color: $color;
+    }
+  }
+}
+@mixin createdAt($color) {
+  font-size: 1rem;
+  text-decoration: underline;
+  text-decoration-color: $color;
+  color: #b8c5d9bd;
+}
+@mixin link($color) {
+  text-decoration: none;
+  color: $color; //change
+  font-weight: bold;
+  &:hover {
+    color: $color !important;
+    text-decoration: underline !important;
+    text-decoration-color: $color;
+  }
+}
+
+@mixin coloredTooltip($color) {
+  color: $color;
+  font-weight: bold;
+}
+
+@mixin button($color, $firstTextColor, $secondTextColor, $outline: true) {
+  border-color: $color !important;
+  color: $firstTextColor !important;
+  text-decoration: none;
+
+  @if $outline == false {
+    background-color: $color !important;
+  }
+
+  &:hover,
+  &:active {
+    background-color: $color !important;
+    color: $secondTextColor !important;
+  }
+
+  &:active,
+  &:focus {
+    box-shadow: 0 0 0 0.2rem rgba($color, 0.5) !important;
+  }
+}
+
+@mixin grad() {
+  border-image: linear-gradient(
+      90deg,
+      rgba(151, 173, 196, 1) 0%,
+      rgba(8, 61, 119, 1) 50%,
+      rgba(25, 42, 61, 1) 100%
+    )
+    10;
+  border-width: 4px;
+  border-left: 0;
+  border-bottom: 0;
+  border-right: 0;
+}
+.fas,
+.far {
+  font-family: "Font Awesome 5 Free";
+}
+
+label svg {
+  width: 4rem;
+  height: 4rem;
+}
+
+body,
+#app {
+  height: 100%;
+  font-family: "Open Sans", sans-serif;
+  background-color: #0a1b26;
+  color: #eee;
+}
+html {
+  background-color: #0a1b26;
+}
+.user-mini {
+  background-color: #0d2534 !important;
+}
+.error {
+  color: #d85259;
+}
+.grey {
+  color: #b8c5d9bd;
+}
+.grey-link {
+  @extend .grey;
+}
+.form-control {
+  border-radius: 0;
+}
+.btn {
+  border-radius: 0;
+}
+.message-stats {
+  background-color: transparent;
+  border: 0;
+  padding-left: 0;
+  padding-right: 1em;
+}
+.message-displayname {
+  font-size: 1rem;
+  color: #eee;
+}
+.message-username {
+  font-size: 1rem;
+  color: #b8c5d9bd;
+  &:hover {
+    text-decoration: none !important;
+  }
+}
+
+@each $name, $value in $colors {
+  .message-created-at-#{$name} {
+    @include createdAt($value);
+  }
+  .link-#{$name} {
+    @include link($value);
+  }
+  .profile-link-#{$name} {
+    @include profileLink($value);
+  }
+  .button-#{$name} {
+    background-color: $value !important;
+    color: #eee !important;
+    &:hover {
+      background-color: darken($value, 4%) !important;
+    }
+  }
+  .navbar-button-#{$name} {
+    color: #eee;
+    cursor: pointer;
+    &:hover {
+      color: $value;
+    }
+  }
+  .button-outline-#{$name} {
+    border-color: $value !important;
+    color: $value !important;
+  }
+  .colored-tooltip-#{$name} {
+    @include coloredTooltip($value);
+  }
+  .radio-#{$name} {
+    @include radio($value);
+  }
+  .floating-new-message-button-#{$name} {
+    @include floatingCreateMessageButton($value);
+  }
+  .color-#{$name} {
+    color: $value !important;
+  }
+  .pin-message-button-#{$name} {
+    color: #8aadbd !important;
+    &:hover {
+      color: $value;
+    }
+  }
+  .user-stats-border-bottom-#{$name} {
+    border-bottom: 1px solid $value;
+  }
+  .private-message-tab-indicator-#{$name} {
+    background-color: $value !important;
+  }
+}

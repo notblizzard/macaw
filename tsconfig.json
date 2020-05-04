@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "lib": ["es2019", "DOM"],
+    "target": "es6",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "./build",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "jsx": "react",
+    "forceConsistentCasingInFileNames": false
+  },
+  "include": [
+    "./*.ts",
+    "./routes/*.ts",
+    "./models/*.ts",
+    "./resources/*.ts",
+    "./migrations/*ts"
+  ]
+}

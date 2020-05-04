@@ -1,0 +1,115 @@
+import React, { useState, Fragment, useEffect } from "react";
+import { BrowserRouter, Route, Switch } from "react-router-dom";
+import Register from "./auth/Register";
+import ReactDOM from "react-dom";
+import Home from "./Home";
+import Login from "./auth/Login";
+import PrivateRoute from "./auth/PrivateRoute";
+import GuestRoute from "./auth/GuestRoute";
+import Dashboard from "./user/Dashboard";
+import axios from "axios";
+import CreateIcon from "@material-ui/icons/CreateOutlined";
+import Navbar from "./Navbar";
+import { Fab, Container } from "@material-ui/core";
+import { makeStyles } from "@material-ui/core/styles";
+import NewMessage from "./message/NewMessage";
+import Settings from "./user/Settings";
+import Profile from "./user/Profile";
+import Followers from "./user/Followers";
+import Following from "./user/Following";
+import Search from "./Search";
+import Cookies from "js-cookie";
+
+interface NewMessageData {
+  createdAt: string;
+  data: string;
+  file?: any;
+  id: number;
+  user: {
+    color: string;
+    createdAt: string;
+    description: string;
+    displayname: string;
+    email: string;
+    id: number;
+    link: string;
+    location: string;
+    username: string;
+  };
+  userId: number;
+}
+
+const App = (): JSX.Element => {
+  const [color, setColor] = useState("");
+  const [open, setOpen] = useState(false);
+
+  const handleOpen = (): void => {
+    setOpen(true);
+  };
+
+  useEffect(() => {
+    axios("/api/user/color").then((res) => {
+      if (res.data.success) {
+        setColor(res.data.color);
+      }
+    });
+  }, []);
+
+  const handleColor = (e): void => {
+    setColor(e.target.value as string);
+  };
+
+  const handleClose = (): void => {
+    setOpen(false);
+  };
+
+  return (
+    <Fragment>
+      <NewMessage open={open} onClose={handleClose} color={color} />
+      <BrowserRouter>
+        <Navbar color={color} />
+        <Container>
+          <Switch>
+            <Route path="/@:username/followers">
+              <Followers />
+            </Route>
+            <Route path="/@:username/following">
+              <Following />
+            </Route>
+            <Route path="/@:username">
+              <Profile />
+            </Route>
+            <Route path="/search">
+              <Search />
+            </Route>
+            <GuestRoute path="/register">
+              <Register />
+            </GuestRoute>
+            <GuestRoute path="/login">
+              <Login />
+            </GuestRoute>
+            <PrivateRoute path="/dashboard">
+              <Dashboard />
+            </PrivateRoute>
+            <PrivateRoute path="/settings">
+              <Settings handleColor={handleColor} />
+            </PrivateRoute>
+            <GuestRoute path="/">
+              <Home />
+            </GuestRoute>
+          </Switch>
+        </Container>
+      </BrowserRouter>
+      {Cookies.get("email") ? (
+        <Fab
+          className={"floating-new-message-button-" + color}
+          onClick={handleOpen}
+        >
+          <CreateIcon />
+        </Fab>
+      ) : null}
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<App />, document.getElementById("app"));
