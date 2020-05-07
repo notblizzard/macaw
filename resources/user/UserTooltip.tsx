@@ -20,17 +20,22 @@ const useStyles = makeStyles((theme: Theme) => ({
 interface UserData {
   username: string;
   displayname: string;
-  messages: any[];
-  followers: any[];
-  following: any[];
+  messages: [];
+  followers: [];
+  following: [];
+  id: string;
   description: string;
   email: string;
+  createdAt: string;
+  location: string;
+  link: string;
   color: string;
   isFollowingUser?: boolean;
   isDifferentUser?: boolean;
 }
 
 const defaultUserData: UserData = {
+  id: "",
   username: "",
   displayname: "",
   messages: [],
@@ -38,10 +43,18 @@ const defaultUserData: UserData = {
   following: [],
   email: "",
   color: "",
+  createdAt: "",
+  location: "",
+  link: "",
   description: "",
 };
 
-const UserTooltip = ({ username, color }): JSX.Element => {
+interface UserTooltipProp {
+  username: string;
+  color: string;
+}
+
+const UserTooltip = ({ username, color }: UserTooltipProp): JSX.Element => {
   const classes = useStyles();
   const [user, setUser] = useState<UserData>(defaultUserData);
 

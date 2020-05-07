@@ -16,18 +16,40 @@ interface UserData {
   description: string;
   messageCount: number;
 }
-const defaultUserData: UserData = {
+const defaultUserData: User = {
   id: "",
   displayname: "",
   username: "",
   messageCount: 0,
   followers: [],
+  email: "",
   following: [],
   color: "",
   description: "",
+  link: "",
+  createdAt: "",
+  location: "",
+  isDifferentUser: undefined,
 };
+
+interface User {
+  id: string;
+  color: string;
+  createdAt: string;
+  username: string;
+  displayname: string;
+  email: string;
+  description: string;
+  location: string;
+  link: string;
+  messageCount: number;
+  //pinned: Message;
+  followers: [];
+  following: [];
+  isDifferentUser?: boolean;
+}
 const Dashboard = (): JSX.Element => {
-  const [user, setUser] = useState<UserData>(defaultUserData);
+  const [user, setUser] = useState<User>(defaultUserData);
   const color: string = Cookies.get("color") || "default";
 
   useEffect(() => {

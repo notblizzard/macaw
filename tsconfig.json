@@ -17,7 +17,8 @@
     "./*.ts",
     "./routes/*.ts",
     "./models/*.ts",
-    "./resources/*.ts",
-    "./migrations/*ts"
+    "./migrations/*ts",
+    "./resources/*.tsx",
+    "./resources/**/*.tsx"
   ]
 }

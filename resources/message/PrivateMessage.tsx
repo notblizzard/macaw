@@ -17,6 +17,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import io from "socket.io-client";
 import PropTypes from "prop-types";
+import { User } from "../../models";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -98,7 +99,13 @@ interface A11yProps {
   id: string;
   "aria-controls": string;
 }
-function TabPanel(props): JSX.Element {
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: any;
+  value: any;
+}
+function TabPanel(props: TabPanelProps): JSX.Element {
   const classes = useStyles();
   // eslint-disable-next-line react/prop-types
   const { children, value, index, ...other } = props;
@@ -121,15 +128,50 @@ function TabPanel(props): JSX.Element {
 }
 
 const socketio = io();
-const PrivateMessage = ({ open, onClose, color }): JSX.Element => {
+
+interface PrivateMessageProps {
+  open: boolean;
+  onClose: () => void;
+  color: string;
+}
+
+interface Conversation {
+  id: string;
+  users: {
+    username: string;
+    email: string;
+  }[];
+  messages: {
+    createdAt: string;
+    data: string;
+    user: {
+      username: string;
+      email: string;
+    };
+  }[];
+}
+
+interface NewMessage {
+  user: User;
+  data: string;
+  conversation: Conversation;
+  createdAt: string;
+}
+const PrivateMessage = ({
+  open,
+  onClose,
+  color,
+}: PrivateMessageProps): JSX.Element => {
   const { current: socket } = useRef(socketio);
   const [value, setValue] = useState(0);
   const [username, setUsername] = useState("");
-  const [userId, setUserId] = useState(0);
+  const [userId, setUserId] = useState("");
   const [newUser, setNewUser] = useState("");
   const [newMessage, setNewMessage] = useState("");
-  const [conversations, setConversations] = useState([]);
-  const messageRef = useRef(null);
+  const [conversations, setConversations] = useState<Conversation[]>(
+    [] as Conversation[],
+  );
+  const messageRef = useRef<HTMLInputElement>(null);
   const classes = useStyles();
 
   const a11yProps = (index: number): A11yProps => {
@@ -141,7 +183,8 @@ const PrivateMessage = ({ open, onClose, color }): JSX.Element => {
 
   const scrollToBottom = (): void => {
     if (messageRef.current !== null) {
-      messageRef.current.scrollIntoView({ behavior: "smooth" });
+      //messageRef.current.scrollIntoView({ behavior: "smooth" });
+      window.scrollTo(0, messageRef?.current?.offsetTop);
     }
   };
   useEffect(() => {
@@ -157,7 +200,7 @@ const PrivateMessage = ({ open, onClose, color }): JSX.Element => {
 
   useEffect(() => {
     socket.open();
-    socket.on("new message", (data) => {
+    socket.on("new message", (data: NewMessage) => {
       const updatedConversations = conversations.map((conversation) => {
         if (conversation.id === data.conversation.id) {
           conversation.messages.push(data);
@@ -168,30 +211,44 @@ const PrivateMessage = ({ open, onClose, color }): JSX.Element => {
       setConversations(updatedConversations);
       scrollToBottom();
     });
-    return (): SocketIOClient.Emitter => socket.off("new message");
+    //return (): SocketIOClient.Emitter =>
+    socket.off("new message");
   }, [conversations]);
 
-  const handleTabChange = (e, newValue): void => {
+  const handleTabChange = (
+    e: React.ChangeEvent<{}>,
+    newValue: number,
+  ): void => {
     setValue(newValue);
     scrollToBottom();
   };
 
-  const handleNewMessageChange = (e): void => {
+  const handleNewMessageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
     setNewMessage(e.target.value);
   };
 
-  const handleNewUserChange = (e): void => {
+  const handleNewUserChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
     setNewUser(e.target.value);
   };
 
-  const handleNewMessageSubmit = (e): void | boolean => {
+  const handleNewMessageSubmit = (
+    e: React.ChangeEvent<HTMLFormElement>,
+  ): void | boolean => {
     e.preventDefault();
     if (newMessage.trim().length === 0) return false;
-    const conversationId: string = e.currentTarget.getAttribute("data-id");
+    const conversationId: string = e.currentTarget.getAttribute(
+      "data-id",
+    ) as string;
     socket.emit("new message", { conversationId, userId, data: newMessage });
     //setNewMessage("");
   };
-  const handleNewConversationSubmit = async (e): Promise<void> => {
+  const handleNewConversationSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
     e.preventDefault();
     await axios.post("/api/conversation/new-conversation", {
       username: newUser,

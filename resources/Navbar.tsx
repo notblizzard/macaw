@@ -75,7 +75,11 @@ const useStyles = makeStyles((theme: Theme) => ({
     },*/
   },
 }));
-const Navbar = ({ color }): JSX.Element => {
+
+interface NavbarProps {
+  color: string;
+}
+const Navbar = ({ color }: NavbarProps): JSX.Element => {
   const history = useHistory();
   const classes = useStyles();
   const [open, setOpen] = useState(false);
@@ -95,11 +99,11 @@ const Navbar = ({ color }): JSX.Element => {
     });
   };
 
-  const handleSearchChange = (e): void => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setSearchQuery(e.target.value);
   };
 
-  const handleSearchSubmit = (e): void => {
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     history.push(`/search?${qs.stringify({ qs: searchQuery })}`);
   };
@@ -132,7 +136,7 @@ const Navbar = ({ color }): JSX.Element => {
           {Cookies.get("email") ? (
             <Box display="flex" flexDirection="row" className={classes.icons}>
               <Link to="/dashboard">
-                <Gravatar email={Cookies.get("email")} size={4} />
+                <Gravatar email={Cookies.get("email")!} size={5} />
               </Link>
 
               <IconButton onClick={handleOpen}>

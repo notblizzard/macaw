@@ -30,6 +30,44 @@ import InfiniteScroll from "react-infinite-scroller";
 import ViewImage from "./ViewImage";
 import PropTypes from "prop-types";
 
+interface User {
+  id: string;
+  color: string;
+  createdAt: string;
+  username: string;
+  displayname: string;
+  email: string;
+  description: string;
+  location: string;
+  pinned: Message;
+  followers: [];
+  following: [];
+  isDifferentUser?: boolean;
+}
+interface Message {
+  id: string;
+  createdAt: string;
+  data: string;
+  user: User;
+  liked: boolean;
+  file: string;
+  likes: Like[];
+  reposted: boolean;
+  reposts: Repost[];
+  messageCreatedAt?: string;
+}
+interface Repost {
+  id: string;
+  createdAt: string;
+  user: User;
+  message: Message;
+}
+interface Like {
+  id: string;
+  user: User;
+  message: Message;
+}
+
 const useStyles = makeStyles({
   caption: {
     fontFamily: "'Open Sans', sans-serif",
@@ -72,29 +110,17 @@ const useStyles = makeStyles({
     color: "#81db6b",
   },
 });
-
-interface MessageData {
-  reposted: boolean;
-  id: string;
-  data: string;
-  createdAt: string;
-  likes: [];
-  reposts: [];
-  file: string;
-  user: {
-    email: string;
-    username: string;
-    displayname: string;
-  };
-}
-
-interface UserData {
-  displayname: string;
-  pinned: any;
+//e: React.ChangeEvent<HTMLInputElement>
+interface UserMessageProps {
+  dashboard: boolean;
+  username: string | undefined;
   color: string;
-  isDifferentUser?: boolean | undefined;
 }
-const UserMessage = ({ dashboard, username, color }): JSX.Element => {
+const UserMessage = ({
+  dashboard,
+  username,
+  color,
+}: UserMessageProps): JSX.Element => {
   const classes = useStyles();
   const [openImage, setOpenImage] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
@@ -105,29 +131,11 @@ const UserMessage = ({ dashboard, username, color }): JSX.Element => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [mediaOnly, setMediaOnly] = useState(false);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   // so the user can toggle between all messages and media only without having to call the api every time
-  const [filteredMessages, setFilteredMessages] = useState([]);
-  const [user, setUser] = useState<UserData>({
-    displayname: "",
-    color: "",
-    pinned: {},
-    isDifferentUser: undefined,
-  });
-  const [dialog, setDialog] = useState<MessageData>({
-    reposted: false,
-    id: "",
-    data: "",
-    createdAt: "",
-    file: "",
-    likes: [],
-    reposts: [],
-    user: {
-      email: "",
-      username: "",
-      displayname: "",
-    },
-  });
+  const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
+  const [user, setUser] = useState<User>({} as User);
+  const [dialog, setDialog] = useState<Message>({} as Message);
 
   const urlForMessages = `/api/message/${
     dashboard ? `dashboard?` : `profile?username=${username}&`
@@ -140,7 +148,7 @@ const UserMessage = ({ dashboard, username, color }): JSX.Element => {
         setUser(res.data.user);
         setMessages(messages.concat(res.data.messages));
         if (mediaOnly) {
-          const messagesFiltered = res.data.messages.filter(
+          const messagesFiltered = (res.data.messages as Message[]).filter(
             (message) => message.file,
           );
           setFilteredMessages(messagesFiltered);
@@ -171,12 +179,14 @@ const UserMessage = ({ dashboard, username, color }): JSX.Element => {
       .catch(console.error);
   }, []);
 
-  const handleLike = (e): void => {
+  const handleLike = (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ): void => {
     const messageId = e.currentTarget.getAttribute("data-id");
     axios.post("/api/message/like", { id: messageId }).then((res) => {
       if (res.data.success) {
         const messagesUpdated = messages.map((m) => {
-          if (m.id === Number(messageId)) {
+          if (m.id === messageId) {
             if (res.data.liked) {
               m.liked = true;
               m.likes.push(res.data.like);
@@ -192,8 +202,10 @@ const UserMessage = ({ dashboard, username, color }): JSX.Element => {
     });
   };
 
-  const handlePin = (e): void => {
-    const messageId: string = e.currentTarget.getAttribute("data-id");
+  const handlePin = (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ): void => {
+    const messageId: string = e.currentTarget.getAttribute("data-id") as string;
     axios.post("/api/message/pin", { id: messageId }).then((res) => {
       if (res.data.success) {
         setUser({
@@ -202,7 +214,7 @@ const UserMessage = ({ dashboard, username, color }): JSX.Element => {
         });
         const messageIndex = messages
           .map((message) => message.id)
-          .indexOf(Number(messageId));
+          .indexOf(messageId);
         const messagesReordered = [
           ...messages.slice(messageIndex),
           ...messages.slice(0, messageIndex),
@@ -220,18 +232,22 @@ const UserMessage = ({ dashboard, username, color }): JSX.Element => {
     });
   };
 
-  const handleDelete = (e): void => {
-    const messageId: string = e.currentTarget.getAttribute("data-id");
+  const handleDelete = (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ): void => {
+    const messageId: string = e.currentTarget.getAttribute("data-id") as string;
     setMessageId(messageId);
     setOpenDelete(true);
   };
 
-  const handleRepost = (e): void => {
-    const messageId: string = e.currentTarget.getAttribute("data-id");
+  const handleRepost = (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ): void => {
+    const messageId: string = e.currentTarget.getAttribute("data-id") as string;
     axios.post("/api/message/repost", { id: messageId }).then((res) => {
       if (res.data.success) {
         const messagesUpdated = messages.map((m) => {
-          if (m.id === Number(messageId)) {
+          if (m.id === messageId) {
             if (res.data.reposted) {
               m.reposted = true;
               m.reposts.push(res.data.repost);
@@ -249,25 +265,34 @@ const UserMessage = ({ dashboard, username, color }): JSX.Element => {
     });
   };
 
-  const handleDialogOpen = (e): void | boolean => {
+  const handleDialogOpen = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+  ): void | boolean => {
     const tagNames: string[] = ["a", "button", "i", "path", "svg", "span"];
     const imageClassName = "MuiCardMedia-root";
     // prevent dialog on clicking like/repost/etc
-    if (tagNames.includes(e.target.tagName.toLowerCase())) return false;
+    if (tagNames.includes((e.target as HTMLInputElement).tagName.toLowerCase()))
+      return false;
     // prevent dialog on clicking image
-    if (e.target.classList.contains(imageClassName)) return false;
-    const messageId: string = e.currentTarget.getAttribute("data-id");
+    if ((e.target as HTMLInputElement).classList.contains(imageClassName))
+      return false;
+    const messageId: string = e.currentTarget.getAttribute("data-id") as string;
     axios.get(`/api/message/dialog?id=${messageId}`).then((res) => {
       if (res.data.success) {
+        // todo: fix interface, expects string
+        res.data.message.id = res.data.message.id.toString();
+
         setDialog(res.data.message);
         setOpenView(true);
       }
     });
   };
 
-  const handleImage = (e): void => {
+  const handleImage = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+  ): void => {
     e.preventDefault();
-    setImageName(e.currentTarget.getAttribute("data-image-name"));
+    setImageName(e.currentTarget.getAttribute("data-image-name") as string);
     setOpenImage(true);
   };
 
@@ -343,170 +368,174 @@ const UserMessage = ({ dashboard, username, color }): JSX.Element => {
             Media Only
           </Typography>
         </Box>
-        {filteredMessages.map((message) => (
-          <Card
-            className={classes.message}
-            key={message.id}
-            raised={true}
-            onClick={handleDialogOpen}
-            data-id={message.id}
-          >
-            <CardContent>
-              <Grid container spacing={1}>
-                <Grid item xs={1}>
-                  <Gravatar size={8} email={message.user.email} />
-                </Grid>
-                <Grid item xs={11}>
+        {filteredMessages.length > 0
+          ? filteredMessages.map((message: Message) => (
+              <Card
+                className={classes.message}
+                key={message.id}
+                raised={true}
+                onClick={handleDialogOpen}
+                data-id={message.id}
+              >
+                <CardContent>
                   <Grid container spacing={1}>
-                    <Grid item xs={12}>
-                      {user?.pinned && user?.pinned?.id === message.id ? (
-                        <Typography
-                          display="block"
-                          variant="caption"
-                          className={classes.caption}
-                        >
-                          <i className={`fas fa-thumbtack color-${color}`}></i>{" "}
-                          Pinned Message
-                        </Typography>
-                      ) : null}
-                      {message.reposted ? (
-                        <Typography
-                          variant="caption"
-                          display="block"
-                          className={classes.caption}
-                        >
-                          <RepeatIcon className={`color-${color}`} />
-                          {user.displayname} Reposted
-                        </Typography>
-                      ) : null}
-                      <Link
-                        to={"/@" + message.user.username}
-                        className={"profile-link-" + color}
-                      >
-                        <span className="message-displayname">
-                          {message.user.displayname === undefined ? (
-                            <span>{message.user.username}</span>
-                          ) : (
-                            <span>{message.user.displayname}</span>
-                          )}
-                        </span>{" "}
-                        <span className="message-username">
-                          @{message.user.username}
-                        </span>
-                      </Link>{" "}
-                      <Moment
-                        time={
-                          message.reposted
-                            ? message.messageCreatedAt
-                            : message.createdAt
-                        }
-                        profile={false}
-                      />
+                    <Grid item xs={1}>
+                      <Gravatar size={8} email={message.user.email} />
                     </Grid>
-                    <Grid item xs={12}>
-                      {message.data.split(" ").map((word: string) => {
-                        if (word.startsWith("@")) {
-                          return (
-                            <UserTooltip
-                              username={word.slice(1)}
-                              color={color}
+                    <Grid item xs={11}>
+                      <Grid container spacing={1}>
+                        <Grid item xs={12}>
+                          {user.pinned && user.pinned.id === message.id ? (
+                            <Typography
+                              display="block"
+                              variant="caption"
+                              className={classes.caption}
+                            >
+                              <i
+                                className={`fas fa-thumbtack color-${color}`}
+                              ></i>{" "}
+                              Pinned Message
+                            </Typography>
+                          ) : null}
+                          {message.reposted ? (
+                            <Typography
+                              variant="caption"
+                              display="block"
+                              className={classes.caption}
+                            >
+                              <RepeatIcon className={`color-${color}`} />
+                              {user.displayname} Reposted
+                            </Typography>
+                          ) : null}
+                          <Link
+                            to={"/@" + message.user.username}
+                            className={"profile-link-" + color}
+                          >
+                            <span className="message-displayname">
+                              {message.user.displayname === undefined ? (
+                                <span>{message.user.username}</span>
+                              ) : (
+                                <span>{message.user.displayname}</span>
+                              )}
+                            </span>{" "}
+                            <span className="message-username">
+                              @{message.user.username}
+                            </span>
+                          </Link>{" "}
+                          <Moment
+                            time={
+                              message.reposted
+                                ? (message.messageCreatedAt as string)
+                                : message.createdAt
+                            }
+                            profile={false}
+                          />
+                        </Grid>
+                        <Grid item xs={12}>
+                          {message.data.split(" ").map((word: string) => {
+                            if (word.startsWith("@")) {
+                              return (
+                                <UserTooltip
+                                  username={word.slice(1)}
+                                  color={color}
+                                />
+                              );
+                            } else if (word.startsWith("#")) {
+                              return (
+                                <Link to={`/search?qs=%23${word.slice(1)}`}>
+                                  <Typography
+                                    variant="body1"
+                                    display="inline"
+                                    className={`link-${color}`}
+                                  >
+                                    {word}
+                                  </Typography>
+                                </Link>
+                              );
+                            } else {
+                              return ` ${word} `;
+                            }
+                          })}
+                          {message.file ? (
+                            <CardMedia
+                              onClick={handleImage}
+                              image={`/uploads/${message.file}`}
+                              data-image-name={message.file}
+                              className={classes.image}
                             />
-                          );
-                        } else if (word.startsWith("#")) {
-                          return (
-                            <Link to={`/search?qs=%23${word.slice(1)}`}>
-                              <Typography
-                                variant="body1"
-                                display="inline"
-                                className={`link-${color}`}
-                              >
-                                {word}
-                              </Typography>
-                            </Link>
-                          );
-                        } else {
-                          return ` ${word} `;
-                        }
-                      })}
-                      {message.file ? (
-                        <CardMedia
-                          onClick={handleImage}
-                          image={`/uploads/${message.file}`}
-                          data-image-name={message.file}
-                          className={classes.image}
-                        />
-                      ) : null}
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Box display="flex" justifyContent="space-between">
-                        <div>
-                          <Tooltip title={"Like"} arrow>
-                            <IconButton
-                              onClick={handleLike}
-                              edge="start"
-                              data-id={message.id}
-                              className={
-                                message.liked ? classes.liked : classes.like
-                              }
-                            >
-                              {message.liked ? (
-                                <StarIcon />
-                              ) : (
-                                <StarBorderIcon />
-                              )}{" "}
-                            </IconButton>
-                          </Tooltip>
+                          ) : null}
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Box display="flex" justifyContent="space-between">
+                            <div>
+                              <Tooltip title={"Like"} arrow>
+                                <IconButton
+                                  onClick={handleLike}
+                                  edge="start"
+                                  data-id={message.id}
+                                  className={
+                                    message.liked ? classes.liked : classes.like
+                                  }
+                                >
+                                  {message.liked ? (
+                                    <StarIcon />
+                                  ) : (
+                                    <StarBorderIcon />
+                                  )}{" "}
+                                </IconButton>
+                              </Tooltip>
 
-                          {message.likes.length}
-                          <Tooltip title={"Repost"} arrow>
-                            <IconButton
-                              onClick={handleRepost}
-                              data-id={message.id}
-                              className={
-                                message.reposted
-                                  ? classes.reposted
-                                  : classes.repost
-                              }
-                            >
-                              {message.reposted ? (
-                                <RepeatIcon className={"reposted"} />
-                              ) : (
-                                <RepeatIcon />
-                              )}{" "}
-                            </IconButton>
-                          </Tooltip>
-                          {message.reposts.length}
-                        </div>
-                        <div>
-                          {user.isDifferentUser ? null : (
-                            <Tooltip title={"Pin"} arrow>
-                              <IconButton
-                                onClick={handlePin}
-                                data-id={message.id}
-                                className={`pin-message-button-${color}`}
-                              >
-                                <i className="fas fa-sm fa-thumbtack"></i>
-                              </IconButton>
-                            </Tooltip>
-                          )}
-                          <Tooltip title={"Delete"} arrow>
-                            <IconButton
-                              onClick={handleDelete}
-                              data-id={message.id}
-                              className={classes.delete}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Tooltip>
-                        </div>
-                      </Box>
+                              {message.likes.length}
+                              <Tooltip title={"Repost"} arrow>
+                                <IconButton
+                                  onClick={handleRepost}
+                                  data-id={message.id}
+                                  className={
+                                    message.reposted
+                                      ? classes.reposted
+                                      : classes.repost
+                                  }
+                                >
+                                  {message.reposted ? (
+                                    <RepeatIcon className={"reposted"} />
+                                  ) : (
+                                    <RepeatIcon />
+                                  )}{" "}
+                                </IconButton>
+                              </Tooltip>
+                              {message.reposts.length}
+                            </div>
+                            <div>
+                              {user.isDifferentUser ? null : (
+                                <Tooltip title={"Pin"} arrow>
+                                  <IconButton
+                                    onClick={handlePin}
+                                    data-id={message.id}
+                                    className={`pin-message-button-${color}`}
+                                  >
+                                    <i className="fas fa-sm fa-thumbtack"></i>
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+                              <Tooltip title={"Delete"} arrow>
+                                <IconButton
+                                  onClick={handleDelete}
+                                  data-id={message.id}
+                                  className={classes.delete}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Tooltip>
+                            </div>
+                          </Box>
+                        </Grid>
+                      </Grid>
                     </Grid>
                   </Grid>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        ))}
+                </CardContent>
+              </Card>
+            ))
+          : null}
       </div>
     </InfiniteScroll>
   );

@@ -15,19 +15,46 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
+interface User {
+  id: string;
+  color: string;
+  createdAt: string;
+  username: string;
+  displayname: string;
+  email: string;
+  description: string;
+  location: string;
+  link: string;
+  pinned: Message;
+  followers: [];
+  following: [];
+  isDifferentUser?: boolean;
+  messages: [];
+}
+interface Message {
+  id: string;
+  createdAt: string;
+  data: string;
+  user: User;
+  liked: boolean;
+  file: string;
+  //likes: Like[];
+  reposted: boolean;
+  reposts: Repost[];
+  messageCreatedAt?: string;
+}
+interface Repost {
+  id: string;
+  createdAt: string;
+  user: User;
+  message: Message;
+}
+
 interface UserData {
   following: {
     isBeingFollowed?: boolean;
     id: string;
-    following: {
-      username: string;
-      messages: [];
-      following: [];
-      followers: [];
-      email: string;
-      displayname: string;
-      description: string;
-    };
+    following: User;
   }[];
 }
 const Following = (): JSX.Element => {
@@ -39,15 +66,7 @@ const Following = (): JSX.Element => {
       {
         isBeingFollowed: false,
         id: "",
-        following: {
-          email: "",
-          username: "",
-          messages: [],
-          following: [],
-          followers: [],
-          displayname: "",
-          description: "",
-        },
+        following: {} as User,
       },
     ],
   });

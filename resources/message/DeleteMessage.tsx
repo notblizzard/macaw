@@ -46,7 +46,17 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
   },
 }));
-const DeleteMessage = ({ open, handleClose, messageId }): JSX.Element => {
+
+interface DeleteMessageProps {
+  open: boolean;
+  handleClose: () => void;
+  messageId: string;
+}
+const DeleteMessage = ({
+  open,
+  handleClose,
+  messageId,
+}: DeleteMessageProps): JSX.Element => {
   const classes = useStyles();
 
   const handleMessageDelete = async (): Promise<void> => {

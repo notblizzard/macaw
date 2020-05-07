@@ -1,13 +1,18 @@
 import React from "react";
-import moment from "moment";
+import moment, { Moment } from "moment";
 import { Tooltip } from "@material-ui/core";
 import PropTypes from "prop-types";
 
-const Moment = ({ time, profile }): JSX.Element => {
+interface MomentProps {
+  time: string;
+  profile: boolean;
+}
+const Moment = ({ time, profile }: MomentProps): JSX.Element => {
   const timeFormatted = moment(time).format("hh - MMMM DD YYYY");
   const date: string = profile
     ? moment(time).local().format("MMMM YYYY")
     : moment(time).local().fromNow();
+
   return (
     <Tooltip className={"grey"} title={timeFormatted} arrow interactive>
       <span>{date}</span>
@@ -15,9 +20,9 @@ const Moment = ({ time, profile }): JSX.Element => {
   );
 };
 
-Moment.propTypes = {
-  time: PropTypes.string,
-  profile: PropTypes.bool,
-};
+//Moment.propTypes = {
+// time: PropTypes.string,
+// profile: PropTypes.bool,
+//};
 
 export default Moment;

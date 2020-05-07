@@ -103,26 +103,44 @@ const useStyles = makeStyles((theme: Theme) => ({
     color: "#81db6b",
   },
 }));
-
-interface UserData {
-  displayname: string;
-  pinned: any;
+interface User {
+  id: string;
   color: string;
-  isDifferentUser?: boolean | undefined;
+  createdAt: string;
+  username: string;
+  displayname: string;
+  email: string;
+  description: string;
+  location: string;
+  link: string;
+  pinned: Message;
+  followers: [];
+  following: [];
+  isDifferentUser?: boolean;
+  messages: [];
 }
-
-interface MessageData {
-  reposted: boolean;
-  id: any;
+interface Message {
+  id: string;
+  createdAt: string;
   data: string;
-  createdAt: any;
-  likes: [];
-  reposts: [];
-  user: {
-    email: string;
-    username: string;
-    displayname: string;
-  };
+  user: User;
+  liked: boolean;
+  file: string;
+  likes: Like[];
+  reposted: boolean;
+  reposts: Repost[];
+  messageCreatedAt?: string;
+}
+interface Repost {
+  id: string;
+  createdAt: string;
+  user: User;
+  message: Message;
+}
+interface Like {
+  id: string;
+  user: User;
+  message: Message;
 }
 const Search = (): JSX.Element => {
   const classes = useStyles();
@@ -138,45 +156,19 @@ const Search = (): JSX.Element => {
   const [imageName, setImageName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
-  const [messages, setMessages] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [messages, setMessages] = useState<Message[]>([] as Message[]);
+  const [users, setUsers] = useState<User[]>([] as User[]);
   const [page, setPage] = useState(1);
-  const [user, setUser] = useState<UserData>({
-    displayname: "",
-    color: "",
-    pinned: {},
-    isDifferentUser: undefined,
-  });
-  const [dialog, setDialog] = useState<MessageData>({
-    reposted: false,
-    id: "",
-    data: "",
-    createdAt: "",
-    likes: [],
-    reposts: [],
-    user: {
-      email: "",
-      username: "",
-      displayname: "",
-    },
-  });
-
+  const [user, setUser] = useState<User>({} as User);
+  const [dialog, setDialog] = useState<Message>({} as Message);
   useEffect(() => {
-    fetch(`/api/message/search${location.search}&page=${page}`, {
-      credentials: "include",
-      headers: {
-        "X-XSRF-TOKEN": Cookies.get("XSRF-TOKEN"),
-      },
-      method: "GET",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setMessages(data.messages);
-          setUsers(data.users);
-          setPage(page + 1);
-        }
-      });
+    axios(`/api/message/search${location.search}&page=${page}`).then((res) => {
+      if (res.data.success) {
+        setMessages(res.data.messages);
+        setUsers(res.data.users);
+        setPage(page + 1);
+      }
+    });
   }, []);
 
   const loadMoreMessages = (): void => {
@@ -194,13 +186,15 @@ const Search = (): JSX.Element => {
       });
   };
 
-  const handleLike = (e): void => {
+  const handleLike = (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ): void => {
     const messageId = e.currentTarget.getAttribute("data-id");
     //e.preventDefault();
     axios.post("/api/message/like", { id: messageId }).then((res) => {
       if (res.data.success) {
         const messagesUpdated = messages.map((m) => {
-          if (m.id === Number(messageId)) {
+          if (m.id === messageId) {
             if (res.data.liked) {
               m.liked = true;
               m.likes.push(res.data.like);
@@ -216,25 +210,31 @@ const Search = (): JSX.Element => {
     });
   };
 
-  const handlePin = async (e): Promise<void> => {
-    const messageId: string = e.currentTarget.getAttribute("data-id");
+  const handlePin = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ): Promise<void> => {
+    const messageId: string = e.currentTarget.getAttribute("data-id")!;
     await axios.post("/api/message/pin", {
       id: messageId,
     });
   };
 
-  const handleDelete = (e): void => {
-    const messageId: string = e.currentTarget.getAttribute("data-id");
+  const handleDelete = (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ): void => {
+    const messageId = e.currentTarget.getAttribute("data-id")!;
     setMessageId(messageId);
     setOpenDelete(true);
   };
 
-  const handleRepost = (e): void => {
-    const messageId: string = e.currentTarget.getAttribute("data-id");
+  const handleRepost = (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ): void => {
+    const messageId = e.currentTarget.getAttribute("data-id")!;
     axios.post("/api/message/repost", { id: messageId }).then((res) => {
       if (res.data.success) {
         const messagesUpdated = messages.map((m) => {
-          if (m.id === Number(messageId)) {
+          if (m.id === messageId) {
             if (res.data.reposted) {
               m.reposted = true;
               m.reposts.push(res.data.repost);
@@ -252,7 +252,7 @@ const Search = (): JSX.Element => {
     });
   };
 
-  const handleDialogOpen = (e): void | boolean => {
+  const handleDialogOpen = (e: any): void | boolean => {
     const tagNames: string[] = ["a", "button", "i", "path", "svg", "span"];
     const imageClassName = "MuiCardMedia-root";
     // prevent dialog on clicking like/repost/etc
@@ -268,9 +268,11 @@ const Search = (): JSX.Element => {
     });
   };
 
-  const handleImage = (e): void => {
+  const handleImage = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+  ): void => {
     e.preventDefault();
-    setImageName(e.currentTarget.getAttribute("data-image-name"));
+    setImageName(e.currentTarget.getAttribute("data-image-name")!);
     setOpenImage(true);
   };
 
@@ -373,7 +375,7 @@ const Search = (): JSX.Element => {
                       <Moment
                         time={
                           message.reposted
-                            ? message.messageCreatedAt
+                            ? message.messageCreatedAt!
                             : message.createdAt
                         }
                         profile={false}

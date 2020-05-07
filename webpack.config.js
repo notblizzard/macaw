@@ -2,7 +2,7 @@
 
 const TerserWebpackPlugin = require("terser-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const VueLoaderPlugin = require("vue-loader/lib/plugin");
+//const VueLoaderPlugin = require("vue-loader/lib/plugin");
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
   .BundleAnalyzerPlugin;
 //const CompressionPlugin = require("compression-webpack-plugin");
@@ -22,7 +22,7 @@ module.exports = {
       filename: "[name].css",
     }),
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
-    new BundleAnalyzerPlugin(),
+    //new BundleAnalyzerPlugin(),
 
     //new VueLoaderPlugin(),
   ],

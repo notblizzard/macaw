@@ -19,25 +19,6 @@ import Following from "./user/Following";
 import Search from "./Search";
 import Cookies from "js-cookie";
 
-interface NewMessageData {
-  createdAt: string;
-  data: string;
-  file?: any;
-  id: number;
-  user: {
-    color: string;
-    createdAt: string;
-    description: string;
-    displayname: string;
-    email: string;
-    id: number;
-    link: string;
-    location: string;
-    username: string;
-  };
-  userId: number;
-}
-
 const App = (): JSX.Element => {
   const [color, setColor] = useState("");
   const [open, setOpen] = useState(false);
@@ -54,8 +35,8 @@ const App = (): JSX.Element => {
     });
   }, []);
 
-  const handleColor = (e): void => {
-    setColor(e.target.value as string);
+  const handleColor = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setColor(e.target.value);
   };
 
   const handleClose = (): void => {

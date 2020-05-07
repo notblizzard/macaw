@@ -17,6 +17,8 @@ import {
   IsString,
   MaxLength,
   IsUrl,
+  ValidateIf,
+  IsNotEmpty,
 } from "class-validator";
 import Message from "./Message";
 import Like from "./Like";
@@ -24,6 +26,7 @@ import Repost from "./Repost";
 import Follow from "./Follow";
 import Conversation from "./Conversation";
 import ConversationMessage from "./ConversationMessage";
+import { isNotEmptyString } from "../validators";
 
 @Entity()
 export default class User extends BaseEntity {
@@ -35,11 +38,13 @@ export default class User extends BaseEntity {
 
   @Column({ unique: true })
   @MinLength(1)
+  @isNotEmptyString()
   @MaxLength(24)
   username!: string;
 
   @Column({ nullable: true })
   @MaxLength(24)
+  @isNotEmptyString()
   @IsOptional()
   displayname!: string;
 
@@ -55,7 +60,9 @@ export default class User extends BaseEntity {
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
+  @MinLength(1)
   @MaxLength(280)
+  @isNotEmptyString()
   description!: string;
 
   @Column({ nullable: true })
@@ -77,6 +84,7 @@ export default class User extends BaseEntity {
   @IsOptional()
   @MinLength(1)
   @MaxLength(50)
+  @isNotEmptyString()
   location!: string;
 
   @Column({ nullable: true, default: "blue" })

@@ -34,10 +34,31 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const UserInfoCard = ({ user, color }): JSX.Element => {
+interface UserInfoCardProps {
+  user: {
+    id: string;
+    email: string;
+    displayname: string;
+    username: string;
+    description: string;
+    createdAt: string;
+    location: string;
+    link: string;
+    followers: [];
+    following: [];
+    messages: [];
+    isDifferentUser?: boolean;
+    isFollowingUser?: boolean;
+  };
+  color: string;
+}
+
+const UserInfoCard = ({ user, color }: UserInfoCardProps): JSX.Element => {
   const classes = useStyles();
   const [isFollowingUser, setIsFollowingUser] = useState(user.isFollowingUser);
-  const handleFollow = async (e) => {
+  const handleFollow = async (
+    e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+  ): Promise<void> => {
     const userId = e.currentTarget.getAttribute("data-id");
     axios.post("/api/user/follow", { id: userId }).then((res) => {
       if (res.data.success) {
@@ -54,6 +75,7 @@ const UserInfoCard = ({ user, color }): JSX.Element => {
             <Button
               variant={isFollowingUser ? "contained" : "outlined"}
               data-id={user.id}
+              href={""}
               className={`button-${isFollowingUser ? "" : "outline-"}${color}`}
               onClick={handleFollow}
             >

@@ -9,7 +9,19 @@ import {
 import UserTooltip from "./UserTooltip";
 import PropTypes from "prop-types";
 
-const UserInfo = ({ user, color }): JSX.Element => {
+interface UserInfoProps {
+  user: {
+    email: string;
+    displayname: string;
+    username: string;
+    description: string;
+    createdAt: string;
+    location: string;
+    link: string;
+  };
+  color: string;
+}
+const UserInfo = ({ user, color }: UserInfoProps): JSX.Element => {
   return (
     <Box>
       <Gravatar email={user.email} size={14}></Gravatar>
@@ -51,7 +63,7 @@ const UserInfo = ({ user, color }): JSX.Element => {
   );
 };
 UserInfo.propTypes = {
-  user: {
+  user: PropTypes.shape({
     email: PropTypes.string,
     displayname: PropTypes.string,
     username: PropTypes.string,
@@ -59,9 +71,9 @@ UserInfo.propTypes = {
     createdAt: PropTypes.any,
     location: PropTypes.string,
     link: PropTypes.string,
-    isDifferentUser: PropTypes.bool,
-    isFollowingUser: PropTypes.bool,
-  },
+    // isDifferentUser: PropTypes.bool,
+    // isFollowingUser: PropTypes.bool,
+  }),
   color: PropTypes.string,
 };
 

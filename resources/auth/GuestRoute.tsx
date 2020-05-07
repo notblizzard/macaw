@@ -3,11 +3,15 @@ import { Route, Redirect } from "react-router-dom";
 import PropType from "prop-types";
 import Cookies from "js-cookie";
 
-const GuestRoute = ({ children, ...rest }): JSX.Element => {
+interface GuestRouteProps {
+  children: React.ReactNode;
+  path: string;
+}
+const GuestRoute = ({ children, ...rest }: GuestRouteProps): JSX.Element => {
   return (
     <Route
       {...rest}
-      render={({ location }): JSX.Element =>
+      render={({ location }): JSX.Element | React.ReactNode =>
         !Cookies.get("email") ? (
           children
         ) : (

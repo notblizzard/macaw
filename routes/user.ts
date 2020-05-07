@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { User, Follow } from "../models";
-import { validate } from "class-validator";
+import { validate, ValidationError } from "class-validator";
 import { Request } from "express";
 import { passport } from "../authorization";
 import { Like } from "typeorm";
@@ -9,6 +9,14 @@ interface RequestUser extends Request {
   id: number;
   email: string;
   username: string;
+}
+
+interface SettingsError extends ValidationError {
+  constraints: {};
+}
+
+interface Errors {
+  [key: string]: string[];
 }
 
 interface ProfileUser extends User {
@@ -167,6 +175,7 @@ router.get(
 );
 
 router.post("/api/user/settings/", async (req, res) => {
+  const errorList: Errors = {};
   const user: User | undefined = await User.findOne(
     (req.user as RequestUser).id,
   );
@@ -183,14 +192,22 @@ router.post("/api/user/settings/", async (req, res) => {
   validate(user, { validationError: { target: false } }).then(
     async (errors) => {
       if (errors.length > 0) {
-        return res.json({ success: false, errors });
+        errors.map((error) => {
+          errorList[error.property] = Object.values(error.constraints);
+        });
+        return res.json({ success: false, errors: errorList });
       }
       try {
         await user.save();
         return res.json({ success: true, user });
       } catch (e) {
-        if (e.name === "QueryFailedError") {
-          //res.redirect("/settings");
+        if (
+          e.name === "QueryFailedError" &&
+          e.detail.includes("already exists.")
+        ) {
+          // unique username
+          errorList.username = ["username already exists."];
+          return res.json({ success: false, errors: errorList });
         }
       }
     },

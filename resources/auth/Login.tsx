@@ -51,14 +51,14 @@ const Login = (): JSX.Element => {
   // const [redirect] = useState(false);
   const history = useHistory();
   const classes = useStyles();
-  const handleUsername = (e): void => {
+  const handleUsername = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setUsername(e.target.value);
   };
 
-  const handlePassword = (e): void => {
+  const handlePassword = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setPassword(e.target.value);
   };
-  const onSubmit = (e): void => {
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     axios
       .post("/login", {

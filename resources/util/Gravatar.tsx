@@ -12,12 +12,15 @@ const useStyles = makeStyles((theme: Theme) => ({
     width: theme.spacing(props.size),
   }),
 }));
-
-const Gravatar = ({ email, size }): JSX.Element => {
+interface GravatarProps {
+  email: string;
+  size: number;
+}
+const Gravatar = ({ email, size }: GravatarProps): JSX.Element => {
   const hash: string = createHash("md5")
     .update(email || "")
     .digest("hex");
-  const classes = useStyles({ size });
+  const classes = useStyles({ size, email });
 
   return (
     <Avatar

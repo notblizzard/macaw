@@ -7,6 +7,10 @@ import passport from "passport";
 
 const router = Router();
 
+const wasRepostedByUser = (message: Message, user: User): boolean => {
+  return user.reposts.map((repost) => repost.message.id).includes(message.id);
+};
+
 const getReposts = (reposts: Repost[], messages: Message[]): Message[] => {
   const repostIds: number[] = reposts.map((repost) => repost.message.id);
   messages.map((message: ProfileUserMessage) => {
@@ -223,7 +227,7 @@ router.get(
 );
 
 router.get("/api/message/dialog", async (req, res) => {
-  const message: Message | undefined = await Message.findOne({
+  const message: ProfileUserMessage | undefined = await Message.findOne({
     where: { id: req.query.id }, // messageId
     relations: [
       "user",
@@ -240,6 +244,18 @@ router.get("/api/message/dialog", async (req, res) => {
   });
   if (!message) {
     return res.json({ success: false, error: "message does not exist." });
+  }
+  if (req.user) {
+    const user = await User.findOne({
+      where: { id: (req.user as RequestUser).id },
+      relations: ["reposts", "likes", "reposts.message"],
+    });
+    if (wasRepostedByUser(message, user!)) {
+      message.messageCreatedAt = message.createdAt;
+      message.createdAt = user?.reposts.filter((repost) => {
+        return repost.message.id === message.id;
+      })[0].createdAt!;
+    }
   }
   return res.json({ success: true, message });
 });

@@ -7,7 +7,7 @@ const Register = (): JSX.Element => {
   const [email, setEmail] = useState("");
   const history = useHistory();
 
-  const onSubmit = (e): void => {
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     axios
       .post("/register", {

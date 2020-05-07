@@ -17,21 +17,28 @@ interface UserData {
   description: string;
   messageCount: number;
 }
-const defaultUserData: UserData = {
-  id: "",
-  displayname: "",
-  username: "",
-  messageCount: 0,
-  followers: [],
-  following: [],
-  color: "",
-  description: "",
-};
+
+interface User {
+  id: string;
+  color: string;
+  createdAt: string;
+  username: string;
+  displayname: string;
+  email: string;
+  description: string;
+  location: string;
+  link: string;
+  messageCount: number;
+  //pinned: Message;
+  followers: [];
+  following: [];
+  isDifferentUser?: boolean;
+}
 const Profile = (): JSX.Element => {
   const color: string = Cookies.get("color") || "default";
 
   const { username } = useParams();
-  const [user, setUser] = useState<UserData>(defaultUserData);
+  const [user, setUser] = useState<User>({} as User);
 
   useEffect(() => {
     axios
@@ -51,7 +58,11 @@ const Profile = (): JSX.Element => {
       </Grid>
       <Grid item xs={10}>
         <UserStat user={user} color={color} />
-        <UserMessage dashboard={false} username={username} color={color} />
+        <UserMessage
+          dashboard={false}
+          username={username as string}
+          color={color}
+        />
       </Grid>
     </Grid>
   );

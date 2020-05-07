@@ -50,7 +50,16 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const ViewImage = ({ open, handleClose, imageName }): JSX.Element => {
+interface ViewImageProps {
+  open: boolean;
+  handleClose: () => void;
+  imageName: string;
+}
+const ViewImage = ({
+  open,
+  handleClose,
+  imageName,
+}: ViewImageProps): JSX.Element => {
   const classes = useStyles();
   return (
     <Dialog

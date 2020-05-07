@@ -2,11 +2,19 @@ import React from "react";
 import { Route, Redirect } from "react-router-dom";
 import PropType from "prop-types";
 import Cookies from "js-cookie";
-const PrivateRoute = ({ children, ...rest }): JSX.Element => {
+
+interface PrivateRouteProps {
+  children: React.ReactNode;
+  path: string;
+}
+const PrivateRoute = ({
+  children,
+  ...rest
+}: PrivateRouteProps): JSX.Element => {
   return (
     <Route
       {...rest}
-      render={({ location }): JSX.Element =>
+      render={({ location }): JSX.Element | React.ReactNode =>
         Cookies.get("email") ? (
           children
         ) : (

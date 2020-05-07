@@ -29,11 +29,11 @@ const useStyles = makeStyles(() => ({
     borderRadius: "2%", //theme.shape.borderRadius,
     paddingInline: "1rem",
   },
-  messageLengthGood: {
+  messageGreen: {
     color: "#66ffb2",
     justifyContent: "center",
   },
-  messageLengthBad: {
+  messageRed: {
     color: "#db5e39",
     justifyContent: "center",
   },
@@ -50,30 +50,39 @@ const useStyles = makeStyles(() => ({
     },
   },
 }));
-const NewMessage = ({ open, onClose, color }): JSX.Element => {
+
+interface NewMessageProps {
+  open: boolean;
+  onClose: () => void;
+  color: string;
+}
+
+const NewMessage = ({ open, onClose, color }: NewMessageProps): JSX.Element => {
   const [text, setText] = useState("");
   const fileRef = useRef(null);
   const classes = useStyles();
-  const textClass =
-    text.length <= 260 ? classes.messageLengthGood : classes.messageLengthBad;
-  const handleChange = (e): void => {
+  const textClass = classes[text.length <= 260 ? "messageGreen" : "messageRed"];
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     if (text.length <= 280) {
       e.preventDefault();
     }
     setText(e.target.value);
   };
 
-  const handleSubmit = async (e): Promise<void> => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
     e.preventDefault();
     const formData = new FormData();
 
     formData.append("data", text);
-    formData.append("file", fileRef.current.files[0]);
+    //formData.append("file", fileRef?.current?.files?.[0]);
 
     await fetch("/api/message/new", {
       credentials: "include",
       headers: {
-        "X-XSRF-TOKEN": Cookies.get("XSRF-TOKEN"),
+        "X-XSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
       },
       method: "POST",
       body: formData,

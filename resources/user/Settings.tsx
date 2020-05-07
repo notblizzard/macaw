@@ -13,18 +13,15 @@ import {
   RadioGroup,
   FormLabel,
   Container,
+  Grid,
 } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
 import PropType from "prop-types";
 import Cookies from "js-cookie";
+import { ValidationError } from "class-validator";
 
 const useStyles = makeStyles((theme: Theme) => ({
   search: {
-    margin: theme.spacing(4),
-    backgroundColor: fade("#66d0f9", 0.1),
-    position: "relative",
-    borderRadius: theme.shape.borderRadius,
-    width: "20rem",
     "&:hover": {
       backgroundColor: fade("#66d0f9", 0.2),
     },
@@ -32,6 +29,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 
   inputInput: {
     color: "#eee",
+    margin: theme.spacing(2),
 
     "& .MuiFormLabel-root": {
       color: "#79838a",
@@ -39,6 +37,11 @@ const useStyles = makeStyles((theme: Theme) => ({
 
     "& .MuiOutlinedInput-root": {
       color: "#eee",
+      //margin: theme.spacing(4),
+      backgroundColor: fade("#66d0f9", 0.1),
+      //position: "relative",
+      borderRadius: theme.shape.borderRadius,
+      //width: "20rem",
       "&.Mui-focused fieldset": {
         borderColor: "#09a6f4",
         color: "#eee",
@@ -60,7 +63,16 @@ interface UserSettings {
   link?: string;
   color?: string;
 }
-const Settings = ({ handleColor }): JSX.Element => {
+
+interface SettingsError extends ValidationError {
+  property: string;
+  errors: string[];
+}
+
+interface SettingsProps {
+  handleColor: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+const Settings = ({ handleColor }: SettingsProps): JSX.Element => {
   const colors: string[] = [
     "red",
     "blue",
@@ -79,54 +91,50 @@ const Settings = ({ handleColor }): JSX.Element => {
     description: "",
     color: "",
   });
-  const [, setErrors] = useState({});
+  const [errors, setErrors] = useState({
+    username: [],
+    displayname: [],
+    email: [],
+    location: [],
+    link: [],
+    description: [],
+    color: [],
+  });
   const classes = useStyles();
   const history = useHistory();
 
-  const handleChangeUsername = (e): void => {
-    setSettings({ ...settings, username: e.target.value });
+  const handleSettingsChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
+    const target = e.target.getAttribute("name");
+    setSettings({ ...settings, [target as string]: e.target.value });
   };
 
-  const handleChangeDisplayname = (e): void => {
-    setSettings({ ...settings, displayname: e.target.value });
-  };
-  const handleChangeEmail = (e): void => {
-    setSettings({ ...settings, email: e.target.value });
-  };
-  const handleChangeLocation = (e): void => {
-    setSettings({ ...settings, location: e.target.value });
-  };
-  const handleChangeLink = (e): void => {
-    setSettings({ ...settings, link: e.target.value });
-  };
-  const handleChangeDescription = (e): void => {
-    setSettings({ ...settings, description: e.target.value });
-  };
-
-  const handleSubmit = (e): void => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     axios.post("/api/user/settings/", settings).then((res) => {
       if (res.data.success) {
         setSettings({ ...(res.data.user as UserSettings) });
-        Cookies.set("color", settings.color);
+        Cookies.set("color", settings.color as string);
         history.push("/dashboard");
       } else {
-        const errorsArray = res.data.errors.map((i) => {
+        setErrors({ ...errors, ...res.data.errors });
+        /*const errorsArray = (res.data.errors as SettingsError[]).map((i) => {
           const errorObject = { property: "", constraints: "" };
           errorObject[i.property] =
             i.constraints[Object.keys(i.constraints)[0]];
           return errorObject;
         });
-        setErrors(errorsArray);
+        setErrors(errorsArray);*/
       }
     });
   };
 
-  const handleRadioChange = (e): void => {
-    setSettings({ ...settings, color: (e.target as HTMLInputElement).value });
+  const handleRadioChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setSettings({ ...settings, color: e.target.value });
   };
 
-  const handleBoth = (e): void => {
+  const handleBoth = (e: React.ChangeEvent<HTMLInputElement>): void => {
     handleRadioChange(e);
     handleColor(e);
   };
@@ -140,36 +148,39 @@ const Settings = ({ handleColor }): JSX.Element => {
   }, []);
 
   return (
-    <Box display="flex" justifyContent="center" padding={4}>
-      <form onSubmit={handleSubmit}>
-        <Container>
-          <FormControl component="fieldset">
-            <FormLabel component="legend">Profile Color</FormLabel>
-            <RadioGroup
-              name="color"
-              row={true}
-              value={settings.color}
-              onChange={handleBoth}
-            >
-              {colors.map((color) => (
-                <FormControlLabel
-                  value={color}
-                  key={color}
-                  control={<Radio className={"radio-" + color} />}
-                  label=""
-                />
-              ))}
-            </RadioGroup>
-          </FormControl>
-        </Container>
-        <div className={classes.search}>
+    <form onSubmit={handleSubmit}>
+      <Grid container direction="column" alignItems="center" justify="center">
+        <Grid item xs={12}>
+          <Container>
+            <FormControl component="fieldset">
+              <RadioGroup
+                name="color"
+                row={true}
+                value={settings.color}
+                onChange={handleBoth}
+              >
+                {colors.map((color) => (
+                  <FormControlLabel
+                    value={color}
+                    key={color}
+                    control={<Radio className={"radio-" + color} />}
+                    label=""
+                  />
+                ))}
+              </RadioGroup>
+            </FormControl>
+          </Container>
+        </Grid>
+        <Grid item xs={12}>
           <TextField
             name="username"
             id="outlined-basic"
             label="Username"
-            onChange={handleChangeUsername}
+            onChange={handleSettingsChange}
             value={settings.username}
             variant="outlined"
+            error={errors.username.length > 0}
+            helperText={errors.username.join("\n")}
             InputLabelProps={{
               shrink: Boolean(settings.username?.length),
             }}
@@ -177,15 +188,17 @@ const Settings = ({ handleColor }): JSX.Element => {
               root: classes.inputInput,
             }}
           />
-        </div>
-        <div className={classes.search}>
+        </Grid>
+        <Grid item xs={12}>
           <TextField
             name="displayname"
             id="outlined-basic"
             label="Display Name"
-            onChange={handleChangeDisplayname}
+            onChange={handleSettingsChange}
             value={settings.displayname}
             variant="outlined"
+            error={errors.displayname.length > 0}
+            helperText={errors.displayname.join("\n")}
             InputLabelProps={{
               shrink: Boolean(settings.displayname?.length),
             }}
@@ -193,15 +206,17 @@ const Settings = ({ handleColor }): JSX.Element => {
               root: classes.inputInput,
             }}
           />
-        </div>
-        <div className={classes.search}>
+        </Grid>
+        <Grid item xs={12}>
           <TextField
             name="description"
             id="outlined-basic"
             label="Description"
             rows="4"
+            error={errors.description.length > 0}
+            helperText={errors.description.join("\n")}
             multiline
-            onChange={handleChangeDescription}
+            onChange={handleSettingsChange}
             value={settings.description}
             variant="outlined"
             InputLabelProps={{
@@ -211,14 +226,16 @@ const Settings = ({ handleColor }): JSX.Element => {
               root: classes.inputInput,
             }}
           />
-        </div>
-        <div className={classes.search}>
+        </Grid>
+        <Grid item xs={12}>
           <TextField
             name="email"
             id="outlined-basic"
             label="E-Mail"
-            onChange={handleChangeEmail}
+            onChange={handleSettingsChange}
             value={settings.email}
+            error={errors.email.length > 0}
+            helperText={errors.email.join("\n")}
             variant="outlined"
             InputLabelProps={{
               shrink: Boolean(settings.email?.length),
@@ -227,15 +244,17 @@ const Settings = ({ handleColor }): JSX.Element => {
               root: classes.inputInput,
             }}
           />
-        </div>
-        <div className={classes.search}>
+        </Grid>
+        <Grid item xs={12}>
           <TextField
             name="location"
             id="outlined-basic"
             label="Location"
-            onChange={handleChangeLocation}
+            onChange={handleSettingsChange}
             value={settings.location}
             variant="outlined"
+            error={errors.location.length > 0}
+            helperText={errors.location.join("\n")}
             InputLabelProps={{
               shrink: Boolean(settings.location?.length),
             }}
@@ -243,32 +262,36 @@ const Settings = ({ handleColor }): JSX.Element => {
               root: classes.inputInput,
             }}
           />
-        </div>
-        <div className={classes.search}>
+        </Grid>
+        <Grid item xs={12}>
           <TextField
             name="link"
             id="outlined-basic"
             label="Link"
-            onChange={handleChangeLink}
+            onChange={handleSettingsChange}
             value={settings.link}
             variant="outlined"
             InputLabelProps={{
               shrink: Boolean(settings.link?.length),
             }}
+            error={errors.link.length > 0}
+            helperText={errors.link.join("\n")}
             classes={{
               root: classes.inputInput,
             }}
           />
-        </div>
-        <Button
-          type="submit"
-          variant="contained"
-          className={`button-${settings.color}`}
-        >
-          Submit
-        </Button>
-      </form>
-    </Box>
+        </Grid>
+        <Grid item xs={12}>
+          <Button
+            type="submit"
+            variant="contained"
+            className={`button-${settings.color}`}
+          >
+            Submit
+          </Button>
+        </Grid>
+      </Grid>
+    </form>
   );
 };
 

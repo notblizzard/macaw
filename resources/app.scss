@@ -3,7 +3,7 @@
 
 $green: #23a07d;
 $blue: #3e7cb1;
-$purple: #38023b;
+$purple: #be12c9;
 $red: #e26361;
 $yellow: #ffbd00;
 $orange: #f17300;
@@ -20,8 +20,12 @@ $colors: (
 
 @mixin radio($color) {
   color: $color !important;
-  width .Mui-checked {
+  .Mui-checked {
     color: $color !important;
+  }
+  .MuiSvgIcon-root {
+    height: 2.4rem !important;
+    width: 2.4rem !important;
   }
 }
 
@@ -90,6 +94,9 @@ $colors: (
   }
 }
 
+#outlined-basic-helper-text {
+  font-size: 1rem !important;
+}
 @mixin grad() {
   border-image: linear-gradient(
       90deg,

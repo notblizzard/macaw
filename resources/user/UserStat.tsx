@@ -8,7 +8,28 @@ const useStyles = makeStyles(() => ({
     margin: "4px",
   },
 }));
-const UserStat = ({ user, color }): JSX.Element => {
+
+interface User {
+  id: string;
+  color: string;
+  createdAt: string;
+  username: string;
+  displayname: string;
+  email: string;
+  description: string;
+  location: string;
+  //pinned: Message;
+  followers: [];
+  following: [];
+  messageCount: number;
+  isDifferentUser?: boolean;
+}
+
+interface UserStatProps {
+  user: User;
+  color: string;
+}
+const UserStat = ({ user, color }: UserStatProps): JSX.Element => {
   const classes = useStyles();
 
   return (
