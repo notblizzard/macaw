@@ -46,24 +46,25 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 const Login = (): JSX.Element => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [data, setData] = useState({
+    username: "",
+    password: "",
+  });
   // const [redirect] = useState(false);
   const history = useHistory();
   const classes = useStyles();
-  const handleUsername = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setUsername(e.target.value);
+
+  const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const name = e.target.getAttribute("name")!;
+    setData({ ...data, [name]: e.target.value });
   };
 
-  const handlePassword = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setPassword(e.target.value);
-  };
   const onSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     axios
       .post("/login", {
-        username,
-        password,
+        username: data.username,
+        password: data.password,
         withCredentials: true,
       })
       .then((res) => {
@@ -86,8 +87,8 @@ const Login = (): JSX.Element => {
             name="displayname"
             id="outlined-basic"
             label="Username"
-            onChange={handleUsername}
-            value={username}
+            onChange={handleLoginChange}
+            value={data.username}
             variant="outlined"
             classes={{
               root: classes.input,
@@ -98,8 +99,8 @@ const Login = (): JSX.Element => {
             id="outlined-basic"
             label="Password"
             type="password"
-            onChange={handlePassword}
-            value={password}
+            onChange={handleLoginChange}
+            value={data.password}
             variant="outlined"
             classes={{
               root: classes.input,
