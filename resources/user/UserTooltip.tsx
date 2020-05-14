@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { Theme, makeStyles, Typography, Tooltip } from "@material-ui/core";
 import UserInfoCard from "./UserInfoCard";
 import PropType from "prop-types";
 import { Link } from "react-router-dom";
+import Cookies from "js-cookie";
 
 const useStyles = makeStyles((theme: Theme) => ({
   tooltip: {
@@ -60,11 +60,15 @@ const UserTooltip = ({ username, color }: UserTooltipProp): JSX.Element => {
 
   const handleOpen = (): void => {
     if (!user.username) {
-      axios.get(`/api/user/tooltip?username=${username}`).then((res) => {
-        if (res.data.success) {
-          setUser(res.data.user);
-        }
-      });
+      fetch(`/api/user/tooltip?username=${username}`, {
+        headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setUser(data.user);
+          }
+        });
     }
   };
 

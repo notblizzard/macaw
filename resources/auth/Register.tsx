@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useHistory } from "react-router-dom";
+import Cookies from "js-cookie";
 const Register = (): JSX.Element => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -9,16 +9,22 @@ const Register = (): JSX.Element => {
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    axios
-      .post("/register", {
+    fetch("/register", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+      body: JSON.stringify({
         username,
         password,
         email,
-        withCredentials: true,
-      })
-      .then((res) => {
-        if (res.data.success) {
-          sessionStorage.setItem("JWT", res.data.token);
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
           history.push("/dashboard");
         }
       });

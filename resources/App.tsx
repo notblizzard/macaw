@@ -7,7 +7,6 @@ import Login from "./auth/Login";
 import PrivateRoute from "./auth/PrivateRoute";
 import GuestRoute from "./auth/GuestRoute";
 import Dashboard from "./user/Dashboard";
-import axios from "axios";
 import CreateIcon from "@material-ui/icons/CreateOutlined";
 import Navbar from "./Navbar";
 import { Fab, Container } from "@material-ui/core";
@@ -28,11 +27,16 @@ const App = (): JSX.Element => {
   };
 
   useEffect(() => {
-    axios("/api/user/color").then((res) => {
-      if (res.data.success) {
-        setColor(res.data.color);
-      }
-    });
+    fetch("/api/user/color", {
+      credentials: "include",
+      headers: {
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) setColor(data.color);
+      });
   }, []);
 
   const handleColor = (e: React.ChangeEvent<HTMLInputElement>): void => {

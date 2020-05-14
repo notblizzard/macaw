@@ -12,7 +12,7 @@ import Gravatar from "../util/Gravatar";
 import React from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
-import axios from "axios";
+import Cookies from "js-cookie";
 
 const useStyles = makeStyles(() => ({
   tooltip: {
@@ -60,11 +60,19 @@ const UserInfoCard = ({ user, color }: UserInfoCardProps): JSX.Element => {
     e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
   ): Promise<void> => {
     const userId = e.currentTarget.getAttribute("data-id");
-    axios.post("/api/user/follow", { id: userId }).then((res) => {
-      if (res.data.success) {
-        setIsFollowingUser(res.data.following);
-      }
-    });
+    await fetch("/api/message/follow", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+      body: JSON.stringify({ id: userId }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) setIsFollowingUser(data.following);
+      });
   };
   return (
     <Card classes={{ root: classes.card }}>

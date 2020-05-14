@@ -13,11 +13,11 @@ import {
   TextField,
   fade,
 } from "@material-ui/core";
-import axios from "axios";
 import { Link } from "react-router-dom";
 import io from "socket.io-client";
 import PropTypes from "prop-types";
 import { User } from "../../models";
+import Cookies from "js-cookie";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -188,14 +188,18 @@ const PrivateMessage = ({
     }
   };
   useEffect(() => {
-    axios.get("/api/conversation/conversations").then((res) => {
-      if (res.data.success) {
-        socket.emit("authorized", { id: res.data.user.id });
-        setConversations(res.data.user.conversations);
-        setUsername(res.data.user.username);
-        setUserId(res.data.user.id);
-      }
-    });
+    fetch("/api/conversation/conversations", {
+      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          socket.emit("authorized", { id: data.user.id });
+          setConversations(data.user.conversations);
+          setUsername(data.user.username);
+          setUserId(data.user.id);
+        }
+      });
   }, []);
 
   useEffect(() => {
@@ -250,8 +254,14 @@ const PrivateMessage = ({
     e: React.FormEvent<HTMLFormElement>,
   ): Promise<void> => {
     e.preventDefault();
-    await axios.post("/api/conversation/new-conversation", {
-      username: newUser,
+    await fetch("/api/conversation/new-conversation", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+      body: JSON.stringify({ username: newUser }),
     });
   };
 

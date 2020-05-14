@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Gravatar from "../util/Gravatar";
 import { Grid, Box, Typography } from "@material-ui/core";
-import axios from "axios";
 import { Link, useParams } from "react-router-dom";
+import { SettingsBackupRestoreRounded } from "@material-ui/icons";
+import Cookies from "js-cookie";
 
 interface UserData {
   followers: {
@@ -33,14 +34,15 @@ const Followers = (): JSX.Element => {
     ],
   });
   useEffect(() => {
-    axios
-      .get(`/api/user/followers?username=${username}`)
-      .then((res) => {
-        if (res.data.success) {
-          setUser(res.data.user);
+    fetch(`/api/user/followers?username=${username}`, {
+      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setUser(data.user);
         }
-      })
-      .catch(console.error);
+      });
   }, []);
 
   return (

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import UserInfo from "./UserInfo";
 import UserStat from "./UserStat";
 import { useParams } from "react-router-dom";
@@ -41,14 +40,15 @@ const Profile = (): JSX.Element => {
   const [user, setUser] = useState<User>({} as User);
 
   useEffect(() => {
-    axios
-      .get(`/api/user/profile?username=${username}`)
-      .then((res) => {
-        if (res.data.success) {
-          setUser(res.data.user);
+    fetch(`/api/user/profile?username=${username}`, {
+      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setUser(data.user);
         }
-      })
-      .catch(console.error);
+      });
   }, []);
 
   return (

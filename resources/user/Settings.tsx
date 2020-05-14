@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import {
   TextField,
   makeStyles,
@@ -112,22 +111,25 @@ const Settings = ({ handleColor }: SettingsProps): JSX.Element => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    axios.post("/api/user/settings/", settings).then((res) => {
-      if (res.data.success) {
-        setSettings({ ...(res.data.user as UserSettings) });
-        Cookies.set("color", settings.color as string);
-        history.push("/dashboard");
-      } else {
-        setErrors({ ...errors, ...res.data.errors });
-        /*const errorsArray = (res.data.errors as SettingsError[]).map((i) => {
-          const errorObject = { property: "", constraints: "" };
-          errorObject[i.property] =
-            i.constraints[Object.keys(i.constraints)[0]];
-          return errorObject;
-        });
-        setErrors(errorsArray);*/
-      }
-    });
+    fetch("/api/user/settings", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+      body: JSON.stringify(settings),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setSettings({ ...(data.user as UserSettings) });
+          Cookies.set("color", settings.color as string);
+          history.push("/dashboard");
+        } else {
+          setErrors({ ...errors, ...data.errors });
+        }
+      });
   };
 
   const handleRadioChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -140,11 +142,15 @@ const Settings = ({ handleColor }: SettingsProps): JSX.Element => {
   };
 
   useEffect(() => {
-    axios.get("/api/user/settings/default").then((res) => {
-      if (res.data.success) {
-        setSettings(res.data.user);
-      }
-    });
+    fetch("/api/user/settings/default", {
+      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setSettings(data.user);
+        }
+      });
   }, []);
 
   return (

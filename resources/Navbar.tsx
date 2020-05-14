@@ -8,7 +8,6 @@ import {
   Box,
 } from "@material-ui/core";
 import { fade, makeStyles, Theme } from "@material-ui/core/styles";
-import axios from "axios";
 import { Link, useHistory } from "react-router-dom";
 import {
   Chat as ChatIcon,
@@ -94,9 +93,9 @@ const Navbar = ({ color }: NavbarProps): JSX.Element => {
   };
 
   const handleLogout = (): void => {
-    axios.get("/logout").then(() => {
-      history.push("/");
-    });
+    fetch("/logout", {
+      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
+    }).then(() => history.push("/"));
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {

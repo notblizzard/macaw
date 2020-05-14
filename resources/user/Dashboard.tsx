@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import UserMessage from "../message/UserMessage";
 import UserInfo from "./UserInfo";
 import UserStat from "./UserStat";
@@ -53,14 +52,15 @@ const Dashboard = (): JSX.Element => {
   const color: string = Cookies.get("color") || "default";
 
   useEffect(() => {
-    axios
-      .get("/api/user/dashboard")
-      .then((res) => {
-        if (res.data.success) {
-          setUser(res.data.user);
+    fetch("/api/user/dashboard", {
+      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setUser(data.user);
         }
-      })
-      .catch(console.error);
+      });
   }, []);
 
   return (

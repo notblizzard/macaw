@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Grid } from "@material-ui/core";
-import axios from "axios";
 import { useParams } from "react-router-dom";
 import UserInfoCard from "./UserInfoCard";
 import Cookies from "js-cookie";
@@ -71,11 +70,15 @@ const Following = (): JSX.Element => {
     ],
   });
   useEffect(() => {
-    axios.get(`/api/user/following?username=${username}`).then((res) => {
-      if (res.data.success) {
-        setUser(res.data.user);
-      }
-    });
+    fetch(`/api/user/following?username=${username}`, {
+      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setUser(data.user);
+        }
+      });
   }, []);
 
   return (

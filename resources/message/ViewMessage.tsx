@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
 
 import {
   Repeat as RepeatIcon,
@@ -24,6 +23,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import DeleteMessage from "./DeleteMessage";
 import ViewImage from "./ViewImage";
 import PropTypes from "prop-types";
+import Cookies from "js-cookie";
 interface User {
   id: string;
   color: string;
@@ -127,21 +127,45 @@ const ViewMessage = ({
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): Promise<void> => {
     const messageId = e.currentTarget.getAttribute("data-id");
-    await axios.post("/api/message/like", { id: messageId });
+    await fetch("/api/message/like", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+      body: JSON.stringify({ id: messageId }),
+    });
   };
 
   const handlePin = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): Promise<void> => {
     const messageId = e.currentTarget.getAttribute("data-id");
-    await axios.post("/api/message/pin", { id: messageId });
+    await fetch("/api/message/pin", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+      body: JSON.stringify({ id: messageId }),
+    });
   };
 
   const handleRepost = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): Promise<void> => {
     const messageId = e.currentTarget.getAttribute("data-id");
-    await axios.post("/api/message/repost", { id: messageId });
+    await fetch("/api/message/repost", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+      body: JSON.stringify({ id: messageId }),
+    });
   };
 
   const handleImage = (

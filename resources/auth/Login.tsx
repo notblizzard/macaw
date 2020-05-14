@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
 import {
   TextField,
   makeStyles,
@@ -10,6 +9,7 @@ import {
   Grid,
 } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
+import Cookies from "js-cookie";
 
 const useStyles = makeStyles((theme: Theme) => ({
   search: {
@@ -61,15 +61,21 @@ const Login = (): JSX.Element => {
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    axios
-      .post("/login", {
+    fetch("/login", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+      body: JSON.stringify({
         username: data.username,
         password: data.password,
-        withCredentials: true,
-      })
-      .then((res) => {
-        if (res.data.success) {
-          localStorage.setItem("email", res.data.email); // gravatar/navbar.
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
           history.push("/dashboard");
         }
       });
@@ -84,7 +90,7 @@ const Login = (): JSX.Element => {
         </Typography>
         <form onSubmit={onSubmit}>
           <TextField
-            name="displayname"
+            name="username"
             id="outlined-basic"
             label="Username"
             onChange={handleLoginChange}

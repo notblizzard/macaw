@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import UserInfoCard from "./user/UserInfoCard";
 import {
   Grid,
@@ -162,23 +161,29 @@ const Search = (): JSX.Element => {
   const [user, setUser] = useState<User>({} as User);
   const [dialog, setDialog] = useState<Message>({} as Message);
   useEffect(() => {
-    axios(`/api/message/search${location.search}&page=${page}`).then((res) => {
-      if (res.data.success) {
-        setMessages(res.data.messages);
-        setUsers(res.data.users);
-        setPage(page + 1);
-      }
-    });
+    fetch(`/api/message/search${location.search}&page=${page}`, {
+      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setMessages(data.messages);
+          setUsers(data.users);
+          setPage(page + 1);
+        }
+      });
   }, []);
 
   const loadMoreMessages = (): void => {
-    axios
-      .get(`/api/message/search${location.search}&page=${page}`)
-      .then((res) => {
-        if (res.data.success) {
+    fetch(`/api/message/search${location.search}&page=${page}`, {
+      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
           setPage(page + 1);
-          setUser(res.data.user);
-          setMessages(messages.concat(res.data.messages));
+          setUser(data.user);
+          setMessages(messages.concat(data.messages));
         } else {
           setHasMore(false);
         }
@@ -191,31 +196,47 @@ const Search = (): JSX.Element => {
   ): void => {
     const messageId = e.currentTarget.getAttribute("data-id");
     //e.preventDefault();
-    axios.post("/api/message/like", { id: messageId }).then((res) => {
-      if (res.data.success) {
-        const messagesUpdated = messages.map((m) => {
-          if (m.id === messageId) {
-            if (res.data.liked) {
-              m.liked = true;
-              m.likes.push(res.data.like);
-            } else {
-              m.liked = false;
-              m.likes = m.likes.filter((like) => like.id !== res.data.likeId);
+    fetch("/api/message/like", {
+      method: "POST",
+      credentials: "include",
+      body: JSON.stringify({ id: messageId }),
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          const messagesUpdated = messages.map((m) => {
+            if (m.id === messageId) {
+              if (data.liked) {
+                m.liked = true;
+                m.likes.push(data.like);
+              } else {
+                m.liked = false;
+                m.likes = m.likes.filter((like) => like.id !== data.likeId);
+              }
             }
-          }
-          return m;
-        });
-        setMessages(messagesUpdated);
-      }
-    });
+            return m;
+          });
+          setMessages(messagesUpdated);
+        }
+      });
   };
 
   const handlePin = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): Promise<void> => {
     const messageId: string = e.currentTarget.getAttribute("data-id")!;
-    await axios.post("/api/message/pin", {
-      id: messageId,
+    await fetch("/api/message/pin", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+      body: JSON.stringify({ id: messageId }),
     });
   };
 
@@ -231,25 +252,35 @@ const Search = (): JSX.Element => {
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): void => {
     const messageId = e.currentTarget.getAttribute("data-id")!;
-    axios.post("/api/message/repost", { id: messageId }).then((res) => {
-      if (res.data.success) {
-        const messagesUpdated = messages.map((m) => {
-          if (m.id === messageId) {
-            if (res.data.reposted) {
-              m.reposted = true;
-              m.reposts.push(res.data.repost);
-            } else {
-              m.reposted = false;
-              m.reposts = m.reposts.filter(
-                (repost) => repost.id !== res.data.repostId,
-              );
+    fetch("/api/message, repost", {
+      method: "POST",
+      body: JSON.stringify({ id: messageId }),
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          const messagesUpdated = messages.map((m) => {
+            if (m.id === messageId) {
+              if (data.reposted) {
+                m.reposted = true;
+                m.reposts.push(data.repost);
+              } else {
+                m.reposted = false;
+                m.reposts = m.reposts.filter(
+                  (repost) => repost.id !== data.repostId,
+                );
+              }
             }
-          }
-          return m;
-        });
-        setMessages(messagesUpdated);
-      }
-    });
+            return m;
+          });
+          setMessages(messagesUpdated);
+        }
+      });
   };
 
   const handleDialogOpen = (e: any): void | boolean => {
@@ -260,12 +291,16 @@ const Search = (): JSX.Element => {
     // prevent dialog on clicking image
     if (e.target.classList.contains(imageClassName)) return false;
     const messageId: string = e.currentTarget.getAttribute("data-id");
-    axios.get(`/api/message/dialog?id=${messageId}`).then((res) => {
-      if (res.data.success) {
-        setDialog(res.data.message);
-        setOpenView(true);
-      }
-    });
+    fetch(`/api/message/dialog?id=${messageId}`, {
+      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setDialog(data.message);
+          setOpenView(true);
+        }
+      });
   };
 
   const handleImage = (

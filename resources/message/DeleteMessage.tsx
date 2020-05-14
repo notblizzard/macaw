@@ -1,5 +1,4 @@
 import React from "react";
-import axios from "axios";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +8,7 @@ import {
 } from "@material-ui/core";
 import { makeStyles, Theme, fade } from "@material-ui/core/styles";
 import PropTypes from "prop-types";
+import Cookies from "js-cookie";
 
 const useStyles = makeStyles((theme: Theme) => ({
   modal: {
@@ -60,7 +60,15 @@ const DeleteMessage = ({
   const classes = useStyles();
 
   const handleMessageDelete = async (): Promise<void> => {
-    await axios.post("/api/message/delete", { id: messageId });
+    await fetch("/api/message/data", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+      body: JSON.stringify({ id: messageId }),
+    });
   };
 
   return (

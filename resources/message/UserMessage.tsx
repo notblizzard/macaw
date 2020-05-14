@@ -14,7 +14,6 @@ import {
   CardMedia,
   Tooltip,
 } from "@material-ui/core";
-import axios from "axios";
 import {
   Repeat as RepeatIcon,
   StarBorder as StarBorderIcon,
@@ -29,6 +28,8 @@ import DeleteMessage from "./DeleteMessage";
 import InfiniteScroll from "react-infinite-scroller";
 import ViewImage from "./ViewImage";
 import PropTypes from "prop-types";
+import { message } from "../../routes";
+import Cookies from "js-cookie";
 
 interface User {
   id: string;
@@ -142,94 +143,117 @@ const UserMessage = ({
   }page=${page}`;
 
   const loadMoreMessages = (): void => {
-    axios.get(urlForMessages).then((res) => {
-      if (res.data.success) {
-        setPage(page + 1);
-        setUser(res.data.user);
-        setMessages(messages.concat(res.data.messages));
-        if (mediaOnly) {
-          const messagesFiltered = (res.data.messages as Message[]).filter(
-            (message) => message.file,
-          );
-          setFilteredMessages(messagesFiltered);
+    fetch(urlForMessages, {
+      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setPage(page + 1);
+          setUser(data.user);
+          setMessages(messages.concat(data.messages));
+          if (mediaOnly) {
+            const messagesFiltered = (data.messages as Message[]).filter(
+              (message) => message.file,
+            );
+            setFilteredMessages(messagesFiltered);
+          } else {
+            setFilteredMessages(messages);
+          }
         } else {
-          setFilteredMessages(messages);
+          setHasMore(false);
         }
-      } else {
-        setHasMore(false);
-      }
-      setIsLoading(false);
-    });
+        setIsLoading(false);
+      });
   };
 
   useEffect(() => {
-    axios
-      .get(urlForMessages)
-      .then((res) => {
-        if (res.data.success) {
-          // place to store messages, so api wont have to be called every time
-          setUser(res.data.user);
-          setMessages(res.data.messages);
-          // used to actually map through the messages
-          setFilteredMessages(res.data.messages);
+    fetch(urlForMessages, {
+      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setUser(data.user);
+          setMessages(data.messages);
+          setFilteredMessages(data.messages);
           setPage(page + 1);
         }
         setIsLoading(false);
-      })
-      .catch(console.error);
+      });
   }, []);
 
   const handleLike = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): void => {
     const messageId = e.currentTarget.getAttribute("data-id");
-    axios.post("/api/message/like", { id: messageId }).then((res) => {
-      if (res.data.success) {
-        const messagesUpdated = messages.map((m) => {
-          if (m.id === messageId) {
-            if (res.data.liked) {
-              m.liked = true;
-              m.likes.push(res.data.like);
-            } else {
-              m.liked = false;
-              m.likes = m.likes.filter((like) => like.id !== res.data.likeId);
+    fetch("/api/message/like", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+      body: JSON.stringify({ id: messageId }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          const messagesUpdated = messages.map((m) => {
+            if (m.id === messageId) {
+              if (data.liked) {
+                m.liked = true;
+                m.likes.push(data.like);
+              } else {
+                m.liked = false;
+                m.likes = m.likes.filter((like) => like.id !== data.likeId);
+              }
             }
-          }
-          return m;
-        });
-        setMessages(messagesUpdated);
-      }
-    });
+            return m;
+          });
+          setMessages(messagesUpdated);
+        }
+      });
   };
 
   const handlePin = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): void => {
     const messageId: string = e.currentTarget.getAttribute("data-id") as string;
-    axios.post("/api/message/pin", { id: messageId }).then((res) => {
-      if (res.data.success) {
-        setUser({
-          ...user,
-          pinned: { ...user.pinned, id: res.data.pinned.id },
-        });
-        const messageIndex = messages
-          .map((message) => message.id)
-          .indexOf(messageId);
-        const messagesReordered = [
-          ...messages.slice(messageIndex),
-          ...messages.slice(0, messageIndex),
-        ];
-        setMessages(messagesReordered);
-        if (mediaOnly) {
-          const messagesFiltered = messagesReordered.filter(
-            (message) => message.file,
-          );
-          setFilteredMessages(messagesFiltered);
-        } else {
-          setFilteredMessages(messagesReordered);
+    fetch("/api/message/pin", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+      body: JSON.stringify({ id: messageId }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setUser({
+            ...user,
+            pinned: { ...user.pinned, id: data.pinned.id },
+          });
+          const messageIndex = messages
+            .map((message) => message.id)
+            .indexOf(messageId);
+          const messagesReordered = [
+            ...messages.slice(messageIndex),
+            ...messages.slice(0, messageIndex),
+          ];
+          setMessages(messagesReordered);
+          if (mediaOnly) {
+            const messagesFiltered = messagesReordered.filter(
+              (message) => message.file,
+            );
+            setFilteredMessages(messagesFiltered);
+          } else {
+            setFilteredMessages(messagesReordered);
+          }
         }
-      }
-    });
+      });
   };
 
   const handleDelete = (
@@ -244,25 +268,35 @@ const UserMessage = ({
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): void => {
     const messageId: string = e.currentTarget.getAttribute("data-id") as string;
-    axios.post("/api/message/repost", { id: messageId }).then((res) => {
-      if (res.data.success) {
-        const messagesUpdated = messages.map((m) => {
-          if (m.id === messageId) {
-            if (res.data.reposted) {
-              m.reposted = true;
-              m.reposts.push(res.data.repost);
-            } else {
-              m.reposted = false;
-              m.reposts = m.reposts.filter(
-                (repost) => repost.id !== res.data.repostId,
-              );
+    fetch("/api/message/repost", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+      body: JSON.stringify({ id: messageId }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          const messagesUpdated = messages.map((m) => {
+            if (m.id === messageId) {
+              if (data.reposted) {
+                m.reposted = true;
+                m.reposts.push(data.repost);
+              } else {
+                m.reposted = false;
+                m.reposts = m.reposts.filter(
+                  (repost) => repost.id !== data.repostId,
+                );
+              }
             }
-          }
-          return m;
-        });
-        setMessages(messagesUpdated);
-      }
-    });
+            return m;
+          });
+          setMessages(messagesUpdated);
+        }
+      });
   };
 
   const handleDialogOpen = (
@@ -277,15 +311,17 @@ const UserMessage = ({
     if ((e.target as HTMLInputElement).classList.contains(imageClassName))
       return false;
     const messageId: string = e.currentTarget.getAttribute("data-id") as string;
-    axios.get(`/api/message/dialog?id=${messageId}`).then((res) => {
-      if (res.data.success) {
-        // todo: fix interface, expects string
-        res.data.message.id = res.data.message.id.toString();
-
-        setDialog(res.data.message);
-        setOpenView(true);
-      }
-    });
+    fetch(`/api/message/dialog?id=${messageId}`, {
+      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          data.message.id = data.message.id.toString();
+          setDialog(data.message);
+          setOpenView(true);
+        }
+      });
   };
 
   const handleImage = (
