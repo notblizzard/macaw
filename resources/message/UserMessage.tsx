@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Gravatar from "../util/Gravatar";
 import Moment from "../util/Moment";
 import {
@@ -28,8 +28,10 @@ import DeleteMessage from "./DeleteMessage";
 import InfiniteScroll from "react-infinite-scroller";
 import ViewImage from "./ViewImage";
 import PropTypes from "prop-types";
-import { message } from "../../routes";
 import Cookies from "js-cookie";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faThumbtack } from "@fortawesome/free-solid-svg-icons";
+import DarkModeContext from "../DarkMode";
 
 interface User {
   id: string;
@@ -69,6 +71,10 @@ interface Like {
   message: Message;
 }
 
+interface StyleProps {
+  darkMode: boolean;
+}
+
 const useStyles = makeStyles({
   caption: {
     fontFamily: "'Open Sans', sans-serif",
@@ -77,12 +83,12 @@ const useStyles = makeStyles({
     padding: "1rem",
     cursor: "pointer",
   },
-  message: {
-    backgroundColor: "#192a3d",
+  message: (props: StyleProps) => ({
+    backgroundColor: props.darkMode ? "#192a3d" : "#e3edf7",
     border: 0,
-    color: "#eee",
+    color: props.darkMode ? "#eee" : "#222",
     marginTop: "1rem",
-  },
+  }),
   image: {
     height: "400px",
   },
@@ -110,19 +116,27 @@ const useStyles = makeStyles({
   reposted: {
     color: "#81db6b",
   },
+  username: (props: StyleProps) => ({
+    color: props.darkMode ? "#b8c5d9bd" : "#070b0fbd",
+    fontSize: "1rem",
+  }),
+  displayname: (props: StyleProps) => ({
+    color: props.darkMode ? "#eee" : "#222",
+    fontSize: "1rem",
+  }),
 });
 //e: React.ChangeEvent<HTMLInputElement>
 interface UserMessageProps {
   dashboard: boolean;
   username: string | undefined;
-  color: string;
 }
 const UserMessage = ({
   dashboard,
   username,
-  color,
 }: UserMessageProps): JSX.Element => {
-  const classes = useStyles();
+  const color = Cookies.get("color") || "default";
+  const darkMode = useContext(DarkModeContext);
+  const classes = useStyles({ darkMode });
   const [openImage, setOpenImage] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openView, setOpenView] = useState(false);
@@ -388,7 +402,7 @@ const UserMessage = ({
           <Typography
             variant="h5"
             onClick={showAllMessages}
-            className={`${mediaOnly ? `link-${color}` : "'"} ${
+            className={`${mediaOnly ? `link-${color || "default"}` : "'"} ${
               classes.mediaToggles
             }`}
           >
@@ -397,7 +411,7 @@ const UserMessage = ({
           <Typography
             variant="h5"
             onClick={showMessagesWithMediaOnly}
-            className={`${mediaOnly ? "" : `link-${color}`} ${
+            className={`${mediaOnly ? "" : `link-${color || "default"}`} ${
               classes.mediaToggles
             }`}
           >
@@ -427,9 +441,10 @@ const UserMessage = ({
                               variant="caption"
                               className={classes.caption}
                             >
-                              <i
-                                className={`fas fa-thumbtack color-${color}`}
-                              ></i>{" "}
+                              <FontAwesomeIcon
+                                icon={faThumbtack}
+                                className={`color-${color || "default"}`}
+                              />{" "}
                               Pinned Message
                             </Typography>
                           ) : null}
@@ -444,17 +459,17 @@ const UserMessage = ({
                             </Typography>
                           ) : null}
                           <Link
-                            to={"/@" + message.user.username}
-                            className={"profile-link-" + color}
+                            to={`/@${message.user.username}`}
+                            className={`profile-link-${color}`}
                           >
-                            <span className="message-displayname">
+                            <span className={classes.displayname}>
                               {message.user.displayname === undefined ? (
                                 <span>{message.user.username}</span>
                               ) : (
                                 <span>{message.user.displayname}</span>
                               )}
                             </span>{" "}
-                            <span className="message-username">
+                            <span className={classes.username}>
                               @{message.user.username}
                             </span>
                           </Link>{" "}
@@ -470,12 +485,7 @@ const UserMessage = ({
                         <Grid item xs={12}>
                           {message.data.split(" ").map((word: string) => {
                             if (word.startsWith("@")) {
-                              return (
-                                <UserTooltip
-                                  username={word.slice(1)}
-                                  color={color}
-                                />
-                              );
+                              return <UserTooltip username={word.slice(1)} />;
                             } else if (word.startsWith("#")) {
                               return (
                                 <Link to={`/search?qs=%23${word.slice(1)}`}>
@@ -547,9 +557,9 @@ const UserMessage = ({
                                   <IconButton
                                     onClick={handlePin}
                                     data-id={message.id}
-                                    className={`pin-message-button-${color}`}
+                                    className={`pin-${color}`}
                                   >
-                                    <i className="fas fa-sm fa-thumbtack"></i>
+                                    <FontAwesomeIcon icon={faThumbtack} />
                                   </IconButton>
                                 </Tooltip>
                               )}

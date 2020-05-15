@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import Gravatar from "../util/Gravatar";
 import Moment from "../util/Moment";
 import {
@@ -12,88 +12,24 @@ import {
   Button,
   TextField,
   fade,
+  lighten,
+  Theme,
 } from "@material-ui/core";
 import { Link } from "react-router-dom";
 import io from "socket.io-client";
 import PropTypes from "prop-types";
 import { User } from "../../models";
 import Cookies from "js-cookie";
+import DarkModeContext from "../DarkMode";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFeatherAlt } from "@fortawesome/free-solid-svg-icons";
 
-const useStyles = makeStyles(() => ({
-  root: {
-    flexGrow: 1,
-    display: "flex",
-    height: 400,
-    overflow: "hidden",
-    backgroundColor: "#132436", //theme.palette.background.paper,
-  },
-  tabpanels: {
-    overflow: "auto",
-    height: 380,
-    width: "100%",
-  },
-  dialog: {
-    backgroundColor: "#132436",
-    padding: 0,
-  },
-  tabs: {
-    color: "#eee",
-  },
-  tabColor: {
-    backgroundColor: "#0a1b26",
-  },
-  message: {
-    backgroundColor: "#b3c1d0",
-    color: "#222",
-    borderRadius: "8px",
-    marginLeft: "4px",
-    marginRight: "4px",
-    wordWrap: "break-word",
-    padding: "8px",
-  },
-  messageBox: {
-    maxWidth: "40%",
-  },
-  input: {
-    color: "#eee",
-    width: "80%",
+const socketio = io();
 
-    "& .MuiFormLabel-root": {
-      color: "#79838a",
-    },
-
-    "& .MuiOutlinedInput-root": {
-      backgroundColor: fade("#66d0f9", 0.1),
-      color: "#eee",
-      "&.Mui-focused fieldset": {
-        borderColor: "#09a6f4",
-        color: "#eee",
-      },
-    },
-    "&:focus": {
-      borderColor: "#eee",
-    },
-  },
-  newUser: {
-    color: "#eee",
-
-    "& .MuiFormLabel-root": {
-      color: "#79838a",
-    },
-
-    "& .MuiOutlinedInput-root": {
-      backgroundColor: fade("#66d0f9", 0.1),
-      color: "#eee",
-      "&.Mui-focused fieldset": {
-        borderColor: "#09a6f4",
-        color: "#eee",
-      },
-    },
-    "&:focus": {
-      borderColor: "#eee",
-    },
-  },
-}));
+interface StyleProps {
+  darkMode: boolean;
+  color?: string;
+}
 
 interface A11yProps {
   id: string;
@@ -105,29 +41,6 @@ interface TabPanelProps {
   index: any;
   value: any;
 }
-function TabPanel(props: TabPanelProps): JSX.Element {
-  const classes = useStyles();
-  // eslint-disable-next-line react/prop-types
-  const { children, value, index, ...other } = props;
-  return (
-    <Typography
-      component="div"
-      role="tabpanel"
-      style={{ width: "80%" }}
-      hidden={value !== index}
-      id={`vertical-tabpanel-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box p={4} className={classes.tabpanels}>
-          {children}
-        </Box>
-      )}
-    </Typography>
-  );
-}
-
-const socketio = io();
 
 interface PrivateMessageProps {
   open: boolean;
@@ -157,11 +70,120 @@ interface NewMessage {
   conversation: Conversation;
   createdAt: string;
 }
+const useStyles = makeStyles((theme: Theme) => ({
+  root: {
+    flexGrow: 1,
+    display: "flex",
+    height: 400,
+    overflow: "hidden",
+  },
+  tabpanels: {
+    overflow: "auto",
+    height: 380,
+    width: "100%",
+  },
+  tab: (props: StyleProps) => ({
+    color: props.darkMode ? "#dfe9f4" : "#192a3d",
+  }),
+  modal: (props: StyleProps) => ({
+    backgroundColor: props.darkMode ? "#192a3d" : "#dfe9f4",
+    background: props.darkMode ? "#192a3d" : "#dfe9f4",
+    color: props.darkMode ? "#dfe9f4" : "#192a3d",
+    fontSize: "10rem",
+    textAlign: "center",
+  }),
+  tabs: {
+    color: "#eee",
+  },
+  tabColor: {
+    backgroundColor: "#0a1b26",
+  },
+  message: (props: StyleProps) => ({
+    backgroundColor: lighten(props.darkMode ? "#192a3d" : "#dfe9f4", 0.1),
+    color: props.darkMode ? "#dfe9f4" : "#192a3d",
+    borderRadius: "8px",
+    margin: theme.spacing(1),
+    wordWrap: "break-word",
+    padding: theme.spacing(1),
+  }),
+  messageBox: {
+    maxWidth: "40%",
+  },
+  input: {
+    color: "#eee",
+    width: "80%",
+
+    "& .MuiFormLabel-root": {
+      color: "#79838a",
+    },
+
+    "& .MuiOutlinedInput-root": {
+      backgroundColor: fade("#66d0f9", 0.1),
+      color: "#eee",
+      "&.Mui-focused fieldset": {
+        borderColor: "#09a6f4",
+        color: "#eee",
+      },
+    },
+    "&:focus": {
+      borderColor: "#eee",
+    },
+  },
+  tabPanel: {
+    width: "80%",
+  },
+  newUser: {
+    color: "#eee",
+
+    "& .MuiFormLabel-root": {
+      color: "#79838a",
+    },
+
+    "& .MuiOutlinedInput-root": {
+      backgroundColor: fade("#66d0f9", 0.1),
+      color: "#eee",
+      "&.Mui-focused fieldset": {
+        borderColor: "#09a6f4",
+        color: "#eee",
+      },
+    },
+    "&:focus": {
+      borderColor: "#eee",
+    },
+  },
+}));
+
+function TabPanel(props: TabPanelProps): JSX.Element {
+  const darkMode = useContext(DarkModeContext);
+
+  const classes = useStyles({ darkMode });
+  // eslint-disable-next-line react/prop-types
+  const { children, value, index, ...other } = props;
+  return (
+    <Typography
+      component="div"
+      role="tabpanel"
+      className={classes.tabPanel}
+      hidden={value !== index}
+      id={`vertical-tabpanel-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box p={4} className={classes.tabpanels}>
+          {children}
+        </Box>
+      )}
+    </Typography>
+  );
+}
+
 const PrivateMessage = ({
   open,
   onClose,
   color,
 }: PrivateMessageProps): JSX.Element => {
+  //const color = Cookies.get("color") || "default";
+  const darkMode = useContext(DarkModeContext);
   const { current: socket } = useRef(socketio);
   const [value, setValue] = useState(0);
   const [username, setUsername] = useState("");
@@ -172,7 +194,7 @@ const PrivateMessage = ({
     [] as Conversation[],
   );
   const messageRef = useRef<HTMLInputElement>(null);
-  const classes = useStyles();
+  const classes = useStyles({ darkMode, color });
 
   const a11yProps = (index: number): A11yProps => {
     return {
@@ -203,7 +225,6 @@ const PrivateMessage = ({
   }, []);
 
   useEffect(() => {
-    socket.open();
     socket.on("new message", (data: NewMessage) => {
       const updatedConversations = conversations.map((conversation) => {
         if (conversation.id === data.conversation.id) {
@@ -215,8 +236,9 @@ const PrivateMessage = ({
       setConversations(updatedConversations);
       scrollToBottom();
     });
-    //return (): SocketIOClient.Emitter =>
-    socket.off("new message");
+    return (): void => {
+      socket.off("new message");
+    };
   }, [conversations]);
 
   const handleTabChange = (
@@ -248,8 +270,8 @@ const PrivateMessage = ({
       "data-id",
     ) as string;
     socket.emit("new message", { conversationId, userId, data: newMessage });
-    //setNewMessage("");
   };
+
   const handleNewConversationSubmit = async (
     e: React.FormEvent<HTMLFormElement>,
   ): Promise<void> => {
@@ -274,7 +296,7 @@ const PrivateMessage = ({
       scroll="body"
       onEnter={scrollToBottom}
       classes={{
-        paper: classes.dialog,
+        paper: classes.modal,
       }}
     >
       <DialogContent className={classes.root}>
@@ -284,21 +306,21 @@ const PrivateMessage = ({
           onChange={handleTabChange}
           className={classes.tabs}
           classes={{
-            indicator: `private-message-tab-indicator-${color}`,
+            indicator: `indicator-${color}`,
           }}
         >
           {conversations.map((conversation, index) => (
             <Tab
               key={conversation?.id}
               label={
-                <Typography display="inline">
+                <Typography display="inline" className={classes.tab}>
                   <Gravatar
                     email={
                       conversation?.users?.filter(
                         (x) => x?.username !== username,
                       )[0].email
                     }
-                    size={2}
+                    size={4}
                   />
                   {
                     conversation?.users?.filter(
@@ -333,7 +355,7 @@ const PrivateMessage = ({
                   }
                 >
                   <Link to={`/@${message?.user?.username}`}>
-                    <Gravatar email={message?.user?.email} size={2} />
+                    <Gravatar email={message?.user?.email} size={4} />
                   </Link>
 
                   <Box className={classes.messageBox} display="block">
@@ -368,7 +390,7 @@ const PrivateMessage = ({
                 className={`button-${color}`}
                 style={{ padding: "15px 24px" }}
               >
-                Send <i className="fas fa-feather-alt"></i>
+                Send <FontAwesomeIcon icon={faFeatherAlt} />
               </Button>
             </form>
           </TabPanel>
@@ -381,7 +403,6 @@ const PrivateMessage = ({
 PrivateMessage.propTypes = {
   open: PropTypes.bool,
   onClose: PropTypes.func,
-  color: PropTypes.string,
 };
 
 export default PrivateMessage;

@@ -1,11 +1,106 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useHistory } from "react-router-dom";
 import Cookies from "js-cookie";
+import DarkModeContext from "../DarkMode";
+import { GitHub as GitHubIcon } from "@material-ui/icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGoogle } from "@fortawesome/free-brands-svg-icons";
+import {
+  makeStyles,
+  Theme,
+  darken,
+  fade,
+  Box,
+  Typography,
+  TextField,
+  Button,
+} from "@material-ui/core";
+
+const useStyles = makeStyles((theme: Theme) => ({
+  grid: {
+    justifyContent: "center",
+  },
+  text: {
+    textAlign: "center",
+  },
+  button: {
+    backgroundColor: "#23f0c7",
+    marginBottom: theme.spacing(1),
+    "&:hover": {
+      backgroundColor: darken("#23f0c7", 0.1),
+    },
+  },
+  github: {
+    backgroundColor: "#24292e",
+    color: "#eee",
+    "&:hover": {
+      backgroundColor: darken("#24292e", 0.1),
+    },
+  },
+  google: {
+    backgroundColor: "#ea4335",
+    color: "#eee",
+    "&:hover": {
+      backgroundColor: darken("#ea4335", 0.1),
+    },
+  },
+  input: {
+    margin: theme.spacing(1),
+    width: "40%",
+    "& .MuiFormLabel-root": {
+      color: (props: { darkMode: boolean }): string =>
+        props.darkMode ? "#eee" : "#222",
+    },
+    "& .MuiOutlinedInput-root": {
+      color: (props: { darkMode: boolean }): string =>
+        props.darkMode ? "#eee" : "#222",
+      backgroundColor: fade("#66d0f9", 0.1),
+      borderRadius: theme.shape.borderRadius,
+
+      "&.Mui-focused fieldset": {
+        borderColor: "#114B5F",
+      },
+    },
+    "& .MuiFormHelperText-root": {
+      fontWeight: "bold",
+    },
+    "&:focus": {
+      borderColor: "#eee",
+    },
+  },
+}));
+
 const Register = (): JSX.Element => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [email, setEmail] = useState("");
+  const darkMode = useContext(DarkModeContext);
+  const classes = useStyles({ darkMode });
+
+  const [errors, setErrors] = useState({
+    username: [],
+    password: [],
+    email: [],
+  });
+
+  const [data, setData] = useState({
+    username: "",
+    password: "",
+    email: "",
+  });
   const history = useHistory();
+
+  const handleGithubOauth = (): void => {
+    window.location.replace("/auth/github");
+  };
+
+  const handleGoogleOauth = (): void => {
+    window.location.replace("/auth/google");
+  };
+
+  const handleRegisterChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
+    const name = e.target.getAttribute("name")!;
+    setData({ ...data, [name]: e.target.value });
+  };
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
@@ -17,73 +112,95 @@ const Register = (): JSX.Element => {
         "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
       },
       body: JSON.stringify({
-        username,
-        password,
-        email,
+        ...data,
       }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
           history.push("/dashboard");
+        } else {
+          setErrors({ ...errors, ...data.errors });
         }
       });
   };
 
   return (
-    <div className="register m-4">
-      <div className="row d-flex justify-content-center">
-        <div className="col-6">
-          <h1>Register</h1>
-          <form method="POST" action="/register" onSubmit={onSubmit}>
-            <div className="form-group">
-              <label>Username</label>
-              <input
-                className="form-control"
-                name="username"
-                value={username}
-                onChange={(e): void => setUsername(e.target.value)}
-              ></input>
-            </div>
-            <div className="form-group">
-              <label>Email</label>
-              <input
-                className="form-control"
-                type="email"
-                name="email"
-                value={email}
-                onChange={(e): void => setEmail(e.target.value)}
-              ></input>
-            </div>
-            <div className="form-group">
-              <label>Password</label>
-              <input
-                className="form-control"
-                type="password"
-                name="password"
-                onChange={(e): void => setPassword(e.target.value)}
-              ></input>
-            </div>
-            <button className="btn btn-outline-light" type="submit">
-              Register
-            </button>
-            <h2>Register with a 3rd party account</h2>
-            <a
-              href="/auth/google"
-              className="btn btn-outline-primary btn-google"
+    <form onSubmit={onSubmit}>
+      <Box display="flex" flexDirection="column" alignItems="center">
+        <Typography variant="h2">Register</Typography>
+
+        <TextField
+          name="username"
+          id="outlined-basic"
+          fullWidth
+          label="Username"
+          onChange={handleRegisterChange}
+          value={data.username}
+          variant="outlined"
+          error={errors.username.length > 0}
+          helperText={errors.username.join("\n")}
+          classes={{
+            root: classes.input,
+          }}
+        />
+
+        <TextField
+          name="email"
+          id="outlined-basic"
+          label="E-Mail"
+          fullWidth
+          type="email"
+          onChange={handleRegisterChange}
+          value={data.email}
+          error={errors.email.length > 0}
+          helperText={errors.email.join("\n")}
+          variant="outlined"
+          classes={{
+            root: classes.input,
+          }}
+        />
+
+        <TextField
+          name="password"
+          id="outlined-basic"
+          label="Password"
+          fullWidth
+          type="password"
+          onChange={handleRegisterChange}
+          value={data.password}
+          variant="outlined"
+          error={errors.password.length > 0}
+          helperText={errors.password.join("\n")}
+          classes={{
+            root: classes.input,
+          }}
+        />
+
+        <Box display="flex" flexDirection="column">
+          <Button type="submit" variant="contained" className={classes.button}>
+            Register
+          </Button>
+          <Box display="flex">
+            <Button
+              variant="contained"
+              className={classes.github}
+              onClick={handleGithubOauth}
             >
-              <i className="fab fa-google"></i> Google
-            </a>
-            <a
-              href="/auth/github"
-              className="btn btn-outline-primary btn-github"
+              <GitHubIcon />
+              {" Github"}
+            </Button>
+            <Button
+              variant="contained"
+              className={classes.google}
+              onClick={handleGoogleOauth}
             >
-              <i className="fab fa-github"></i> Github
-            </a>
-          </form>
-        </div>
-      </div>
-    </div>
+              <FontAwesomeIcon icon={faGoogle} /> Google
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+    </form>
   );
 };
 

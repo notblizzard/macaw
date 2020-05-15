@@ -1,23 +1,42 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   TextField,
   makeStyles,
   Theme,
   fade,
-  Box,
   Button,
   FormControl,
   FormControlLabel,
   Radio,
   RadioGroup,
-  FormLabel,
   Container,
   Grid,
 } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
 import PropType from "prop-types";
 import Cookies from "js-cookie";
-import { ValidationError } from "class-validator";
+import DarkModeContext from "../DarkMode";
+
+interface StyleProps {
+  darkMode: boolean;
+}
+interface RadioProps {
+  color: string;
+}
+
+interface UserSettings {
+  description?: string;
+  username?: string;
+  email?: string;
+  displayname?: string;
+  location?: string;
+  link?: string;
+  color?: string;
+}
+
+interface SettingsProps {
+  handleColor: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
 
 const useStyles = makeStyles((theme: Theme) => ({
   search: {
@@ -31,11 +50,13 @@ const useStyles = makeStyles((theme: Theme) => ({
     margin: theme.spacing(2),
 
     "& .MuiFormLabel-root": {
-      color: "#79838a",
+      color: (props: { darkMode: boolean }): string =>
+        props.darkMode ? "#eee" : "#222",
     },
 
     "& .MuiOutlinedInput-root": {
-      color: "#eee",
+      color: (props: { darkMode: boolean }): string =>
+        props.darkMode ? "#eee" : "#222",
       //margin: theme.spacing(4),
       backgroundColor: fade("#66d0f9", 0.1),
       //position: "relative",
@@ -53,34 +74,15 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-interface UserSettings {
-  description?: string;
-  username?: string;
-  email?: string;
-  displayname?: string;
-  location?: string;
-  link?: string;
-  color?: string;
-}
-
-interface SettingsError extends ValidationError {
-  property: string;
-  errors: string[];
-}
-
-interface SettingsProps {
-  handleColor: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}
 const Settings = ({ handleColor }: SettingsProps): JSX.Element => {
   const colors: string[] = [
-    "red",
-    "blue",
     "green",
+    "blue",
     "purple",
+    "red",
     "yellow",
     "orange",
   ];
-  // todo: condense
   const [settings, setSettings] = useState<UserSettings>({
     username: "",
     displayname: "",
@@ -99,7 +101,8 @@ const Settings = ({ handleColor }: SettingsProps): JSX.Element => {
     description: [],
     color: [],
   });
-  const classes = useStyles();
+  const darkMode = useContext(DarkModeContext);
+  const classes = useStyles({ darkMode });
   const history = useHistory();
 
   const handleSettingsChange = (
@@ -169,7 +172,7 @@ const Settings = ({ handleColor }: SettingsProps): JSX.Element => {
                   <FormControlLabel
                     value={color}
                     key={color}
-                    control={<Radio className={"radio-" + color} />}
+                    control={<Radio className={`radio-${color}`} />}
                     label=""
                   />
                 ))}

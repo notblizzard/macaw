@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import UserInfoCard from "./user/UserInfoCard";
 import {
   Grid,
@@ -27,12 +27,17 @@ import Cookies from "js-cookie";
 import Gravatar from "./util/Gravatar";
 import Moment from "./util/Moment";
 import UserTooltip from "./user/UserTooltip";
-
 import { Link } from "react-router-dom";
 import ViewMessage from "./message/ViewMessage";
 import DeleteMessage from "./message/DeleteMessage";
 import ViewImage from "./message/ViewImage";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faThumbtack } from "@fortawesome/free-solid-svg-icons";
+import DarkModeContext from "./DarkMode";
 
+interface StyleProps {
+  darkMode: boolean;
+}
 const useStyles = makeStyles((theme: Theme) => ({
   input: {
     color: "#eee",
@@ -67,6 +72,14 @@ const useStyles = makeStyles((theme: Theme) => ({
     backgroundColor: "#193344",
     //maxWidth: "20rem",
   },
+  username: (props: StyleProps) => ({
+    color: props.darkMode ? "#b8c5d9bd" : "#070b0fbd",
+    fontSize: "1rem",
+  }),
+  displayname: (props: StyleProps) => ({
+    color: props.darkMode ? "#eee" : "#222",
+    fontSize: "1rem",
+  }),
 
   message: {
     backgroundColor: "#192a3d",
@@ -142,7 +155,8 @@ interface Like {
   message: Message;
 }
 const Search = (): JSX.Element => {
-  const classes = useStyles();
+  const darkMode = useContext(DarkModeContext);
+  const classes = useStyles({ darkMode });
   // so the user can toggle between all messages and media only without having to call the api every time
   const color: string = Cookies.get("color") || "default";
   const urlParams: URLSearchParams = new URLSearchParams(
@@ -371,7 +385,7 @@ const Search = (): JSX.Element => {
           <Grid container spacing={8}>
             {users.map((user) => (
               <Grid item xs={3} key={user.id}>
-                <UserInfoCard user={user} color={color} />
+                <UserInfoCard user={user} />
               </Grid>
             ))}
           </Grid>
@@ -396,14 +410,14 @@ const Search = (): JSX.Element => {
                         to={"/@" + message.user.username}
                         className={"profile-link-" + color}
                       >
-                        <span className="message-displayname">
+                        <span className={classes.displayname}>
                           {message.user.displayname === undefined ? (
                             <span>{message.user.username}</span>
                           ) : (
                             <span>{message.user.displayname}</span>
                           )}
                         </span>{" "}
-                        <span className="message-username">
+                        <span className={classes.username}>
                           @{message.user.username}
                         </span>
                       </Link>{" "}
@@ -419,19 +433,14 @@ const Search = (): JSX.Element => {
                     <Grid item xs={12}>
                       {message.data.split(" ").map((word: string) => {
                         if (word.startsWith("@")) {
-                          return (
-                            <UserTooltip
-                              username={word.slice(1)}
-                              color={color}
-                            />
-                          );
+                          return <UserTooltip username={word.slice(1)} />;
                         } else if (word.startsWith("#")) {
                           return (
                             <Link to={`/search?qs=%23${word.slice(1)}`}>
                               <Typography
                                 variant="body1"
                                 display="inline"
-                                className={`link-${color}`}
+                                className={`link-${color || "default"}`}
                               >
                                 {word}
                               </Typography>
@@ -497,9 +506,9 @@ const Search = (): JSX.Element => {
                               <IconButton
                                 onClick={handlePin}
                                 data-id={message.id}
-                                className={`pin-message-button-${color}`}
+                                className={`pin-${color || "default"}`}
                               >
-                                <i className="fas fa-sm fa-thumbtack"></i>
+                                <FontAwesomeIcon icon={faThumbtack} />
                               </IconButton>
                             </Tooltip>
                           )}

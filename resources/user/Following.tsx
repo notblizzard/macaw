@@ -88,7 +88,7 @@ const Following = (): JSX.Element => {
       ) : (
         user.following.map((data) => (
           <Grid item xs={3} key={data.id} className={classes.card}>
-            <UserInfoCard user={data.following} color={color} />
+            <UserInfoCard user={data.following} />
           </Grid>
         ))
       )}

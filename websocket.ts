@@ -4,11 +4,11 @@ import Conversation from "./models/Conversation";
 import { Socket, Server } from "socket.io";
 
 interface UserSocket extends Socket {
-  userId: number;
+  userId: number | undefined;
 }
 export default (io: Server): void => {
   const getUser = (otherUserId: number): Promise<UserSocket> => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       io.clients(async (err: Error, clients: string[]) => {
         clients.forEach((client) => {
           const user = io.sockets.connected[client] as UserSocket;
@@ -17,7 +17,6 @@ export default (io: Server): void => {
           }
         });
       });
-      return reject(false);
     });
   };
   io.on("connection", (socket: UserSocket) => {
@@ -25,7 +24,7 @@ export default (io: Server): void => {
       socket.userId = data.id;
     });
     socket.on("new message", async (data) => {
-      const user: User | undefined = await User.findOne(data.userId);
+      const user: User | undefined = await User.findOne(socket.userId);
 
       if (!user) return false;
       const conversation: Conversation | undefined = await Conversation.findOne(
@@ -44,10 +43,13 @@ export default (io: Server): void => {
       conversationMessage.data = data.data;
       conversationMessage.conversation = conversation;
       await conversationMessage.save();
-
       socket.emit("new message", conversationMessage);
       const otherUser = await getUser(otherUserId);
       otherUser.emit("new message", conversationMessage);
+    });
+
+    socket.on("disconnecting", (reason) => {
+      socket.userId = undefined;
     });
   });
 };

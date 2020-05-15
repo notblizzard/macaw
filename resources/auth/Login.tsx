@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   TextField,
   makeStyles,
@@ -6,57 +6,98 @@ import {
   fade,
   Typography,
   Button,
-  Grid,
+  darken,
+  Box,
 } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
+import { GitHub as GitHubIcon } from "@material-ui/icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGoogle } from "@fortawesome/free-brands-svg-icons";
+
 import Cookies from "js-cookie";
+import DarkModeContext from "../DarkMode";
 
 const useStyles = makeStyles((theme: Theme) => ({
-  search: {
-    margin: theme.spacing(4),
-    // backgroundColor: fade("#66d0f9", 0.1),
-    position: "relative",
-    borderRadius: theme.shape.borderRadius,
-    width: "20rem",
+  grid: {
+    justifyContent: "center",
+  },
+  text: {
+    textAlign: "center",
+  },
+  button: {
+    backgroundColor: "#23f0c7",
+    marginBottom: theme.spacing(1),
     "&:hover": {
-      //   backgroundColor: fade("#66d0f9", 0.2),
+      backgroundColor: darken("#23f0c7", 0.1),
     },
   },
-
-  input: {
+  github: {
+    //margin: theme.spacing(1),
+    backgroundColor: "#24292e",
     color: "#eee",
-
-    "& .MuiFormLabel-root": {
-      color: "#79838a",
+    "&:hover": {
+      backgroundColor: darken("#24292e", 0.1),
     },
-
+  },
+  google: {
+    //margin: theme.spacing(1),
+    backgroundColor: "#ea4335",
+    color: "#eee",
+    "&:hover": {
+      backgroundColor: darken("#ea4335", 0.1),
+    },
+  },
+  input: {
+    margin: theme.spacing(1),
+    width: "40%",
+    "& .MuiFormLabel-root": {
+      color: (props: { darkMode: boolean }): string =>
+        props.darkMode ? "#eee" : "#222",
+    },
     "& .MuiOutlinedInput-root": {
-      color: "#eee",
+      color: (props: { darkMode: boolean }): string =>
+        props.darkMode ? "#eee" : "#222",
       backgroundColor: fade("#66d0f9", 0.1),
+      borderRadius: theme.shape.borderRadius,
 
       "&.Mui-focused fieldset": {
-        borderColor: "#09a6f4",
-        color: "#eee",
+        borderColor: "#114B5F",
       },
     },
-    width: "20rem",
+    "& .MuiFormHelperText-root": {
+      fontWeight: "bold",
+    },
     "&:focus": {
       borderColor: "#eee",
     },
   },
 }));
 const Login = (): JSX.Element => {
+  const darkMode = useContext(DarkModeContext);
+
   const [data, setData] = useState({
     username: "",
     password: "",
   });
-  // const [redirect] = useState(false);
+
+  const [errors, setErrors] = useState({
+    username: [],
+    password: [],
+  });
   const history = useHistory();
-  const classes = useStyles();
+  const classes = useStyles({ darkMode });
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const name = e.target.getAttribute("name")!;
     setData({ ...data, [name]: e.target.value });
+  };
+
+  const handleGithubOauth = (): void => {
+    window.location.replace("/auth/github");
+  };
+
+  const handleGoogleOauth = (): void => {
+    window.location.replace("/auth/google");
   };
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
@@ -77,54 +118,67 @@ const Login = (): JSX.Element => {
       .then((data) => {
         if (data.success) {
           history.push("/dashboard");
+        } else {
+          setErrors({ ...errors, ...data.errors });
         }
       });
   };
-  //if (redirect) return <Redirect to="/dashboard" />;
 
   return (
-    <Grid container>
-      <Grid item xs={12}>
-        <Typography variant="h1" display="block">
-          Login
-        </Typography>
-        <form onSubmit={onSubmit}>
-          <TextField
-            name="username"
-            id="outlined-basic"
-            label="Username"
-            onChange={handleLoginChange}
-            value={data.username}
-            variant="outlined"
-            classes={{
-              root: classes.input,
-            }}
-          />
-          <TextField
-            name="password"
-            id="outlined-basic"
-            label="Password"
-            type="password"
-            onChange={handleLoginChange}
-            value={data.password}
-            variant="outlined"
-            classes={{
-              root: classes.input,
-            }}
-          />
-          <Button type="submit" variant="contained">
-            Submit
+    <form onSubmit={onSubmit}>
+      <Box display="flex" flexDirection="column" alignItems="center">
+        <Typography variant="h1">Login</Typography>
+        <TextField
+          name="username"
+          id="outlined-basic"
+          label="Username"
+          onChange={handleLoginChange}
+          value={data.username}
+          variant="outlined"
+          error={errors.username.length > 0}
+          helperText={errors.username.join("\n")}
+          classes={{
+            root: classes.input,
+          }}
+        />
+        <TextField
+          name="password"
+          id="outlined-basic"
+          label="Password"
+          type="password"
+          onChange={handleLoginChange}
+          value={data.password}
+          error={errors.password.length > 0}
+          helperText={errors.password.join("\n")}
+          variant="outlined"
+          classes={{
+            root: classes.input,
+          }}
+        />
+        <Box display="flex" flexDirection="column">
+          <Button type="submit" variant="contained" className={classes.button}>
+            Login
           </Button>
-        </form>
-        <h2>Login with a 3rd party account</h2>
-        <a href="/auth/google" className="btn btn-outline-primary btn-google">
-          <i className="fab fa-google"></i> Google
-        </a>
-        <a href="/auth/github" className="btn btn-outline-primary btn-github">
-          <i className="fab fa-github"></i> Github
-        </a>
-      </Grid>
-    </Grid>
+          <Box display="flex">
+            <Button
+              variant="contained"
+              className={classes.github}
+              onClick={handleGithubOauth}
+            >
+              <GitHubIcon />
+              {` Github`}
+            </Button>
+            <Button
+              variant="contained"
+              className={classes.google}
+              onClick={handleGoogleOauth}
+            >
+              <FontAwesomeIcon icon={faGoogle} /> Google
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+    </form>
   );
 };
 

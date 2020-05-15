@@ -7,9 +7,7 @@ import Cookies from "js-cookie";
 
 const useStyles = makeStyles((theme: Theme) => ({
   tooltip: {
-    // padding: theme.spacing(2),
-    // backgroundColor: "#193344",
-    // maxWidth: "20rem",
+    width: theme.spacing(40),
     padding: "0 !important",
   },
   greyText: {
@@ -51,10 +49,10 @@ const defaultUserData: UserData = {
 
 interface UserTooltipProp {
   username: string;
-  color: string;
 }
 
-const UserTooltip = ({ username, color }: UserTooltipProp): JSX.Element => {
+const UserTooltip = ({ username }: UserTooltipProp): JSX.Element => {
+  const color = Cookies.get("color") || "default";
   const classes = useStyles();
   const [user, setUser] = useState<UserData>(defaultUserData);
 
@@ -78,10 +76,10 @@ const UserTooltip = ({ username, color }: UserTooltipProp): JSX.Element => {
       interactive={true}
       classes={{ tooltip: classes.tooltip }}
       placement="left-start"
-      title={<UserInfoCard user={user} color={color} />}
+      title={<UserInfoCard user={user} />}
     >
       <Link to={`/@${username}`}>
-        <Typography className={"colored-tooltip-" + color} display="inline">
+        <Typography className={`colored-tooltip-${color}`} display="inline">
           @{username}
         </Typography>
       </Link>

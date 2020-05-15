@@ -1,48 +1,36 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   Button,
   DialogActions,
+  darken,
 } from "@material-ui/core";
-import { makeStyles, Theme, fade } from "@material-ui/core/styles";
+import { makeStyles, Theme } from "@material-ui/core/styles";
 import PropTypes from "prop-types";
 import Cookies from "js-cookie";
+import DarkModeContext from "../DarkMode";
 
+interface DarkModeProps {
+  darkMode: boolean;
+}
 const useStyles = makeStyles((theme: Theme) => ({
-  modal: {
-    backgroundColor: "#192a3d",
-    background: " #192a3d",
-    color: "#eee",
+  modal: (props: DarkModeProps) => ({
+    backgroundColor: props.darkMode ? "#192a3d" : "#dfe9f4",
+    color: props.darkMode ? "#dfe9f4" : "#192a3d",
     textAlign: "center",
-  },
-  modalForm: {
-    color: "#eee",
-    borderBottomColor: "#66d0f9",
-    borderColor: "#66d0f9",
-    backgroundColor: fade("#66d0f9", 0.1),
-    borderRadius: theme.shape.borderRadius,
-    paddingInline: "1rem",
-  },
-  messageLengthGood: {
-    color: "#66ffb2",
-    justifyContent: "center",
-  },
-  messageLengthBad: {
-    color: "#db5e39",
-    justifyContent: "center",
-  },
+  }),
   button: {
     backgroundColor: "#97adc4",
     "&:hover": {
-      backgroundColor: "#70859b",
+      backgroundColor: darken("#97adc4", 0.1),
     },
   },
-  buttonUpload: {
-    color: "#97adc4",
-    "&:focus": {
-      color: "#70859b",
+  buttonDelete: {
+    backgroundColor: "#D62839",
+    "&:hover": {
+      backgroundColor: darken("#D62839", 0.1),
     },
   },
 }));
@@ -57,7 +45,8 @@ const DeleteMessage = ({
   handleClose,
   messageId,
 }: DeleteMessageProps): JSX.Element => {
-  const classes = useStyles();
+  const darkMode = useContext(DarkModeContext);
+  const classes = useStyles({ darkMode });
 
   const handleMessageDelete = async (): Promise<void> => {
     await fetch("/api/message/data", {
@@ -84,7 +73,20 @@ const DeleteMessage = ({
         Are you sure you want to delete this message?
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleMessageDelete}>ok</Button>
+        <Button
+          variant="contained"
+          onClick={handleMessageDelete}
+          className={classes.buttonDelete}
+        >
+          Yes
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleClose}
+          className={classes.button}
+        >
+          No
+        </Button>
       </DialogActions>
     </Dialog>
   );

@@ -1,22 +1,29 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Button, Box } from "@material-ui/core";
+import { Button, Box, Typography, Theme, darken } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme: Theme) => ({
   button: {
     backgroundColor: "#97adc4",
+    margin: theme.spacing(1),
     "&:hover": {
-      backgroundColor: "#70859b",
+      backgroundColor: darken("#97adc4", 0.1),
+    },
+  },
+  title: {
+    "&::first-letter": {
+      color: "#1e65a2",
     },
   },
 }));
 const Home = (): JSX.Element => {
   const classes = useStyles();
   return (
-    <Box paddingY={10} textAlign="center">
-      <h1>Macaw</h1>
-      <p>Social Network</p>
+    <Box textAlign="center">
+      <Typography className={classes.title} variant="h2">
+        Macaw
+      </Typography>
       <Button
         component={Link}
         className={classes.button}

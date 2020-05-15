@@ -49,15 +49,32 @@ router.get(
   },
 );
 router.get("/api/user/profile", async (req, res) => {
+  // cleaner to get the username first
+  const username: string | undefined = await User.createQueryBuilder("user")
+    .where("user.username ILIKE :username", { username: req.query.username })
+    .getOne()
+    .then((user) => user?.username);
+
+  if (!username) {
+    return res.json({ success: false, error: "user does not exist." });
+  }
+
   const user: ProfileUser | undefined = await User.findOne({
-    where: { username: Like(req.query.username) },
+    where: { username },
     relations: ["following", "followers", "messages"],
-  });
-  if (!user) return res.json({ success: false, error: "user does not exist" });
+  })!;
+  if (!user)
+    return res.json({
+      success: false,
+      error: "user does not exist",
+    });
   user.messageCount = user.messages.length;
   delete user.messages;
 
-  return res.json({ success: true, user });
+  return res.json({
+    success: true,
+    user,
+  });
 });
 router.get("/api/user/color", async (req, res) => {
   if (!req.user) return res.json({ success: true, color: "default" });

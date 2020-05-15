@@ -13,6 +13,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import Cookies from "js-cookie";
+import DarkModeContext from "../DarkMode";
 
 const useStyles = makeStyles(() => ({
   tooltip: {
@@ -50,10 +51,11 @@ interface UserInfoCardProps {
     isDifferentUser?: boolean;
     isFollowingUser?: boolean;
   };
-  color: string;
 }
 
-const UserInfoCard = ({ user, color }: UserInfoCardProps): JSX.Element => {
+const UserInfoCard = ({ user }: UserInfoCardProps): JSX.Element => {
+  const color = Cookies.get("color") || "default";
+
   const classes = useStyles();
   const [isFollowingUser, setIsFollowingUser] = useState(user.isFollowingUser);
   const handleFollow = async (
@@ -78,7 +80,7 @@ const UserInfoCard = ({ user, color }: UserInfoCardProps): JSX.Element => {
     <Card classes={{ root: classes.card }}>
       <CardContent>
         <Box display="flex" justifyContent="space-between">
-          <Gravatar email={user.email} size={2} />
+          <Gravatar email={user.email} size={8} />
           {user.isDifferentUser ? (
             <Button
               variant={isFollowingUser ? "contained" : "outlined"}

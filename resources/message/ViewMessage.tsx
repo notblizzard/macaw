@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 
 import {
   Repeat as RepeatIcon,
@@ -24,6 +24,10 @@ import DeleteMessage from "./DeleteMessage";
 import ViewImage from "./ViewImage";
 import PropTypes from "prop-types";
 import Cookies from "js-cookie";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faThumbtack } from "@fortawesome/free-solid-svg-icons";
+import DarkModeContext from "../DarkMode";
+
 interface User {
   id: string;
   color: string;
@@ -60,13 +64,25 @@ interface Like {
   message: Message;
 }
 
+interface StyleProps {
+  darkMode: boolean;
+}
+
+interface ViewMessageProp {
+  open: boolean;
+  user: User;
+  message: Message;
+  handleClose: () => void;
+  color: string;
+}
+
 const useStyles = makeStyles({
-  message: {
-    backgroundColor: "#192a3d",
+  message: (props: StyleProps) => ({
+    backgroundColor: props.darkMode ? "#192a3d" : "#e3edf7",
     border: 0,
-    color: "#eee",
+    color: props.darkMode ? "#eee" : "#222",
     marginTop: "1rem",
-  },
+  }),
   image: {
     height: "400px",
   },
@@ -94,14 +110,16 @@ const useStyles = makeStyles({
   reposted: {
     color: "#81db6b",
   },
+  username: (props: StyleProps) => ({
+    color: props.darkMode ? "#b8c5d9bd" : "#070b0fbd",
+    fontSize: "1rem",
+  }),
+  displayname: (props: StyleProps) => ({
+    color: props.darkMode ? "#eee" : "#222",
+    fontSize: "1rem",
+  }),
 });
-interface ViewMessageProp {
-  open: boolean;
-  user: User;
-  message: Message;
-  handleClose: () => void;
-  color: string;
-}
+
 const ViewMessage = ({
   open,
   user,
@@ -109,7 +127,8 @@ const ViewMessage = ({
   handleClose,
   color,
 }: ViewMessageProp): JSX.Element => {
-  const classes = useStyles();
+  const darkMode = useContext(DarkModeContext);
+  const classes = useStyles({ darkMode });
   const [openDelete, setOpenDelete] = useState(false);
   const [openImage, setOpenImage] = useState(false);
   const [messageId, setMessageId] = useState("");
@@ -219,16 +238,16 @@ const ViewMessage = ({
                     <Grid item xs={12}>
                       <Link
                         to={"/@" + message.user.username}
-                        className={"profile-link-" + color}
+                        className={`profile-link-${color}`}
                       >
-                        <span className="message-displayname">
+                        <span className={classes.displayname}>
                           {message.user.displayname === undefined ? (
                             <span>{message.user.username}</span>
                           ) : (
                             <span>{message.user.displayname}</span>
                           )}
                         </span>{" "}
-                        <span className="message-username">
+                        <span className={classes.username}>
                           @{message.user.username}
                         </span>
                       </Link>{" "}
@@ -237,12 +256,7 @@ const ViewMessage = ({
                     <Grid item xs={12}>
                       {message.data.split(" ").map((word) => {
                         if (word.includes("@")) {
-                          return (
-                            <UserTooltip
-                              username={word.slice(1)}
-                              color={color}
-                            />
-                          );
+                          return <UserTooltip username={word.slice(1)} />;
                         } else {
                           return ` ${word} `;
                         }
@@ -293,9 +307,9 @@ const ViewMessage = ({
                             <IconButton
                               onClick={handlePin}
                               data-id={message.id}
-                              className={`pin-message-button-${color}`}
+                              className={`pin-${color}`}
                             >
-                              <i className="fas fa-sm fa-thumbtack"></i>
+                              <FontAwesomeIcon icon={faThumbtack} />
                             </IconButton>
                           )}
 

@@ -278,8 +278,18 @@ router.get("/api/message/profile", async (req, res) => {
   // only get pinned message if user is viewing first page
   skip === 1 && relations.push("pinned");
 
+  // cleaner to get the username first
+  const username: string | undefined = await User.createQueryBuilder("user")
+    .where("user.username ILIKE :username", { username: req.query.username })
+    .getOne()
+    .then((user) => user?.username);
+
+  if (!username) {
+    return res.json({ success: false, error: "user does not exist." });
+  }
+
   const user: ProfileUser | undefined = await User.findOne({
-    where: { username: TypeORMLike(req.query.username) },
+    where: { username },
     relations,
     select: ["displayname", "id", "color"],
   });

@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Typography, makeStyles } from "@material-ui/core";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
+import Cookies from "js-cookie";
 
 const useStyles = makeStyles(() => ({
   userStat: {
@@ -27,16 +28,16 @@ interface User {
 
 interface UserStatProps {
   user: User;
-  color: string;
 }
-const UserStat = ({ user, color }: UserStatProps): JSX.Element => {
+const UserStat = ({ user }: UserStatProps): JSX.Element => {
   const classes = useStyles();
+  const color = Cookies.get("color") || "default";
 
   return (
     <Box
       display="flex"
       flexDirection="row"
-      className={`user-stats-border-bottom-${color}`}
+      className={`border-bottom-${color}`}
     >
       <Box display="block" textAlign="center" className={classes.userStat}>
         <Typography variant="h5">Messages</Typography>

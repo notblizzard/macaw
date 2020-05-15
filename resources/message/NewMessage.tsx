@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useContext } from "react";
 import { Photo as PhotoButton } from "@material-ui/icons";
 import {
   Button,
@@ -9,24 +9,36 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  darken,
 } from "@material-ui/core";
 import { makeStyles, fade } from "@material-ui/core/styles";
 import Cookies from "js-cookie";
 import PropTypes from "prop-types";
+import DarkModeContext from "../DarkMode";
+
+interface DarkModeProps {
+  darkMode: boolean;
+}
+
+interface NewMessageProps {
+  open: boolean;
+  onClose: () => void;
+}
 
 const useStyles = makeStyles(() => ({
-  modal: {
-    backgroundColor: "#192a3d",
-    background: " #192a3d",
-    color: "#eee",
+  modal: (props: DarkModeProps) => ({
+    backgroundColor: props.darkMode ? "#192a3d" : "#dfe9f4",
+    background: props.darkMode ? "#192a3d" : "#dfe9f4",
+    color: props.darkMode ? "#dfe9f4" : "#192a3d",
+    fontSize: "10rem",
     textAlign: "center",
-  },
+  }),
   modalForm: {
     color: "#eee",
     borderBottomColor: "#66d0f9",
     borderColor: "#66d0f9",
     backgroundColor: fade("#66d0f9", 0.1),
-    borderRadius: "2%", //theme.shape.borderRadius,
+    borderRadius: "2%",
     paddingInline: "1rem",
   },
   messageGreen: {
@@ -40,33 +52,29 @@ const useStyles = makeStyles(() => ({
   button: {
     backgroundColor: "#97adc4",
     "&:hover": {
-      backgroundColor: "#70859b",
+      backgroundColor: darken("#97adc4", 0.1),
     },
   },
   buttonUpload: {
     color: "#97adc4",
     "&:focus": {
-      color: "#70859b",
+      color: darken("#97adc4", 0.1),
     },
   },
 }));
 
-interface NewMessageProps {
-  open: boolean;
-  onClose: () => void;
-  color: string;
-}
-
-const NewMessage = ({ open, onClose, color }: NewMessageProps): JSX.Element => {
+const NewMessage = ({ open, onClose }: NewMessageProps): JSX.Element => {
+  const color = Cookies.get("color") || "default";
+  const darkMode = useContext(DarkModeContext);
   const [text, setText] = useState("");
   const fileRef = useRef(null);
-  const classes = useStyles();
+  const classes = useStyles({ darkMode });
   const textClass = classes[text.length <= 260 ? "messageGreen" : "messageRed"];
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     if (text.length <= 280) {
       e.preventDefault();
     }
+    //
     setText(e.target.value);
   };
 
@@ -77,7 +85,7 @@ const NewMessage = ({ open, onClose, color }: NewMessageProps): JSX.Element => {
     const formData = new FormData();
 
     formData.append("data", text);
-    //formData.append("file", fileRef?.current?.files?.[0]);
+    //formData.append("file", (fileRef?.current as HTMLFor?.files?.[0]);
 
     await fetch("/api/message/new", {
       credentials: "include",
@@ -95,6 +103,7 @@ const NewMessage = ({ open, onClose, color }: NewMessageProps): JSX.Element => {
       maxWidth="sm"
       fullWidth={true}
       onClose={onClose}
+      keepMounted
       classes={{
         paper: classes.modal,
       }}
@@ -116,7 +125,7 @@ const NewMessage = ({ open, onClose, color }: NewMessageProps): JSX.Element => {
               color="primary"
               type="submit"
               value="Submit"
-              className={"button-" + color}
+              className={`button-${color}`}
             >
               Submit
             </Button>

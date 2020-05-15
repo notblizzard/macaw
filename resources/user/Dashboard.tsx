@@ -5,17 +5,22 @@ import UserStat from "./UserStat";
 import { Grid } from "@material-ui/core";
 import Cookies from "js-cookie";
 
-interface UserData {
+interface User {
   id: string;
+  color: string;
+  createdAt: string;
   username: string;
   displayname: string;
-  followers: any[];
-  following: any[];
-  color: string;
+  email: string;
   description: string;
+  location: string;
+  link: string;
   messageCount: number;
+  followers: [];
+  following: [];
+  isDifferentUser?: boolean;
 }
-const defaultUserData: User = {
+const defaultUser: User = {
   id: "",
   displayname: "",
   username: "",
@@ -30,26 +35,8 @@ const defaultUserData: User = {
   location: "",
   isDifferentUser: undefined,
 };
-
-interface User {
-  id: string;
-  color: string;
-  createdAt: string;
-  username: string;
-  displayname: string;
-  email: string;
-  description: string;
-  location: string;
-  link: string;
-  messageCount: number;
-  //pinned: Message;
-  followers: [];
-  following: [];
-  isDifferentUser?: boolean;
-}
 const Dashboard = (): JSX.Element => {
-  const [user, setUser] = useState<User>(defaultUserData);
-  const color: string = Cookies.get("color") || "default";
+  const [user, setUser] = useState<User>(defaultUser);
 
   useEffect(() => {
     fetch("/api/user/dashboard", {
@@ -66,11 +53,11 @@ const Dashboard = (): JSX.Element => {
   return (
     <Grid container spacing={4}>
       <Grid item xs={2}>
-        <UserInfo user={user} color={color} />
+        <UserInfo user={user} />
       </Grid>
       <Grid item xs={10}>
-        <UserStat user={user} color={color} />
-        <UserMessage dashboard={true} username={undefined} color={color} />
+        <UserStat user={user} />
+        <UserMessage dashboard={true} username={undefined} />
       </Grid>
     </Grid>
   );

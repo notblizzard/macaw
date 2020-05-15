@@ -1,14 +1,20 @@
-import React from "react";
+import React, { useContext } from "react";
 import Gravatar from "../util/Gravatar";
 import Moment from "../util/Moment";
-import { Box, Typography } from "@material-ui/core";
+import { Box, Typography, makeStyles } from "@material-ui/core";
 import {
   CalendarToday as CalendarTodayIcon,
   Room as RoomIcon,
 } from "@material-ui/icons";
 import UserTooltip from "./UserTooltip";
 import PropTypes from "prop-types";
-
+import DarkModeContext from "../DarkMode";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faLink } from "@fortawesome/free-solid-svg-icons";
+import Cookies from "js-cookie";
+interface StyleProps {
+  darkMode: boolean;
+}
 interface UserInfoProps {
   user: {
     email: string;
@@ -19,36 +25,50 @@ interface UserInfoProps {
     location: string;
     link: string;
   };
-  color: string;
 }
-const UserInfo = ({ user, color }: UserInfoProps): JSX.Element => {
+
+const useStyles = makeStyles(() => ({
+  text: (props: StyleProps) => ({
+    color: props.darkMode ? "#b8c5d9bd" : "#070b0fbd",
+    fontSize: "1rem",
+  }),
+}));
+
+const UserInfo = ({ user }: UserInfoProps): JSX.Element => {
+  const color = Cookies.get("color") || "default";
+  const darkMode = useContext(DarkModeContext);
+  const classes = useStyles({ darkMode });
   return (
     <Box>
       <Gravatar email={user.email} size={14}></Gravatar>
-      <Typography variant="h5">{user.displayname}</Typography>
-      <p className="grey">@{user.username}</p>
-      <p className="text-break">
+      <Typography variant="h5" className={classes.text}>
+        {user.displayname}
+      </Typography>
+      <Typography variant="body1" className={classes.text}>
+        @{user.username}
+      </Typography>
+      <Typography variant="body1">
         {user.description
           ? user.description.split(" ").map((word) => {
               if (word.includes("@")) {
-                return <UserTooltip username={word.slice(1)} color={color} />;
+                return <UserTooltip username={word.slice(1)} />;
               } else {
                 return ` ${word} `;
               }
             })
           : null}
-      </p>
-      <p className="grey">
+      </Typography>
+      <Typography className={classes.text}>
         <CalendarTodayIcon /> <Moment time={user.createdAt} profile={true} />
-      </p>
+      </Typography>
       {user.location ? (
-        <p className="grey">
+        <Typography className={classes.text}>
           <RoomIcon /> {user.location}
-        </p>
+        </Typography>
       ) : null}
       {user.link ? (
-        <p className="grey">
-          <i className="fas fa-link"></i>{" "}
+        <Typography className={classes.text}>
+          <FontAwesomeIcon icon={faLink} />{" "}
           <a
             target="_blank"
             rel="noopener noreferrer"
@@ -57,7 +77,7 @@ const UserInfo = ({ user, color }: UserInfoProps): JSX.Element => {
           >
             {user.link}
           </a>
-        </p>
+        </Typography>
       ) : null}
     </Box>
   );

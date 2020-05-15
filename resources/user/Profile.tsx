@@ -33,11 +33,28 @@ interface User {
   following: [];
   isDifferentUser?: boolean;
 }
+
+const defaultUser: User = {
+  id: "",
+  displayname: "",
+  username: "",
+  messageCount: 0,
+  followers: [],
+  email: "",
+  following: [],
+  color: "",
+  description: "",
+  link: "",
+  createdAt: "",
+  location: "",
+  isDifferentUser: undefined,
+};
+
 const Profile = (): JSX.Element => {
   const color: string = Cookies.get("color") || "default";
 
   const { username } = useParams();
-  const [user, setUser] = useState<User>({} as User);
+  const [user, setUser] = useState<User>(defaultUser);
 
   useEffect(() => {
     fetch(`/api/user/profile?username=${username}`, {
@@ -54,15 +71,11 @@ const Profile = (): JSX.Element => {
   return (
     <Grid container spacing={4}>
       <Grid item xs={2}>
-        <UserInfo user={user} color={color} />
+        <UserInfo user={user} />
       </Grid>
       <Grid item xs={10}>
-        <UserStat user={user} color={color} />
-        <UserMessage
-          dashboard={false}
-          username={username as string}
-          color={color}
-        />
+        <UserStat user={user} />
+        <UserMessage dashboard={false} username={username as string} />
       </Grid>
     </Grid>
   );

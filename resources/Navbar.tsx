@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   Toolbar,
   AppBar,
@@ -20,20 +20,29 @@ import qs from "querystring";
 import PropType from "prop-types";
 import PrivateMessage from "./message/PrivateMessage";
 import Cookies from "js-cookie";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faComment } from "@fortawesome/free-solid-svg-icons";
+import DarkModeContext from "./DarkMode";
+interface StyleProps {
+  darkMode: boolean;
+}
 
+interface NavbarProps {
+  color: string;
+}
 const useStyles = makeStyles((theme: Theme) => ({
-  icons: {
-    marginLeft: "auto",
-  },
-  icon: {
-    marginLeft: "0.4rem",
-    marginRight: "0.4rem",
-  },
-  navBar: {
-    backgroundColor: "#15212f",
+  icons: (props: StyleProps) => ({
+    color: props.darkMode ? "#eee" : "#222",
+  }),
+  navBar: (props: StyleProps) => ({
+    backgroundColor: props.darkMode ? "#15212f" : "#d2dfee",
     marginBottom: theme.spacing(4),
+  }),
+  toolBar: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
-
   search: {
     backgroundColor: fade("#66d0f9", 0.1),
     position: "relative",
@@ -49,7 +58,7 @@ const useStyles = makeStyles((theme: Theme) => ({
       width: "auto",
     },
   },
-  searchIcon: {
+  searchIcon: (props: StyleProps) => ({
     padding: theme.spacing(0, 2),
     height: "100%",
     position: "absolute",
@@ -57,7 +66,8 @@ const useStyles = makeStyles((theme: Theme) => ({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-  },
+    color: props.darkMode ? "#eee" : "#222",
+  }),
   inputRoot: {
     color: " inherit",
   },
@@ -69,18 +79,13 @@ const useStyles = makeStyles((theme: Theme) => ({
     "&:focus": {
       width: "20ch",
     },
-    /*[theme.breakpoints.up("md")]: {
-      width: "20ch",
-    },*/
   },
 }));
 
-interface NavbarProps {
-  color: string;
-}
 const Navbar = ({ color }: NavbarProps): JSX.Element => {
+  const darkMode = useContext(DarkModeContext);
   const history = useHistory();
-  const classes = useStyles();
+  const classes = useStyles({ darkMode });
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -95,7 +100,10 @@ const Navbar = ({ color }: NavbarProps): JSX.Element => {
   const handleLogout = (): void => {
     fetch("/logout", {
       headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
-    }).then(() => history.push("/"));
+    }).then(() => {
+      Cookies.remove("email");
+      history.push("/");
+    });
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -111,54 +119,65 @@ const Navbar = ({ color }: NavbarProps): JSX.Element => {
     <>
       <PrivateMessage open={open} onClose={handleClose} color={color} />
       <AppBar className={classes.navBar} position="static">
-        <Toolbar>
-          <Link to="/">
-            <Typography className={`navbar-button-${color}`}>Macaw</Typography>
-          </Link>
-          <div className={classes.search}>
-            <div className={classes.searchIcon}>
-              <SearchIcon />
-            </div>
-            <form method="GET" action="/search" onSubmit={handleSearchSubmit}>
-              <InputBase
-                placeholder="Search...."
-                classes={{
-                  root: classes.inputRoot,
-                  input: classes.inputInput,
-                }}
-                name="qs"
-                onChange={handleSearchChange}
-                inputProps={{ "aria-label": "search" }}
-              />
-            </form>
-          </div>
+        <Toolbar className={classes.toolBar}>
+          <Box display="flex" alignItems="center">
+            <Link to="/">
+              <Typography className={`navbar-button-${color}`}>
+                Macaw
+              </Typography>
+            </Link>
+            <Box className={classes.search}>
+              <Box className={classes.searchIcon}>
+                <SearchIcon />
+              </Box>
+              <form method="GET" action="/search" onSubmit={handleSearchSubmit}>
+                <InputBase
+                  placeholder="Search...."
+                  className={classes.inputInput}
+                  /* classes={{
+                    //root: classes.inputRoot,
+                    input: classes.inputInput,
+                  }}*/
+                  name="qs"
+                  onChange={handleSearchChange}
+                  inputProps={{ "aria-label": "search" }}
+                />
+              </form>
+            </Box>
+          </Box>
           {Cookies.get("email") ? (
-            <Box display="flex" flexDirection="row" className={classes.icons}>
-              <Link to="/dashboard">
-                <Gravatar email={Cookies.get("email")!} size={5} />
-              </Link>
+            <Box display="flex" flexDirection="row">
+              <Box display="flex" alignItems="center">
+                <Link to="/dashboard">
+                  <Gravatar email={Cookies.get("email")!} size={5} />
+                </Link>
+              </Box>
 
               <IconButton onClick={handleOpen}>
-                <ChatIcon
-                  className={`navbar-button-${color} ${classes.icon}`}
+                <FontAwesomeIcon
+                  icon={faComment}
+                  className={`navbar-button-${color || "default"} ${
+                    classes.icons
+                  }`}
                 />
               </IconButton>
 
-              <IconButton>
-                <Link to="/settings">
+              <Link to="/settings">
+                <IconButton>
                   <SettingsIcon
                     className={`navbar-button-${color || "default"} ${
-                      classes.icon
+                      classes.icons
                     }`}
                   />
-                </Link>
-              </IconButton>
+                </IconButton>
+              </Link>
 
               <IconButton>
                 <ExitToAppIcon
                   onClick={handleLogout}
-                  style={{ marginLeft: "0.4rem", marginRight: "0.4rem" }}
-                  className={"navbar-button-" + (color || "default")}
+                  className={`navbar-button-${color || "default"} ${
+                    classes.icons
+                  }`}
                 />
               </IconButton>
             </Box>
