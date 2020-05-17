@@ -13,6 +13,7 @@ import {
 } from "@material-ui/core";
 import { makeStyles, fade } from "@material-ui/core/styles";
 import Cookies from "js-cookie";
+import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import DarkModeContext from "../DarkMode";
 
@@ -22,15 +23,17 @@ interface DarkModeProps {
 
 interface NewMessageProps {
   open: boolean;
-  onClose: () => void;
+  handleClose: () => void;
+  socketio: SocketIOClient.Socket;
 }
 
 const useStyles = makeStyles(() => ({
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   modal: (props: DarkModeProps) => ({
     backgroundColor: props.darkMode ? "#192a3d" : "#dfe9f4",
     background: props.darkMode ? "#192a3d" : "#dfe9f4",
     color: props.darkMode ? "#dfe9f4" : "#192a3d",
-    fontSize: "10rem",
+    //fontSize: "10rem",
     textAlign: "center",
   }),
   modalForm: {
@@ -38,7 +41,7 @@ const useStyles = makeStyles(() => ({
     borderBottomColor: "#66d0f9",
     borderColor: "#66d0f9",
     backgroundColor: fade("#66d0f9", 0.1),
-    borderRadius: "2%",
+    borderRadius: "0",
     paddingInline: "1rem",
   },
   messageGreen: {
@@ -63,9 +66,14 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const NewMessage = ({ open, onClose }: NewMessageProps): JSX.Element => {
+const NewMessage = ({
+  open,
+  handleClose,
+  socketio,
+}: NewMessageProps): JSX.Element => {
   const color = Cookies.get("color") || "default";
   const darkMode = useContext(DarkModeContext);
+  const location = useLocation();
   const [text, setText] = useState("");
   const fileRef = useRef(null);
   const classes = useStyles({ darkMode });
@@ -74,7 +82,6 @@ const NewMessage = ({ open, onClose }: NewMessageProps): JSX.Element => {
     if (text.length <= 280) {
       e.preventDefault();
     }
-    //
     setText(e.target.value);
   };
 
@@ -83,18 +90,12 @@ const NewMessage = ({ open, onClose }: NewMessageProps): JSX.Element => {
   ): Promise<void> => {
     e.preventDefault();
     const formData = new FormData();
-
+    console.log(location.pathname);
     formData.append("data", text);
     //formData.append("file", (fileRef?.current as HTMLFor?.files?.[0]);
 
-    await fetch("/api/message/new", {
-      credentials: "include",
-      headers: {
-        "X-XSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
-      },
-      method: "POST",
-      body: formData,
-    });
+    socketio.emit("new message", { text, path: location.pathname });
+    handleClose();
   };
 
   return (
@@ -102,7 +103,7 @@ const NewMessage = ({ open, onClose }: NewMessageProps): JSX.Element => {
       open={open}
       maxWidth="sm"
       fullWidth={true}
-      onClose={onClose}
+      onClose={handleClose}
       keepMounted
       classes={{
         paper: classes.modal,
@@ -155,7 +156,7 @@ const NewMessage = ({ open, onClose }: NewMessageProps): JSX.Element => {
 
 NewMessage.propTypes = {
   open: PropTypes.bool,
-  onClose: PropTypes.func,
+  handleClose: PropTypes.func,
   color: PropTypes.string,
   setNewMessage: PropTypes.func,
 };

@@ -3,33 +3,31 @@ import React, { useState, useContext } from "react";
 import {
   Repeat as RepeatIcon,
   StarBorder as StarBorderIcon,
-  Delete as DeleteIcon,
   Star as StarIcon,
 } from "@material-ui/icons/";
 import { Link } from "react-router-dom";
 import {
-  Typography,
   IconButton,
   Grid,
   DialogContent,
   Box,
   CardMedia,
   Dialog,
+  useTheme,
+  useMediaQuery,
+  Typography,
 } from "@material-ui/core";
 import Gravatar from "../util/Gravatar";
 import Moment from "../util/Moment";
 import UserTooltip from "../user/UserTooltip";
 import { makeStyles } from "@material-ui/core/styles";
-import DeleteMessage from "./DeleteMessage";
 import ViewImage from "./ViewImage";
 import PropTypes from "prop-types";
 import Cookies from "js-cookie";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faThumbtack } from "@fortawesome/free-solid-svg-icons";
 import DarkModeContext from "../DarkMode";
 
 interface User {
-  id: string;
+  id: number;
   color: string;
   createdAt: string;
   username: string;
@@ -41,7 +39,7 @@ interface User {
   isDifferentUser?: boolean;
 }
 interface Message {
-  id: string;
+  id: number;
   createdAt: string;
   data: string;
   user: User;
@@ -53,13 +51,13 @@ interface Message {
   messageCreatedAt?: string;
 }
 interface Repost {
-  id: string;
+  id: number;
   createdAt: string;
   user: User;
   message: Message;
 }
 interface Like {
-  id: string;
+  id: number;
   user: User;
   message: Message;
 }
@@ -85,6 +83,9 @@ const useStyles = makeStyles({
   }),
   image: {
     height: "400px",
+  },
+  messageGrid: {
+    wordWrap: "break-word",
   },
   delete: {
     color: "#8aadbd",
@@ -122,46 +123,23 @@ const useStyles = makeStyles({
 
 const ViewMessage = ({
   open,
-  user,
   message,
   handleClose,
   color,
 }: ViewMessageProp): JSX.Element => {
+  const theme = useTheme();
+  // true = desktop, false = mobile
+  const breakpoint = useMediaQuery(theme.breakpoints.up("sm"));
   const darkMode = useContext(DarkModeContext);
   const classes = useStyles({ darkMode });
-  const [openDelete, setOpenDelete] = useState(false);
   const [openImage, setOpenImage] = useState(false);
-  const [messageId, setMessageId] = useState("");
   const [imageName, setImageName] = useState("");
-
-  const handleDelete = (
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-  ): void => {
-    const messageId: string = e.currentTarget.getAttribute("data-id") as string;
-    setMessageId(messageId);
-    setOpenDelete(true);
-  };
 
   const handleLike = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): Promise<void> => {
     const messageId = e.currentTarget.getAttribute("data-id");
     await fetch("/api/message/like", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
-      },
-      body: JSON.stringify({ id: messageId }),
-    });
-  };
-
-  const handlePin = async (
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-  ): Promise<void> => {
-    const messageId = e.currentTarget.getAttribute("data-id");
-    await fetch("/api/message/pin", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -199,17 +177,8 @@ const ViewMessage = ({
     setOpenImage(false);
   };
 
-  const handleDeleteClose = (): void => {
-    setOpenDelete(false);
-  };
-
   return (
     <div className="message">
-      <DeleteMessage
-        open={openDelete}
-        handleClose={handleDeleteClose}
-        messageId={messageId}
-      />
       <ViewImage
         open={openImage}
         handleClose={handleImageClose}
@@ -230,37 +199,60 @@ const ViewMessage = ({
           {Object.keys(message).length !== 0 ? (
             <div key={message.id}>
               <Grid container spacing={1}>
-                <Grid item xs={1}>
-                  <Gravatar size={8} email={message.user.email} />
+                <Grid item xs={breakpoint ? 1 : 2}>
+                  <Gravatar
+                    size={breakpoint ? 8 : 5}
+                    email={message.user.email}
+                  />
                 </Grid>
-                <Grid item xs={11}>
+                <Grid item xs={breakpoint ? 11 : 10}>
                   <Grid container spacing={1}>
                     <Grid item xs={12}>
-                      <Link
-                        to={"/@" + message.user.username}
-                        className={`profile-link-${color}`}
-                      >
-                        <span className={classes.displayname}>
-                          {message.user.displayname === undefined ? (
-                            <span>{message.user.username}</span>
-                          ) : (
-                            <span>{message.user.displayname}</span>
-                          )}
-                        </span>{" "}
-                        <span className={classes.username}>
-                          @{message.user.username}
-                        </span>
-                      </Link>{" "}
-                      <Moment time={message.createdAt} profile={false} />
+                      <Typography display="inline">
+                        <Link
+                          to={`/@${message.user.username}`}
+                          className={`username-link-${color}`}
+                        >
+                          <Box component="span" className={classes.displayname}>
+                            {message.user.displayname === undefined
+                              ? message.user.username
+                              : message.user.displayname}
+                          </Box>{" "}
+                          <Box component="span" className={classes.username}>
+                            @{message.user.username}
+                          </Box>
+                        </Link>{" "}
+                        <Moment
+                          time={
+                            message.reposted
+                              ? (message.messageCreatedAt as string)
+                              : message.createdAt
+                          }
+                          profile={false}
+                        />
+                      </Typography>
                     </Grid>
-                    <Grid item xs={12}>
-                      {message.data.split(" ").map((word) => {
-                        if (word.includes("@")) {
-                          return <UserTooltip username={word.slice(1)} />;
-                        } else {
-                          return ` ${word} `;
-                        }
-                      })}
+                    <Grid item xs={12} className={classes.messageGrid}>
+                      <Typography display="inline">
+                        {message.data.split(" ").map((word: string) => {
+                          if (word.startsWith("@")) {
+                            return <UserTooltip username={word.slice(1)} />;
+                          } else if (word.startsWith("#")) {
+                            return (
+                              <Link to={`/search?qs=%23${word.slice(1)}`}>
+                                <Box
+                                  component="span"
+                                  className={`link-${color}`}
+                                >
+                                  {word}
+                                </Box>
+                              </Link>
+                            );
+                          } else {
+                            return ` ${word} `;
+                          }
+                        })}
+                      </Typography>
                       {message.file ? (
                         <CardMedia
                           onClick={handleImage}
@@ -301,25 +293,6 @@ const ViewMessage = ({
                             )}{" "}
                           </IconButton>
                           {message.reposts.length}
-                        </div>
-                        <div>
-                          {user.isDifferentUser ? null : (
-                            <IconButton
-                              onClick={handlePin}
-                              data-id={message.id}
-                              className={`pin-${color}`}
-                            >
-                              <FontAwesomeIcon icon={faThumbtack} />
-                            </IconButton>
-                          )}
-
-                          <IconButton
-                            onClick={handleDelete}
-                            data-id={message.id}
-                            className={classes.delete}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
                         </div>
                       </Box>
                     </Grid>

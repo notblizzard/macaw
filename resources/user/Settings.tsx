@@ -9,20 +9,12 @@ import {
   FormControlLabel,
   Radio,
   RadioGroup,
-  Container,
-  Grid,
+  Box,
 } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
 import PropType from "prop-types";
 import Cookies from "js-cookie";
 import DarkModeContext from "../DarkMode";
-
-interface StyleProps {
-  darkMode: boolean;
-}
-interface RadioProps {
-  color: string;
-}
 
 interface UserSettings {
   description?: string;
@@ -45,7 +37,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
   },
 
-  inputInput: {
+  input: {
     color: "#eee",
     margin: theme.spacing(2),
 
@@ -105,6 +97,18 @@ const Settings = ({ handleColor }: SettingsProps): JSX.Element => {
   const classes = useStyles({ darkMode });
   const history = useHistory();
 
+  useEffect(() => {
+    fetch("/api/user/settings/default", {
+      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setSettings(data.user);
+        }
+      });
+  }, []);
+
   const handleSettingsChange = (
     e: React.ChangeEvent<HTMLInputElement>,
   ): void => {
@@ -144,162 +148,139 @@ const Settings = ({ handleColor }: SettingsProps): JSX.Element => {
     handleColor(e);
   };
 
-  useEffect(() => {
-    fetch("/api/user/settings/default", {
-      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setSettings(data.user);
-        }
-      });
-  }, []);
-
   return (
     <form onSubmit={handleSubmit}>
-      <Grid container direction="column" alignItems="center" justify="center">
-        <Grid item xs={12}>
-          <Container>
-            <FormControl component="fieldset">
-              <RadioGroup
-                name="color"
-                row={true}
-                value={settings.color}
-                onChange={handleBoth}
-              >
-                {colors.map((color) => (
-                  <FormControlLabel
-                    value={color}
-                    key={color}
-                    control={<Radio className={`radio-${color}`} />}
-                    label=""
-                  />
-                ))}
-              </RadioGroup>
-            </FormControl>
-          </Container>
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            name="username"
-            id="outlined-basic"
-            label="Username"
-            onChange={handleSettingsChange}
-            value={settings.username}
-            variant="outlined"
-            error={errors.username.length > 0}
-            helperText={errors.username.join("\n")}
-            InputLabelProps={{
-              shrink: Boolean(settings.username?.length),
-            }}
-            classes={{
-              root: classes.inputInput,
-            }}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            name="displayname"
-            id="outlined-basic"
-            label="Display Name"
-            onChange={handleSettingsChange}
-            value={settings.displayname}
-            variant="outlined"
-            error={errors.displayname.length > 0}
-            helperText={errors.displayname.join("\n")}
-            InputLabelProps={{
-              shrink: Boolean(settings.displayname?.length),
-            }}
-            classes={{
-              root: classes.inputInput,
-            }}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            name="description"
-            id="outlined-basic"
-            label="Description"
-            rows="4"
-            error={errors.description.length > 0}
-            helperText={errors.description.join("\n")}
-            multiline
-            onChange={handleSettingsChange}
-            value={settings.description}
-            variant="outlined"
-            InputLabelProps={{
-              shrink: Boolean(settings.description?.length),
-            }}
-            classes={{
-              root: classes.inputInput,
-            }}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            name="email"
-            id="outlined-basic"
-            label="E-Mail"
-            onChange={handleSettingsChange}
-            value={settings.email}
-            error={errors.email.length > 0}
-            helperText={errors.email.join("\n")}
-            variant="outlined"
-            InputLabelProps={{
-              shrink: Boolean(settings.email?.length),
-            }}
-            classes={{
-              root: classes.inputInput,
-            }}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            name="location"
-            id="outlined-basic"
-            label="Location"
-            onChange={handleSettingsChange}
-            value={settings.location}
-            variant="outlined"
-            error={errors.location.length > 0}
-            helperText={errors.location.join("\n")}
-            InputLabelProps={{
-              shrink: Boolean(settings.location?.length),
-            }}
-            classes={{
-              root: classes.inputInput,
-            }}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            name="link"
-            id="outlined-basic"
-            label="Link"
-            onChange={handleSettingsChange}
-            value={settings.link}
-            variant="outlined"
-            InputLabelProps={{
-              shrink: Boolean(settings.link?.length),
-            }}
-            error={errors.link.length > 0}
-            helperText={errors.link.join("\n")}
-            classes={{
-              root: classes.inputInput,
-            }}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <Button
-            type="submit"
-            variant="contained"
-            className={`button-${settings.color}`}
+      <Box display="flex" flexDirection="column" alignItems="center">
+        <FormControl component="fieldset">
+          <RadioGroup
+            name="color"
+            row={true}
+            value={settings.color}
+            onChange={handleBoth}
           >
-            Submit
-          </Button>
-        </Grid>
-      </Grid>
+            {colors.map((color) => (
+              <FormControlLabel
+                value={color}
+                key={color}
+                control={<Radio className={`radio-${color}`} />}
+                label=""
+              />
+            ))}
+          </RadioGroup>
+        </FormControl>
+
+        <TextField
+          name="username"
+          id="outlined-basic"
+          label="Username"
+          onChange={handleSettingsChange}
+          value={settings.username}
+          variant="outlined"
+          error={errors.username.length > 0}
+          helperText={errors.username.join("\n")}
+          InputLabelProps={{
+            shrink: Boolean(settings.username?.length),
+          }}
+          classes={{
+            root: classes.input,
+          }}
+        />
+
+        <TextField
+          name="displayname"
+          id="outlined-basic"
+          label="Display Name"
+          onChange={handleSettingsChange}
+          value={settings.displayname}
+          variant="outlined"
+          error={errors.displayname.length > 0}
+          helperText={errors.displayname.join("\n")}
+          InputLabelProps={{
+            shrink: Boolean(settings.displayname?.length),
+          }}
+          classes={{
+            root: classes.input,
+          }}
+        />
+
+        <TextField
+          name="description"
+          id="outlined-basic"
+          label="Description"
+          rows="4"
+          error={errors.description.length > 0}
+          helperText={errors.description.join("\n")}
+          multiline
+          onChange={handleSettingsChange}
+          value={settings.description}
+          variant="outlined"
+          InputLabelProps={{
+            shrink: Boolean(settings.description?.length),
+          }}
+          classes={{
+            root: classes.input,
+          }}
+        />
+
+        <TextField
+          name="email"
+          id="outlined-basic"
+          label="E-Mail"
+          onChange={handleSettingsChange}
+          value={settings.email}
+          error={errors.email.length > 0}
+          helperText={errors.email.join("\n")}
+          variant="outlined"
+          InputLabelProps={{
+            shrink: Boolean(settings.email?.length),
+          }}
+          classes={{
+            root: classes.input,
+          }}
+        />
+
+        <TextField
+          name="location"
+          id="outlined-basic"
+          label="Location"
+          onChange={handleSettingsChange}
+          value={settings.location}
+          variant="outlined"
+          error={errors.location.length > 0}
+          helperText={errors.location.join("\n")}
+          InputLabelProps={{
+            shrink: Boolean(settings.location?.length),
+          }}
+          classes={{
+            root: classes.input,
+          }}
+        />
+
+        <TextField
+          name="link"
+          id="outlined-basic"
+          label="Link"
+          onChange={handleSettingsChange}
+          value={settings.link}
+          variant="outlined"
+          InputLabelProps={{
+            shrink: Boolean(settings.link?.length),
+          }}
+          error={errors.link.length > 0}
+          helperText={errors.link.join("\n")}
+          classes={{
+            root: classes.input,
+          }}
+        />
+
+        <Button
+          type="submit"
+          variant="contained"
+          className={`button-${settings.color}`}
+        >
+          Submit
+        </Button>
+      </Box>
     </form>
   );
 };

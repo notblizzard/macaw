@@ -73,13 +73,11 @@ const useStyles = makeStyles((theme: Theme) => ({
 const Register = (): JSX.Element => {
   const darkMode = useContext(DarkModeContext);
   const classes = useStyles({ darkMode });
-
   const [errors, setErrors] = useState({
     username: [],
     password: [],
     email: [],
   });
-
   const [data, setData] = useState({
     username: "",
     password: "",

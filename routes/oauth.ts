@@ -1,13 +1,13 @@
 import { passport } from "../authorization";
 import { Router, Request } from "express";
 import jwt from "jsonwebtoken";
-
-const router = Router();
-
 interface RequestUser extends Request {
   id: number;
   email: string;
 }
+
+const router = Router();
+
 router.get(
   "/auth/google",
   passport.authenticate("google", {

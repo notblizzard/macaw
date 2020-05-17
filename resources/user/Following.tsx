@@ -6,16 +6,8 @@ import Cookies from "js-cookie";
 
 import { makeStyles, Theme } from "@material-ui/core/styles";
 
-const useStyles = makeStyles((theme: Theme) => ({
-  card: {
-    padding: theme.spacing(2),
-    backgroundColor: "#193344",
-    maxWidth: "20rem",
-  },
-}));
-
 interface User {
-  id: string;
+  id: number;
   color: string;
   createdAt: string;
   username: string;
@@ -31,7 +23,7 @@ interface User {
   messages: [];
 }
 interface Message {
-  id: string;
+  id: number;
   createdAt: string;
   data: string;
   user: User;
@@ -43,7 +35,7 @@ interface Message {
   messageCreatedAt?: string;
 }
 interface Repost {
-  id: string;
+  id: number;
   createdAt: string;
   user: User;
   message: Message;
@@ -52,19 +44,28 @@ interface Repost {
 interface UserData {
   following: {
     isBeingFollowed?: boolean;
-    id: string;
+    id: number;
     following: User;
   }[];
 }
+
+const useStyles = makeStyles((theme: Theme) => ({
+  card: {
+    padding: theme.spacing(2),
+    backgroundColor: "#193344",
+    maxWidth: "20rem",
+  },
+}));
+
 const Following = (): JSX.Element => {
   const classes = useStyles();
-  const color = Cookies.get("color") || "default";
+  // const color = Cookies.get("color") || "default";
   const { username } = useParams();
   const [user, setUser] = useState<UserData>({
     following: [
       {
         isBeingFollowed: false,
-        id: "",
+        id: 0,
         following: {} as User,
       },
     ],

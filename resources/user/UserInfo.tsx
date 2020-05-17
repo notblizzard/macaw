@@ -28,9 +28,9 @@ interface UserInfoProps {
 }
 
 const useStyles = makeStyles(() => ({
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   text: (props: StyleProps) => ({
     color: props.darkMode ? "#b8c5d9bd" : "#070b0fbd",
-    fontSize: "1rem",
   }),
 }));
 

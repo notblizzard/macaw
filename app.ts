@@ -17,7 +17,6 @@ import websocket from "./websocket";
 import socketio from "socket.io";
 
 /* TODO.
-- make the "M" in Macaw a different color.
 - fix search and settings colors.
 - space out login and register button on home page.
 - fix oauth.

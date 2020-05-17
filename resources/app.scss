@@ -16,7 +16,7 @@ body {
   margin: 0;
 }
 .app {
-  height: 100vh;
+  min-height: 100vh;
 }
 
 .grey {
@@ -24,24 +24,22 @@ body {
 }
 
 @each $name, $value in $colors {
-  .message-created-at-#{$name} {
-    font-size: 1rem;
-    text-decoration: underline;
-    text-decoration-color: $value;
-    color: #b8c5d9bd;
+  .no-text-decoration-link-#{$name} {
+    text-decoration: none;
+    color: $value;
+    font-weight: bold;
   }
 
   .link-#{$name} {
-    text-decoration: none;
-    color: $value; //change
-    font-weight: bold;
+    @extend .no-text-decoration-link-#{$name};
     &:hover {
       color: $value !important;
       text-decoration: underline !important;
       text-decoration-color: $value;
     }
   }
-  .profile-link-#{$name} {
+
+  .username-link-#{$name} {
     text-decoration: none;
     &:hover {
       .message-displayname {
@@ -65,14 +63,7 @@ body {
       color: $value;
     }
   }
-  .button-outline-#{$name} {
-    border-color: $value !important;
-    color: $value !important;
-  }
-  .colored-tooltip-#{$name} {
-    color: $value;
-    font-weight: bold;
-  }
+
   .radio-#{$name} {
     color: $value !important;
     .Mui-checked {

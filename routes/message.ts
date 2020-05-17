@@ -2,9 +2,26 @@ import { Router, Request } from "express";
 import { User, Message, Like } from "../models";
 import Repost from "../models/Repost";
 import uploader from "../uploader";
-import { Like as TypeORMLike, In } from "typeorm";
+import { In } from "typeorm";
 import passport from "passport";
 
+interface RequestUser extends Request {
+  id: number;
+  username: string;
+  email: string;
+}
+
+interface ProfileUser extends User {
+  isFollowingUser?: boolean;
+  isAuthorized?: boolean;
+  isDifferentUser?: boolean;
+  messageCount?: number;
+}
+interface ProfileUserMessage extends Message {
+  liked?: boolean;
+  reposted?: boolean;
+  messageCreatedAt?: Date;
+}
 const router = Router();
 
 const wasRepostedByUser = (message: Message, user: User): boolean => {
@@ -51,24 +68,6 @@ const getPinned = async (
   }
   return messages;
 };
-
-interface RequestUser extends Request {
-  id: number;
-  username: string;
-  email: string;
-}
-
-interface ProfileUser extends User {
-  isFollowingUser?: boolean;
-  isAuthorized?: boolean;
-  isDifferentUser?: boolean;
-  messageCount?: number;
-}
-interface ProfileUserMessage extends Message {
-  liked?: boolean;
-  reposted?: boolean;
-  messageCreatedAt?: Date;
-}
 
 router.get("/api/message/search", async (req, res) => {
   const skip = Number(req.query.page);

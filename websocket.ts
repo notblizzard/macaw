@@ -1,4 +1,4 @@
-import { User } from "./models/";
+import { User, Message } from "./models/";
 import ConversationMessage from "./models/ConversationMessage";
 import Conversation from "./models/Conversation";
 import { Socket, Server } from "socket.io";
@@ -20,10 +20,30 @@ export default (io: Server): void => {
     });
   };
   io.on("connection", (socket: UserSocket) => {
-    socket.on("authorized", (data) => {
+    socket.on("authorize", (data) => {
       socket.userId = data.id;
     });
+
     socket.on("new message", async (data) => {
+      console.log(data);
+      console.log(`socket is ${socket.userId}`);
+      const user: User | undefined = await User.findOne(
+        socket.userId as number,
+      );
+      if (!user) return false;
+      const message: Message = new Message();
+      message.data = data.text;
+      message.user = user;
+      await message.save();
+      // only emit to user if they're on a page they control
+      if (
+        data.path === "/dashboard" ||
+        data.path.toLowerCase() === `/@${user.username.toLowerCase}`
+      ) {
+        socket.emit("new message", message);
+      }
+    });
+    socket.on("new private message", async (data) => {
       const user: User | undefined = await User.findOne(socket.userId);
 
       if (!user) return false;
@@ -43,9 +63,25 @@ export default (io: Server): void => {
       conversationMessage.data = data.data;
       conversationMessage.conversation = conversation;
       await conversationMessage.save();
-      socket.emit("new message", conversationMessage);
+      socket.emit("new private message", conversationMessage);
       const otherUser = await getUser(otherUserId);
-      otherUser.emit("new message", conversationMessage);
+      otherUser.emit("new private message", conversationMessage);
+    });
+
+    socket.on("delete message", async (data) => {
+      const message: Message | undefined = await Message.findOne({
+        where: { id: data.id },
+        relations: ["user"],
+      });
+      if (!message) return false;
+      if (message.userId !== socket.userId) return false;
+      await message.remove();
+      if (
+        data.path === "/dashboard" ||
+        data.path.toLowerCase() === `/@${message.user.username.toLowerCase}`
+      ) {
+        socket.emit("delete message", { id: data.id });
+      }
     });
 
     socket.on("disconnecting", (reason) => {

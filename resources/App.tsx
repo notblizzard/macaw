@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
 import {
   Brightness2 as MoonIcon,
@@ -21,8 +21,10 @@ import Followers from "./user/Followers";
 import Following from "./user/Following";
 import Search from "./Search";
 import Cookies from "js-cookie";
+import io from "socket.io-client";
 import DarkModeContext from "./DarkMode";
 
+const socketio = io();
 interface StyleProps {
   darkMode: boolean;
 }
@@ -61,6 +63,7 @@ const useStyles = makeStyles(() => ({
 
 const App = (): JSX.Element => {
   const [color, setColor] = useState(Cookies.get("color") || "default");
+  const { current: socket } = useRef(socketio);
   const [open, setOpen] = useState(false);
   const [darkTheme, setDarkTheme] = useState(
     Cookies.get("darkTheme") === "true" ? true : false,
@@ -70,6 +73,18 @@ const App = (): JSX.Element => {
   const handleOpen = (): void => {
     setOpen(true);
   };
+
+  useEffect(() => {
+    fetch("/api/user/id", {
+      headers: {
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) socket.emit("authorize", { id: data.id });
+      });
+  }, []);
 
   useEffect(() => {
     fetch("/api/user/color", {
@@ -107,10 +122,14 @@ const App = (): JSX.Element => {
 
   return (
     <Box className={classes.container}>
-      <NewMessage open={open} onClose={handleClose} />
       <DarkModeContext.Provider value={darkTheme}>
         <BrowserRouter>
-          <Navbar color={color} />
+          <NewMessage
+            open={open}
+            handleClose={handleClose}
+            socketio={socketio}
+          />
+          <Navbar color={color} socketio={socketio} />
           <Container>
             <Switch>
               <Route path="/@:username/followers">
@@ -120,10 +139,10 @@ const App = (): JSX.Element => {
                 <Following />
               </Route>
               <Route path="/@:username">
-                <Profile />
+                <Profile socketio={socketio} />
               </Route>
               <Route path="/search">
-                <Search />
+                <Search socketio={socketio} />
               </Route>
               <GuestRoute path="/register">
                 <Register />
@@ -132,7 +151,7 @@ const App = (): JSX.Element => {
                 <Login />
               </GuestRoute>
               <PrivateRoute path="/dashboard">
-                <Dashboard />
+                <Dashboard socketio={socketio} />
               </PrivateRoute>
               <PrivateRoute path="/settings">
                 <Settings handleColor={handleColor} />

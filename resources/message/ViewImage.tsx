@@ -1,9 +1,8 @@
-import React, { useContext } from "react";
+import React from "react";
 import { DialogContent } from "@material-ui/core";
 import { Dialog } from "@material-ui/core";
 import { makeStyles, fade } from "@material-ui/core/styles";
 import PropTypes from "prop-types";
-import DarkModeContext from "../DarkMode";
 
 interface ViewImageProps {
   open: boolean;

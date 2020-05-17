@@ -1,18 +1,19 @@
 import { Router } from "express";
 import { User, Follow } from "../models";
-import { validate, ValidationError } from "class-validator";
+import { validate } from "class-validator";
 import { Request } from "express";
 import { passport } from "../authorization";
 import { Like } from "typeorm";
 
+/*
+interface SettingsError extends ValidationError {
+  constraints: {};
+}
+*/
 interface RequestUser extends Request {
   id: number;
   email: string;
   username: string;
-}
-
-interface SettingsError extends ValidationError {
-  constraints: {};
 }
 
 interface Errors {
@@ -76,15 +77,24 @@ router.get("/api/user/profile", async (req, res) => {
     user,
   });
 });
-router.get("/api/user/color", async (req, res) => {
-  if (!req.user) return res.json({ success: true, color: "default" });
-  const user: User | undefined = await User.findOne({
-    where: { id: (req.user as RequestUser).id },
-    select: ["color"],
-  });
-  if (!user) return res.json({ success: false, error: "user does not exist." });
-  return res.json({ success: true, color: user.color });
+
+router.get("/api/user/id", passport.authenticate("jwt"), async (req, res) => {
+  return res.json({ success: true, id: (req.user as RequestUser).id });
 });
+router.get(
+  "/api/user/color",
+  passport.authenticate("jwt"),
+  async (req, res) => {
+    if (!req.user) return res.json({ success: true, color: "default" });
+    const user: User | undefined = await User.findOne({
+      where: { id: (req.user as RequestUser).id },
+      select: ["color"],
+    });
+    if (!user)
+      return res.json({ success: false, error: "user does not exist." });
+    return res.json({ success: true, color: user.color, id: user.id });
+  },
+);
 
 router.get("/api/user/followers", async (req, res) => {
   const user: ProfileUser | undefined = await User.findOne({

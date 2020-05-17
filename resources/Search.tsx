@@ -15,6 +15,8 @@ import {
   Tooltip,
   TextField,
   fade,
+  useTheme,
+  useMediaQuery,
 } from "@material-ui/core";
 import {
   Repeat as RepeatIcon,
@@ -37,6 +39,10 @@ import DarkModeContext from "./DarkMode";
 
 interface StyleProps {
   darkMode: boolean;
+}
+
+interface SearchProps {
+  socketio: SocketIOClient.Socket;
 }
 const useStyles = makeStyles((theme: Theme) => ({
   input: {
@@ -72,10 +78,12 @@ const useStyles = makeStyles((theme: Theme) => ({
     backgroundColor: "#193344",
     //maxWidth: "20rem",
   },
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   username: (props: StyleProps) => ({
     color: props.darkMode ? "#b8c5d9bd" : "#070b0fbd",
     fontSize: "1rem",
   }),
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   displayname: (props: StyleProps) => ({
     color: props.darkMode ? "#eee" : "#222",
     fontSize: "1rem",
@@ -116,7 +124,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 interface User {
-  id: string;
+  id: number;
   color: string;
   createdAt: string;
   username: string;
@@ -132,7 +140,7 @@ interface User {
   messages: [];
 }
 interface Message {
-  id: string;
+  id: number;
   createdAt: string;
   data: string;
   user: User;
@@ -144,28 +152,31 @@ interface Message {
   messageCreatedAt?: string;
 }
 interface Repost {
-  id: string;
+  id: number;
   createdAt: string;
   user: User;
   message: Message;
 }
 interface Like {
-  id: string;
+  id: number;
   user: User;
   message: Message;
 }
-const Search = (): JSX.Element => {
+const Search = ({ socketio }: SearchProps): JSX.Element => {
   const darkMode = useContext(DarkModeContext);
   const classes = useStyles({ darkMode });
-  // so the user can toggle between all messages and media only without having to call the api every time
+  // const { current: socket } = useRef(socketio);
   const color: string = Cookies.get("color") || "default";
   const urlParams: URLSearchParams = new URLSearchParams(
     document.location.search.substring(1),
   );
+  const theme = useTheme();
+  // true = desktop, false = mobile
+  const breakpoint = useMediaQuery(theme.breakpoints.up("sm"));
   const [openImage, setOpenImage] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openView, setOpenView] = useState(false);
-  const [messageId, setMessageId] = useState("");
+  const [messageId, setMessageId] = useState(0);
   const [imageName, setImageName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
@@ -208,7 +219,7 @@ const Search = (): JSX.Element => {
   const handleLike = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): void => {
-    const messageId = e.currentTarget.getAttribute("data-id");
+    const messageId = Number(e.currentTarget.getAttribute("data-id"));
     //e.preventDefault();
     fetch("/api/message/like", {
       method: "POST",
@@ -242,7 +253,7 @@ const Search = (): JSX.Element => {
   const handlePin = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): Promise<void> => {
-    const messageId: string = e.currentTarget.getAttribute("data-id")!;
+    const messageId = Number(e.currentTarget.getAttribute("data-id"));
     await fetch("/api/message/pin", {
       method: "POST",
       credentials: "include",
@@ -257,7 +268,7 @@ const Search = (): JSX.Element => {
   const handleDelete = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): void => {
-    const messageId = e.currentTarget.getAttribute("data-id")!;
+    const messageId = Number(e.currentTarget.getAttribute("data-id"));
     setMessageId(messageId);
     setOpenDelete(true);
   };
@@ -265,7 +276,7 @@ const Search = (): JSX.Element => {
   const handleRepost = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): void => {
-    const messageId = e.currentTarget.getAttribute("data-id")!;
+    const messageId = Number(e.currentTarget.getAttribute("data-id"));
     fetch("/api/message, repost", {
       method: "POST",
       body: JSON.stringify({ id: messageId }),
@@ -304,7 +315,7 @@ const Search = (): JSX.Element => {
     if (tagNames.includes(e.target.tagName.toLowerCase())) return false;
     // prevent dialog on clicking image
     if (e.target.classList.contains(imageClassName)) return false;
-    const messageId: string = e.currentTarget.getAttribute("data-id");
+    const messageId = Number(e.currentTarget.getAttribute("data-id"));
     fetch(`/api/message/dialog?id=${messageId}`, {
       headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
     })
@@ -372,6 +383,7 @@ const Search = (): JSX.Element => {
           handleClose={handleDialogClose}
         />
         <DeleteMessage
+          socketio={socketio}
           open={openDelete}
           handleClose={handleDeleteClose}
           messageId={messageId}
@@ -400,26 +412,29 @@ const Search = (): JSX.Element => {
           >
             <CardContent>
               <Grid container spacing={1}>
-                <Grid item xs={1}>
-                  <Gravatar size={8} email={message.user.email} />
+                <Grid item xs={breakpoint ? 1 : 2}>
+                  <Gravatar
+                    size={breakpoint ? 8 : 6}
+                    email={message.user.email}
+                  />
                 </Grid>
-                <Grid item xs={11}>
+                <Grid item xs={breakpoint ? 11 : 10}>
                   <Grid container spacing={1}>
                     <Grid item xs={12}>
                       <Link
                         to={"/@" + message.user.username}
-                        className={"profile-link-" + color}
+                        className={`username-link-${color}`}
                       >
-                        <span className={classes.displayname}>
+                        <Typography className={classes.displayname}>
                           {message.user.displayname === undefined ? (
-                            <span>{message.user.username}</span>
+                            <Typography>{message.user.username}</Typography>
                           ) : (
-                            <span>{message.user.displayname}</span>
+                            <Typography>{message.user.displayname}</Typography>
                           )}
-                        </span>{" "}
-                        <span className={classes.username}>
+                        </Typography>{" "}
+                        <Typography className={classes.username}>
                           @{message.user.username}
-                        </span>
+                        </Typography>
                       </Link>{" "}
                       <Moment
                         time={
@@ -431,25 +446,27 @@ const Search = (): JSX.Element => {
                       />
                     </Grid>
                     <Grid item xs={12}>
-                      {message.data.split(" ").map((word: string) => {
-                        if (word.startsWith("@")) {
-                          return <UserTooltip username={word.slice(1)} />;
-                        } else if (word.startsWith("#")) {
-                          return (
-                            <Link to={`/search?qs=%23${word.slice(1)}`}>
-                              <Typography
-                                variant="body1"
-                                display="inline"
-                                className={`link-${color || "default"}`}
-                              >
-                                {word}
-                              </Typography>
-                            </Link>
-                          );
-                        } else {
-                          return ` ${word} `;
-                        }
-                      })}
+                      <Typography display="inline">
+                        {message.data.split(" ").map((word: string) => {
+                          if (word.startsWith("@")) {
+                            return <UserTooltip username={word.slice(1)} />;
+                          } else if (word.startsWith("#")) {
+                            return (
+                              <Link to={`/search?qs=%23${word.slice(1)}`}>
+                                <Typography
+                                  variant="body1"
+                                  display="inline"
+                                  className={`link-${color}`}
+                                >
+                                  {word}
+                                </Typography>
+                              </Link>
+                            );
+                          } else {
+                            return ` ${word} `;
+                          }
+                        })}
+                      </Typography>
                       {message.file ? (
                         <CardMedia
                           onClick={handleImage}
@@ -506,7 +523,7 @@ const Search = (): JSX.Element => {
                               <IconButton
                                 onClick={handlePin}
                                 data-id={message.id}
-                                className={`pin-${color || "default"}`}
+                                className={`pin-${color}`}
                               >
                                 <FontAwesomeIcon icon={faThumbtack} />
                               </IconButton>

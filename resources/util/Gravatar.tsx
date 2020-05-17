@@ -7,6 +7,7 @@ interface GravatarProps {
   size: number;
 }
 const useStyles = makeStyles((theme: Theme) => ({
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   avatar: (props: GravatarProps) => ({
     height: theme.spacing(props.size),
     width: theme.spacing(props.size),

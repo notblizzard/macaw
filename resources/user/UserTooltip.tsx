@@ -21,7 +21,7 @@ interface UserData {
   messages: [];
   followers: [];
   following: [];
-  id: string;
+  id: number;
   description: string;
   email: string;
   createdAt: string;
@@ -33,7 +33,7 @@ interface UserData {
 }
 
 const defaultUserData: UserData = {
-  id: "",
+  id: 0,
   username: "",
   displayname: "",
   messages: [],
@@ -79,7 +79,10 @@ const UserTooltip = ({ username }: UserTooltipProp): JSX.Element => {
       title={<UserInfoCard user={user} />}
     >
       <Link to={`/@${username}`}>
-        <Typography className={`colored-tooltip-${color}`} display="inline">
+        <Typography
+          className={`no-text-decoration-link-${color}`}
+          display="inline"
+        >
           @{username}
         </Typography>
       </Link>

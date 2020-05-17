@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import Gravatar from "../util/Gravatar";
 import Moment from "../util/Moment";
 import {
@@ -13,6 +13,7 @@ import {
   CircularProgress,
   CardMedia,
   Tooltip,
+  useMediaQuery,
 } from "@material-ui/core";
 import {
   Repeat as RepeatIcon,
@@ -32,9 +33,10 @@ import Cookies from "js-cookie";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faThumbtack } from "@fortawesome/free-solid-svg-icons";
 import DarkModeContext from "../DarkMode";
+import { useTheme } from "@material-ui/core/styles";
 
 interface User {
-  id: string;
+  id: number;
   color: string;
   createdAt: string;
   username: string;
@@ -48,7 +50,7 @@ interface User {
   isDifferentUser?: boolean;
 }
 interface Message {
-  id: string;
+  id: number;
   createdAt: string;
   data: string;
   user: User;
@@ -60,19 +62,25 @@ interface Message {
   messageCreatedAt?: string;
 }
 interface Repost {
-  id: string;
+  id: number;
   createdAt: string;
   user: User;
   message: Message;
 }
 interface Like {
-  id: string;
+  id: number;
   user: User;
   message: Message;
 }
 
 interface StyleProps {
   darkMode: boolean;
+}
+
+interface UserMessageProps {
+  dashboard: boolean;
+  username: string | undefined;
+  socketio: SocketIOClient.Socket;
 }
 
 const useStyles = makeStyles({
@@ -91,6 +99,9 @@ const useStyles = makeStyles({
   }),
   image: {
     height: "400px",
+  },
+  inline: {
+    display: "inline",
   },
   delete: {
     color: "#8aadbd",
@@ -124,37 +135,76 @@ const useStyles = makeStyles({
     color: props.darkMode ? "#eee" : "#222",
     fontSize: "1rem",
   }),
+  messageGrid: {
+    wordWrap: "break-word",
+  },
 });
-//e: React.ChangeEvent<HTMLInputElement>
-interface UserMessageProps {
-  dashboard: boolean;
-  username: string | undefined;
-}
+
 const UserMessage = ({
   dashboard,
   username,
+  socketio,
 }: UserMessageProps): JSX.Element => {
   const color = Cookies.get("color") || "default";
+  const theme = useTheme();
+  const { current: socket } = useRef(socketio);
+  // true = desktop, false = mobile
+  const breakpoint = useMediaQuery(theme.breakpoints.up("sm"));
   const darkMode = useContext(DarkModeContext);
   const classes = useStyles({ darkMode });
   const [openImage, setOpenImage] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openView, setOpenView] = useState(false);
-  const [messageId, setMessageId] = useState("");
+  const [messageId, setMessageId] = useState(0);
   const [imageName, setImageName] = useState("");
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [mediaOnly, setMediaOnly] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  // so the user can toggle between all messages and media only without having to call the api every time
-  const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
   const [user, setUser] = useState<User>({} as User);
   const [dialog, setDialog] = useState<Message>({} as Message);
 
-  const urlForMessages = `/api/message/${
-    dashboard ? `dashboard?` : `profile?username=${username}&`
-  }page=${page}`;
+  const urlPath = dashboard ? "dashboard?" : `profile?username=${username}&`;
+  const urlForMessages = `/api/message/${urlPath}page=${page}`;
+
+  useEffect(() => {
+    fetch(urlForMessages, {
+      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setUser(data.user);
+          setMessages(data.messages);
+          setPage(page + 1);
+        }
+        setIsLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    // todo: watch for neww message if dashboard
+    // watch for other messages too if profile
+    socket.on("new message", (message: Message) => {
+      message.likes = [];
+      message.reposts = [];
+      if (messages[0].id === user.pinned.id) {
+        setMessages([messages[0], message, ...messages.slice(1)]);
+      } else {
+        setMessages([message, ...messages]);
+      }
+    });
+
+    socket.on("delete message", (data: { id: number }) => {
+      setMessages(messages.filter((message) => message.id !== data.id));
+    });
+
+    return (): void => {
+      socket.off("new message");
+      socket.off("delete message");
+    };
+  }, [messages]);
 
   const loadMoreMessages = (): void => {
     fetch(urlForMessages, {
@@ -166,14 +216,6 @@ const UserMessage = ({
           setPage(page + 1);
           setUser(data.user);
           setMessages(messages.concat(data.messages));
-          if (mediaOnly) {
-            const messagesFiltered = (data.messages as Message[]).filter(
-              (message) => message.file,
-            );
-            setFilteredMessages(messagesFiltered);
-          } else {
-            setFilteredMessages(messages);
-          }
         } else {
           setHasMore(false);
         }
@@ -181,26 +223,10 @@ const UserMessage = ({
       });
   };
 
-  useEffect(() => {
-    fetch(urlForMessages, {
-      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setUser(data.user);
-          setMessages(data.messages);
-          setFilteredMessages(data.messages);
-          setPage(page + 1);
-        }
-        setIsLoading(false);
-      });
-  }, []);
-
   const handleLike = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): void => {
-    const messageId = e.currentTarget.getAttribute("data-id");
+    const messageId = Number(e.currentTarget.getAttribute("data-id"));
     fetch("/api/message/like", {
       method: "POST",
       credentials: "include",
@@ -233,7 +259,7 @@ const UserMessage = ({
   const handlePin = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): void => {
-    const messageId: string = e.currentTarget.getAttribute("data-id") as string;
+    const messageId = Number(e.currentTarget.getAttribute("data-id"));
     fetch("/api/message/pin", {
       method: "POST",
       credentials: "include",
@@ -258,14 +284,6 @@ const UserMessage = ({
             ...messages.slice(0, messageIndex),
           ];
           setMessages(messagesReordered);
-          if (mediaOnly) {
-            const messagesFiltered = messagesReordered.filter(
-              (message) => message.file,
-            );
-            setFilteredMessages(messagesFiltered);
-          } else {
-            setFilteredMessages(messagesReordered);
-          }
         }
       });
   };
@@ -273,7 +291,7 @@ const UserMessage = ({
   const handleDelete = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): void => {
-    const messageId: string = e.currentTarget.getAttribute("data-id") as string;
+    const messageId = Number(e.currentTarget.getAttribute("data-id"));
     setMessageId(messageId);
     setOpenDelete(true);
   };
@@ -281,7 +299,7 @@ const UserMessage = ({
   const handleRepost = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): void => {
-    const messageId: string = e.currentTarget.getAttribute("data-id") as string;
+    const messageId = Number(e.currentTarget.getAttribute("data-id"));
     fetch("/api/message/repost", {
       method: "POST",
       credentials: "include",
@@ -346,28 +364,15 @@ const UserMessage = ({
     setOpenImage(true);
   };
 
-  const handleDialogClose = (): void => {
-    setOpenView(false);
-  };
+  const handleDialogClose = (): void => setOpenView(false);
 
-  const handleImageClose = (): void => {
-    setOpenImage(false);
-  };
+  const handleImageClose = (): void => setOpenImage(false);
 
-  const handleDeleteClose = (): void => {
-    setOpenDelete(false);
-  };
+  const handleDeleteClose = (): void => setOpenDelete(false);
 
-  const showMessagesWithMediaOnly = (): void => {
-    const messagesFiltered = messages.filter((message) => message.file);
-    setFilteredMessages(messagesFiltered);
-    setMediaOnly(true);
-  };
+  const showMessagesWithMediaOnly = (): void => setMediaOnly(true);
 
-  const showAllMessages = (): void => {
-    setFilteredMessages(messages);
-    setMediaOnly(false);
-  };
+  const showAllMessages = (): void => setMediaOnly(false);
 
   return (
     <InfiniteScroll
@@ -390,6 +395,7 @@ const UserMessage = ({
         />
         <DeleteMessage
           open={openDelete}
+          socketio={socketio}
           handleClose={handleDeleteClose}
           messageId={messageId}
         />
@@ -402,7 +408,7 @@ const UserMessage = ({
           <Typography
             variant="h5"
             onClick={showAllMessages}
-            className={`${mediaOnly ? `link-${color || "default"}` : "'"} ${
+            className={`${mediaOnly ? `link-${color}` : "'"} ${
               classes.mediaToggles
             }`}
           >
@@ -411,15 +417,25 @@ const UserMessage = ({
           <Typography
             variant="h5"
             onClick={showMessagesWithMediaOnly}
-            className={`${mediaOnly ? "" : `link-${color || "default"}`} ${
+            className={`${mediaOnly ? "" : `link-${color}`} ${
               classes.mediaToggles
             }`}
           >
             Media Only
           </Typography>
         </Box>
-        {filteredMessages.length > 0
-          ? filteredMessages.map((message: Message) => (
+        {messages.length > 0 &&
+          messages
+            .filter((message) => {
+              if (mediaOnly) {
+                if (message.file) {
+                  return message;
+                }
+              } else {
+                return message;
+              }
+            })
+            .map((message: Message) => (
               <Card
                 className={classes.message}
                 key={message.id}
@@ -429,10 +445,13 @@ const UserMessage = ({
               >
                 <CardContent>
                   <Grid container spacing={1}>
-                    <Grid item xs={1}>
-                      <Gravatar size={8} email={message.user.email} />
+                    <Grid item xs={breakpoint ? 1 : 2}>
+                      <Gravatar
+                        size={breakpoint ? 8 : 6}
+                        email={message.user.email}
+                      />
                     </Grid>
-                    <Grid item xs={11}>
+                    <Grid item xs={breakpoint ? 11 : 10}>
                       <Grid container spacing={1}>
                         <Grid item xs={12}>
                           {user.pinned && user.pinned.id === message.id ? (
@@ -443,7 +462,7 @@ const UserMessage = ({
                             >
                               <FontAwesomeIcon
                                 icon={faThumbtack}
-                                className={`color-${color || "default"}`}
+                                className={`color-${color}`}
                               />{" "}
                               Pinned Message
                             </Typography>
@@ -458,50 +477,57 @@ const UserMessage = ({
                               {user.displayname} Reposted
                             </Typography>
                           ) : null}
-                          <Link
-                            to={`/@${message.user.username}`}
-                            className={`profile-link-${color}`}
-                          >
-                            <span className={classes.displayname}>
-                              {message.user.displayname === undefined ? (
-                                <span>{message.user.username}</span>
-                              ) : (
-                                <span>{message.user.displayname}</span>
-                              )}
-                            </span>{" "}
-                            <span className={classes.username}>
-                              @{message.user.username}
-                            </span>
-                          </Link>{" "}
-                          <Moment
-                            time={
-                              message.reposted
-                                ? (message.messageCreatedAt as string)
-                                : message.createdAt
-                            }
-                            profile={false}
-                          />
+                          <Typography display="inline">
+                            <Link
+                              to={`/@${message.user.username}`}
+                              className={`username-link-${color}`}
+                            >
+                              <Box
+                                component="span"
+                                className={classes.displayname}
+                              >
+                                {message.user.displayname === undefined
+                                  ? message.user.username
+                                  : message.user.displayname}
+                              </Box>{" "}
+                              <Box
+                                component="span"
+                                className={classes.username}
+                              >
+                                @{message.user.username}
+                              </Box>
+                            </Link>{" "}
+                            <Moment
+                              time={
+                                message.reposted
+                                  ? (message.messageCreatedAt as string)
+                                  : message.createdAt
+                              }
+                              profile={false}
+                            />
+                          </Typography>
                         </Grid>
-                        <Grid item xs={12}>
-                          {message.data.split(" ").map((word: string) => {
-                            if (word.startsWith("@")) {
-                              return <UserTooltip username={word.slice(1)} />;
-                            } else if (word.startsWith("#")) {
-                              return (
-                                <Link to={`/search?qs=%23${word.slice(1)}`}>
-                                  <Typography
-                                    variant="body1"
-                                    display="inline"
-                                    className={`link-${color}`}
-                                  >
-                                    {word}
-                                  </Typography>
-                                </Link>
-                              );
-                            } else {
-                              return ` ${word} `;
-                            }
-                          })}
+                        <Grid item xs={12} className={classes.messageGrid}>
+                          <Typography display="inline">
+                            {message.data.split(" ").map((word: string) => {
+                              if (word.startsWith("@")) {
+                                return <UserTooltip username={word.slice(1)} />;
+                              } else if (word.startsWith("#")) {
+                                return (
+                                  <Link to={`/search?qs=%23${word.slice(1)}`}>
+                                    <Box
+                                      component="span"
+                                      className={`link-${color}`}
+                                    >
+                                      {word}
+                                    </Box>
+                                  </Link>
+                                );
+                              } else {
+                                return ` ${word} `;
+                              }
+                            })}
+                          </Typography>
                           {message.file ? (
                             <CardMedia
                               onClick={handleImage}
@@ -531,7 +557,9 @@ const UserMessage = ({
                                 </IconButton>
                               </Tooltip>
 
-                              {message.likes.length}
+                              <Typography className={classes.inline}>
+                                {message.likes.length}
+                              </Typography>
                               <Tooltip title={"Repost"} arrow>
                                 <IconButton
                                   onClick={handleRepost}
@@ -549,7 +577,9 @@ const UserMessage = ({
                                   )}{" "}
                                 </IconButton>
                               </Tooltip>
-                              {message.reposts.length}
+                              <Typography className={classes.inline}>
+                                {message.reposts.length}
+                              </Typography>
                             </div>
                             <div>
                               {user.isDifferentUser ? null : (
@@ -580,8 +610,7 @@ const UserMessage = ({
                   </Grid>
                 </CardContent>
               </Card>
-            ))
-          : null}
+            ))}
       </div>
     </InfiniteScroll>
   );

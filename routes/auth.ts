@@ -3,14 +3,14 @@ import { passport, register } from "../authorization";
 import jwt from "jsonwebtoken";
 import { User } from "../models";
 
-const router = Router();
-
 interface RequestUser {
   id: number;
   username: string;
   email: string;
   color: string;
 }
+
+const router = Router();
 
 router.post("/login", passport.authenticate("local"), (req, res) => {
   const token = jwt.sign(

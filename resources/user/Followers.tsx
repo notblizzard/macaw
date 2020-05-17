@@ -2,13 +2,12 @@ import React, { useEffect, useState } from "react";
 import Gravatar from "../util/Gravatar";
 import { Grid, Box, Typography } from "@material-ui/core";
 import { Link, useParams } from "react-router-dom";
-import { SettingsBackupRestoreRounded } from "@material-ui/icons";
 import Cookies from "js-cookie";
 
 interface UserData {
   followers: {
     isBeingFollowed?: boolean;
-    id: string;
+    id: number;
     follower: {
       username: string;
       email: string;
@@ -23,7 +22,7 @@ const Followers = (): JSX.Element => {
     followers: [
       {
         isBeingFollowed: false,
-        id: "",
+        id: 0,
         follower: {
           email: "",
           username: "",

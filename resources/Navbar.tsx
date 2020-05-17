@@ -10,7 +10,6 @@ import {
 import { fade, makeStyles, Theme } from "@material-ui/core/styles";
 import { Link, useHistory } from "react-router-dom";
 import {
-  Chat as ChatIcon,
   Search as SearchIcon,
   Settings as SettingsIcon,
   ExitToApp as ExitToAppIcon,
@@ -29,11 +28,15 @@ interface StyleProps {
 
 interface NavbarProps {
   color: string;
+  socketio: SocketIOClient.Socket;
 }
+
 const useStyles = makeStyles((theme: Theme) => ({
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   icons: (props: StyleProps) => ({
     color: props.darkMode ? "#eee" : "#222",
   }),
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   navBar: (props: StyleProps) => ({
     backgroundColor: props.darkMode ? "#15212f" : "#d2dfee",
     marginBottom: theme.spacing(4),
@@ -58,6 +61,7 @@ const useStyles = makeStyles((theme: Theme) => ({
       width: "auto",
     },
   },
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   searchIcon: (props: StyleProps) => ({
     padding: theme.spacing(0, 2),
     height: "100%",
@@ -71,18 +75,20 @@ const useStyles = makeStyles((theme: Theme) => ({
   inputRoot: {
     color: " inherit",
   },
-  inputInput: {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  input: (props: StyleProps) => ({
+    color: props.darkMode ? "#080b17" : "#dff0f7",
     padding: theme.spacing(1, 1, 1, 0),
-    paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
+    paddingLeft: theme.spacing(1), //`calc(1em + ${theme.spacing(4)}px)`,
     transition: theme.transitions.create("width"),
     width: "0rem",
     "&:focus": {
       width: "20ch",
     },
-  },
+  }),
 }));
 
-const Navbar = ({ color }: NavbarProps): JSX.Element => {
+const Navbar = ({ color, socketio }: NavbarProps): JSX.Element => {
   const darkMode = useContext(DarkModeContext);
   const history = useHistory();
   const classes = useStyles({ darkMode });
@@ -117,14 +123,12 @@ const Navbar = ({ color }: NavbarProps): JSX.Element => {
 
   return (
     <>
-      <PrivateMessage open={open} onClose={handleClose} color={color} />
+      <PrivateMessage open={open} onClose={handleClose} socketio={socketio} />
       <AppBar className={classes.navBar} position="static">
         <Toolbar className={classes.toolBar}>
           <Box display="flex" alignItems="center">
-            <Link to="/">
-              <Typography className={`navbar-button-${color}`}>
-                Macaw
-              </Typography>
+            <Link to="/" className={`no-text-decoration-link-${color}`}>
+              <Typography>Macaw</Typography>
             </Link>
             <Box className={classes.search}>
               <Box className={classes.searchIcon}>
@@ -133,11 +137,9 @@ const Navbar = ({ color }: NavbarProps): JSX.Element => {
               <form method="GET" action="/search" onSubmit={handleSearchSubmit}>
                 <InputBase
                   placeholder="Search...."
-                  className={classes.inputInput}
-                  /* classes={{
-                    //root: classes.inputRoot,
-                    input: classes.inputInput,
-                  }}*/
+                  classes={{
+                    input: classes.input,
+                  }}
                   name="qs"
                   onChange={handleSearchChange}
                   inputProps={{ "aria-label": "search" }}
@@ -156,18 +158,14 @@ const Navbar = ({ color }: NavbarProps): JSX.Element => {
               <IconButton onClick={handleOpen}>
                 <FontAwesomeIcon
                   icon={faComment}
-                  className={`navbar-button-${color || "default"} ${
-                    classes.icons
-                  }`}
+                  className={`navbar-button-${color} ${classes.icons}`}
                 />
               </IconButton>
 
               <Link to="/settings">
                 <IconButton>
                   <SettingsIcon
-                    className={`navbar-button-${color || "default"} ${
-                      classes.icons
-                    }`}
+                    className={`navbar-button-${color} ${classes.icons}`}
                   />
                 </IconButton>
               </Link>
@@ -175,9 +173,7 @@ const Navbar = ({ color }: NavbarProps): JSX.Element => {
               <IconButton>
                 <ExitToAppIcon
                   onClick={handleLogout}
-                  className={`navbar-button-${color || "default"} ${
-                    classes.icons
-                  }`}
+                  className={`navbar-button-${color} ${classes.icons}`}
                 />
               </IconButton>
             </Box>

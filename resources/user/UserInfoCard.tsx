@@ -13,7 +13,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import Cookies from "js-cookie";
-import DarkModeContext from "../DarkMode";
 
 const useStyles = makeStyles(() => ({
   tooltip: {
@@ -37,7 +36,7 @@ const useStyles = makeStyles(() => ({
 
 interface UserInfoCardProps {
   user: {
-    id: string;
+    id: number;
     email: string;
     displayname: string;
     username: string;
@@ -109,7 +108,10 @@ const UserInfoCard = ({ user }: UserInfoCardProps): JSX.Element => {
             <Typography variant="body2" className="grey">
               Messages
             </Typography>
-            <Typography variant="h2" className={"colored-tooltip-" + color}>
+            <Typography
+              variant="h2"
+              className={`no-text-decoration-link-${color}`}
+            >
               {user.messages.length}
             </Typography>
           </Grid>
@@ -117,7 +119,10 @@ const UserInfoCard = ({ user }: UserInfoCardProps): JSX.Element => {
             <Typography variant="body2" className="grey">
               Following
             </Typography>
-            <Typography variant="h2" className={"colored-tooltip-" + color}>
+            <Typography
+              variant="h2"
+              className={`no-text-decoration-link-${color}`}
+            >
               {user.following.length}
             </Typography>
           </Grid>
@@ -125,7 +130,10 @@ const UserInfoCard = ({ user }: UserInfoCardProps): JSX.Element => {
             <Typography variant="body2" className="grey">
               Followers
             </Typography>
-            <Typography variant="h2" className={"colored-tooltip-" + color}>
+            <Typography
+              variant="h2"
+              className={`no-text-decoration-link-${color}`}
+            >
               {user.followers.length}
             </Typography>
           </Grid>

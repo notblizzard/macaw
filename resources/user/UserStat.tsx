@@ -11,7 +11,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 interface User {
-  id: string;
+  id: number;
   color: string;
   createdAt: string;
   username: string;
@@ -41,24 +41,26 @@ const UserStat = ({ user }: UserStatProps): JSX.Element => {
     >
       <Box display="block" textAlign="center" className={classes.userStat}>
         <Typography variant="h5">Messages</Typography>
-        <Typography variant="h3" className={`colored-tooltip-${color}`}>
+        <Typography variant="h3" className={`color-${color}`}>
           {user.messageCount}
         </Typography>
       </Box>
       <Box display="block" textAlign="center" className={classes.userStat}>
         <Typography variant="h5">Followers</Typography>
-        <Link to={`/@${user.username}/followers`} className="links">
-          <Typography variant="h3" className={`colored-tooltip-${color}`}>
-            {user.followers.length}
-          </Typography>
+        <Link
+          to={`/@${user.username}/followers`}
+          className={`no-text-decoration-link-${color}`}
+        >
+          <Typography variant="h3">{user.followers.length}</Typography>
         </Link>
       </Box>
       <Box display="block" textAlign="center" className={classes.userStat}>
         <Typography variant="h5">Following</Typography>
-        <Link to={`/@${user.username}/following`} className="links">
-          <Typography variant="h3" className={`colored-tooltip-${color}`}>
-            {user.following.length}
-          </Typography>
+        <Link
+          to={`/@${user.username}/following`}
+          className={`no-text-decoration-link-${color}`}
+        >
+          <Typography variant="h3">{user.following.length}</Typography>
         </Link>
       </Box>
     </Box>

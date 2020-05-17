@@ -1,14 +1,13 @@
 import React, { useContext } from "react";
 import moment, { Moment } from "moment";
-import { Tooltip, makeStyles } from "@material-ui/core";
-import PropTypes from "prop-types";
+import { Tooltip, makeStyles, Box } from "@material-ui/core";
 import DarkModeContext from "../DarkMode";
-import { Style } from "util";
 
 interface StyleProps {
   darkMode: boolean;
 }
 const useStyles = makeStyles(() => ({
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   moment: (props: StyleProps) => ({
     color: props.darkMode ? "#b8c5d9bd" : "#070b0fbd",
   }),
@@ -27,7 +26,7 @@ const Moment = ({ time, profile }: MomentProps): JSX.Element => {
 
   return (
     <Tooltip className={classes.moment} title={timeFormatted} arrow interactive>
-      <span>{date}</span>
+      <Box component="span">{date}</Box>
     </Tooltip>
   );
 };

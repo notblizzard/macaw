@@ -1,24 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import UserInfo from "./UserInfo";
 import UserStat from "./UserStat";
 import { useParams } from "react-router-dom";
-import { Grid } from "@material-ui/core";
+import {
+  Grid,
+  Hidden,
+  SwipeableDrawer,
+  makeStyles,
+  Theme,
+} from "@material-ui/core";
 import UserMessage from "../message/UserMessage";
 import Cookies from "js-cookie";
+import DarkModeContext from "../DarkMode";
 
-interface UserData {
-  id: string;
-  username: string;
-  displayname: string;
-  followers: any[];
-  following: any[];
-  color: string;
-  description: string;
-  messageCount: number;
+interface StyleProps {
+  darkMode: boolean;
 }
 
+interface ProfileProps {
+  socketio: SocketIOClient.Socket;
+}
 interface User {
-  id: string;
+  id: number;
   color: string;
   createdAt: string;
   username: string;
@@ -35,7 +38,7 @@ interface User {
 }
 
 const defaultUser: User = {
-  id: "",
+  id: 0,
   displayname: "",
   username: "",
   messageCount: 0,
@@ -50,11 +53,26 @@ const defaultUser: User = {
   isDifferentUser: undefined,
 };
 
-const Profile = (): JSX.Element => {
-  const color: string = Cookies.get("color") || "default";
+const useStyles = makeStyles((theme: Theme) => ({
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  drawer: (props: StyleProps) => ({
+    backgroundColor: props.darkMode ? "#080b17" : "#dff0f7",
+    color: props.darkMode ? "#dff0f7" : "#080b17",
+    padding: theme.spacing(1),
+  }),
+}));
 
+const Profile = ({ socketio }: ProfileProps): JSX.Element => {
+  const darkMode = useContext(DarkModeContext);
+  const classes = useStyles({ darkMode });
   const { username } = useParams();
   const [user, setUser] = useState<User>(defaultUser);
+
+  const [drawer, setDrawer] = useState(false);
+
+  const toggleDrawer = (e: React.MouseEvent<HTMLButtonElement>): void => {
+    setDrawer(!drawer);
+  };
 
   useEffect(() => {
     fetch(`/api/user/profile?username=${username}`, {
@@ -69,15 +87,44 @@ const Profile = (): JSX.Element => {
   }, []);
 
   return (
-    <Grid container spacing={4}>
-      <Grid item xs={2}>
-        <UserInfo user={user} />
-      </Grid>
-      <Grid item xs={10}>
-        <UserStat user={user} />
-        <UserMessage dashboard={false} username={username as string} />
-      </Grid>
-    </Grid>
+    <>
+      <Hidden smUp>
+        <Grid container spacing={4}>
+          <SwipeableDrawer
+            anchor={"left"}
+            open={drawer}
+            onClose={toggleDrawer}
+            onOpen={toggleDrawer}
+            classes={{ paper: classes.drawer }}
+          >
+            <UserInfo user={user} />
+            <UserStat user={user} />
+          </SwipeableDrawer>
+          <Grid item xs={12}>
+            <UserMessage
+              dashboard={false}
+              username={username}
+              socketio={socketio}
+            />
+          </Grid>
+        </Grid>
+      </Hidden>
+      <Hidden xsDown>
+        <Grid container spacing={4}>
+          <Grid item xs={2}>
+            <UserInfo user={user} />
+          </Grid>
+          <Grid item xs={10}>
+            <UserStat user={user} />
+            <UserMessage
+              dashboard={false}
+              username={username}
+              socketio={socketio}
+            />
+          </Grid>
+        </Grid>
+      </Hidden>
+    </>
   );
 };
 

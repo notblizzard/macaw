@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,16 +6,24 @@ import {
   Button,
   DialogActions,
   darken,
+  Typography,
 } from "@material-ui/core";
 import { makeStyles, Theme } from "@material-ui/core/styles";
 import PropTypes from "prop-types";
-import Cookies from "js-cookie";
+import { useLocation } from "react-router-dom";
 import DarkModeContext from "../DarkMode";
 
+interface DeleteMessageProps {
+  open: boolean;
+  handleClose: () => void;
+  messageId: number;
+  socketio: SocketIOClient.Socket;
+}
 interface DarkModeProps {
   darkMode: boolean;
 }
 const useStyles = makeStyles((theme: Theme) => ({
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   modal: (props: DarkModeProps) => ({
     backgroundColor: props.darkMode ? "#192a3d" : "#dfe9f4",
     color: props.darkMode ? "#dfe9f4" : "#192a3d",
@@ -35,29 +43,19 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-interface DeleteMessageProps {
-  open: boolean;
-  handleClose: () => void;
-  messageId: string;
-}
 const DeleteMessage = ({
   open,
   handleClose,
   messageId,
+  socketio,
 }: DeleteMessageProps): JSX.Element => {
+  const location = useLocation();
   const darkMode = useContext(DarkModeContext);
   const classes = useStyles({ darkMode });
+  const { current: socket } = useRef(socketio);
 
   const handleMessageDelete = async (): Promise<void> => {
-    await fetch("/api/message/data", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
-      },
-      body: JSON.stringify({ id: messageId }),
-    });
+    socket.emit("delete message", { id: messageId, path: location.pathname });
   };
 
   return (
@@ -70,7 +68,7 @@ const DeleteMessage = ({
     >
       <DialogTitle>Delete Message</DialogTitle>
       <DialogContent>
-        Are you sure you want to delete this message?
+        <Typography>Are you sure you want to delete this message?</Typography>
       </DialogContent>
       <DialogActions>
         <Button
