@@ -3,7 +3,6 @@ import { Grid } from "@material-ui/core";
 import { useParams } from "react-router-dom";
 import UserInfoCard from "./UserInfoCard";
 import Cookies from "js-cookie";
-
 import { makeStyles, Theme } from "@material-ui/core/styles";
 
 interface User {

@@ -22,7 +22,6 @@ import Moment from "../util/Moment";
 import UserTooltip from "../user/UserTooltip";
 import { makeStyles } from "@material-ui/core/styles";
 import ViewImage from "./ViewImage";
-import PropTypes from "prop-types";
 import Cookies from "js-cookie";
 import DarkModeContext from "../DarkMode";
 
@@ -305,33 +304,6 @@ const ViewMessage = ({
       </Dialog>
     </div>
   );
-};
-ViewMessage.propTypes = {
-  open: PropTypes.bool,
-  handleClose: PropTypes.func,
-  user: PropTypes.shape({
-    pinned: PropTypes.any,
-    username: PropTypes.string,
-    displayname: PropTypes.string,
-    messages: PropTypes.array,
-    followers: PropTypes.array,
-    following: PropTypes.array,
-    email: PropTypes.string,
-    isDifferentUser: PropTypes.bool,
-  }),
-  color: PropTypes.string,
-  message: PropTypes.shape({
-    data: PropTypes.string,
-    id: PropTypes.string,
-    createdAt: PropTypes.string,
-    likes: PropTypes.array,
-    reposts: PropTypes.array,
-    messageCreatedAt: PropTypes.string,
-    user: PropTypes.any,
-    reposted: PropTypes.bool,
-    liked: PropTypes.bool,
-    file: PropTypes.any,
-  }),
 };
 
 export default ViewMessage;

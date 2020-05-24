@@ -7,7 +7,6 @@ import {
   Room as RoomIcon,
 } from "@material-ui/icons";
 import UserTooltip from "./UserTooltip";
-import PropTypes from "prop-types";
 import DarkModeContext from "../DarkMode";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLink } from "@fortawesome/free-solid-svg-icons";
@@ -28,7 +27,6 @@ interface UserInfoProps {
 }
 
 const useStyles = makeStyles(() => ({
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   text: (props: StyleProps) => ({
     color: props.darkMode ? "#b8c5d9bd" : "#070b0fbd",
   }),
@@ -81,20 +79,6 @@ const UserInfo = ({ user }: UserInfoProps): JSX.Element => {
       ) : null}
     </Box>
   );
-};
-UserInfo.propTypes = {
-  user: PropTypes.shape({
-    email: PropTypes.string,
-    displayname: PropTypes.string,
-    username: PropTypes.string,
-    description: PropTypes.string,
-    createdAt: PropTypes.any,
-    location: PropTypes.string,
-    link: PropTypes.string,
-    // isDifferentUser: PropTypes.bool,
-    // isFollowingUser: PropTypes.bool,
-  }),
-  color: PropTypes.string,
 };
 
 export default UserInfo;

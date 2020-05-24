@@ -51,7 +51,6 @@ const defaultUser: User = {
 };
 
 const useStyles = makeStyles((theme: Theme) => ({
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   drawer: (props: StyleProps) => ({
     backgroundColor: props.darkMode ? "#080b17" : "#dff0f7",
     color: props.darkMode ? "#dff0f7" : "#080b17",

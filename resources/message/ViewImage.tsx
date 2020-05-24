@@ -2,7 +2,6 @@ import React from "react";
 import { DialogContent } from "@material-ui/core";
 import { Dialog } from "@material-ui/core";
 import { makeStyles, fade } from "@material-ui/core/styles";
-import PropTypes from "prop-types";
 
 interface ViewImageProps {
   open: boolean;
@@ -81,12 +80,6 @@ const ViewImage = ({
       </DialogContent>
     </Dialog>
   );
-};
-
-ViewImage.propTypes = {
-  open: PropTypes.bool,
-  handleClose: PropTypes.func,
-  imageName: PropTypes.string,
 };
 
 export default ViewImage;

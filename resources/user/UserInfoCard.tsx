@@ -11,28 +11,7 @@ import {
 import Gravatar from "../util/Gravatar";
 import React from "react";
 import { Link } from "react-router-dom";
-import PropTypes from "prop-types";
 import Cookies from "js-cookie";
-
-const useStyles = makeStyles(() => ({
-  tooltip: {
-    padding: "1rem",
-    backgroundColor: "#193344",
-    maxWidth: "20rem",
-  },
-  greyText: {
-    color: "#b8c5d9bd",
-  },
-  username: {
-    color: "#eee !important",
-  },
-  card: {
-    //padding: theme.spacing(2),
-    color: "#eee",
-    backgroundColor: "#193344",
-    //maxWidth: "20rem",
-  },
-}));
 
 interface UserInfoCardProps {
   user: {
@@ -51,6 +30,24 @@ interface UserInfoCardProps {
     isFollowingUser?: boolean;
   };
 }
+
+const useStyles = makeStyles(() => ({
+  tooltip: {
+    padding: "1rem",
+    backgroundColor: "#193344",
+    maxWidth: "20rem",
+  },
+  greyText: {
+    color: "#b8c5d9bd",
+  },
+  username: {
+    color: "#eee !important",
+  },
+  card: {
+    color: "#eee",
+    backgroundColor: "#193344",
+  },
+}));
 
 const UserInfoCard = ({ user }: UserInfoCardProps): JSX.Element => {
   const color = Cookies.get("color") || "default";
@@ -141,24 +138,6 @@ const UserInfoCard = ({ user }: UserInfoCardProps): JSX.Element => {
       </CardContent>
     </Card>
   );
-};
-
-UserInfoCard.propTypes = {
-  user: {
-    email: PropTypes.string,
-    displayname: PropTypes.string,
-    username: PropTypes.string,
-    description: PropTypes.string,
-    createdAt: PropTypes.any,
-    location: PropTypes.string,
-    link: PropTypes.string,
-    followers: PropTypes.array,
-    following: PropTypes.array,
-    messages: PropTypes.array,
-    isDifferentUser: PropTypes.bool,
-    isFollowingUser: PropTypes.bool,
-  },
-  color: PropTypes.string,
 };
 
 export default UserInfoCard;

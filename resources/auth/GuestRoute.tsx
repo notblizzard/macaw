@@ -1,6 +1,5 @@
 import React from "react";
 import { Route, Redirect } from "react-router-dom";
-import PropType from "prop-types";
 import Cookies from "js-cookie";
 
 interface GuestRouteProps {
@@ -25,10 +24,6 @@ const GuestRoute = ({ children, ...rest }: GuestRouteProps): JSX.Element => {
       }
     />
   );
-};
-
-GuestRoute.propTypes = {
-  children: PropType.element,
 };
 
 export default GuestRoute;

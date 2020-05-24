@@ -44,85 +44,7 @@ interface StyleProps {
 interface SearchProps {
   socketio: SocketIOClient.Socket;
 }
-const useStyles = makeStyles((theme: Theme) => ({
-  input: {
-    color: "#eee",
-    borderColor: "#eee !important",
 
-    "& .MuiFormLabel-root": {
-      color: "#79838a",
-    },
-
-    "& .MuiOutlinedInput-root": {
-      marginBottom: "4rem",
-      color: "#eee",
-      borderColor: "#eee !important",
-      backgroundColor: fade("#66d0f9", 0.1),
-
-      "&.Mui-focused fieldset": {
-        borderColor: "#09a6f4",
-        color: "#eee",
-      },
-    },
-    //width: "20rem",
-    "&:focus": {
-      borderColor: "#eee",
-    },
-  },
-  mediaToggles: {
-    padding: "1rem",
-    cursor: "pointer",
-  },
-  card: {
-    //padding: theme.spacing(2),
-    backgroundColor: "#193344",
-    //maxWidth: "20rem",
-  },
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  username: (props: StyleProps) => ({
-    color: props.darkMode ? "#b8c5d9bd" : "#070b0fbd",
-    fontSize: "1rem",
-  }),
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  displayname: (props: StyleProps) => ({
-    color: props.darkMode ? "#eee" : "#222",
-    fontSize: "1rem",
-  }),
-
-  message: {
-    backgroundColor: "#192a3d",
-    border: 0,
-    color: "#eee",
-    marginTop: "1rem",
-  },
-  image: {
-    height: "400px",
-  },
-  delete: {
-    color: "#8aadbd",
-    "&:hover": {
-      color: "#e64848",
-    },
-  },
-  like: {
-    color: "#8aadbd",
-    "&:hover": {
-      color: "#fffc59",
-    },
-  },
-  liked: {
-    color: "#fffc59",
-  },
-  repost: {
-    color: "#8aadbd",
-    "&:hover": {
-      color: "#81db6b",
-    },
-  },
-  reposted: {
-    color: "#81db6b",
-  },
-}));
 interface User {
   id: number;
   color: string;
@@ -162,6 +84,78 @@ interface Like {
   user: User;
   message: Message;
 }
+
+const useStyles = makeStyles((theme: Theme) => ({
+  input: {
+    color: "#eee",
+    borderColor: "#eee !important",
+    "& .MuiFormLabel-root": {
+      color: "#79838a",
+    },
+    "& .MuiOutlinedInput-root": {
+      marginBottom: "4rem",
+      color: "#eee",
+      borderColor: "#eee !important",
+      backgroundColor: fade("#66d0f9", 0.1),
+      "&.Mui-focused fieldset": {
+        borderColor: "#09a6f4",
+        color: "#eee",
+      },
+    },
+    "&:focus": {
+      borderColor: "#eee",
+    },
+  },
+  mediaToggles: {
+    padding: "1rem",
+    cursor: "pointer",
+  },
+  card: {
+    backgroundColor: "#193344",
+  },
+  username: (props: StyleProps) => ({
+    color: props.darkMode ? "#b8c5d9bd" : "#070b0fbd",
+    fontSize: "1rem",
+  }),
+  displayname: (props: StyleProps) => ({
+    color: props.darkMode ? "#eee" : "#222",
+    fontSize: "1rem",
+  }),
+  message: {
+    backgroundColor: "#192a3d",
+    border: 0,
+    color: "#eee",
+    marginTop: "1rem",
+  },
+  image: {
+    height: "400px",
+  },
+  delete: {
+    color: "#8aadbd",
+    "&:hover": {
+      color: "#e64848",
+    },
+  },
+  like: {
+    color: "#8aadbd",
+    "&:hover": {
+      color: "#fffc59",
+    },
+  },
+  liked: {
+    color: "#fffc59",
+  },
+  repost: {
+    color: "#8aadbd",
+    "&:hover": {
+      color: "#81db6b",
+    },
+  },
+  reposted: {
+    color: "#81db6b",
+  },
+}));
+
 const Search = ({ socketio }: SearchProps): JSX.Element => {
   const darkMode = useContext(DarkModeContext);
   const classes = useStyles({ darkMode });
@@ -308,13 +302,17 @@ const Search = ({ socketio }: SearchProps): JSX.Element => {
       });
   };
 
-  const handleDialogOpen = (e: any): void | boolean => {
+  const handleDialogOpen = (
+    e: React.MouseEvent<HTMLDivElement | HTMLElement>,
+  ): void | boolean => {
     const tagNames: string[] = ["a", "button", "i", "path", "svg", "span"];
     const imageClassName = "MuiCardMedia-root";
     // prevent dialog on clicking like/repost/etc
-    if (tagNames.includes(e.target.tagName.toLowerCase())) return false;
+    if (tagNames.includes((e.target as any).tagName.toLowerCase())) {
+      return false;
+    }
     // prevent dialog on clicking image
-    if (e.target.classList.contains(imageClassName)) return false;
+    if ((e.target as any).classList.contains(imageClassName)) return false;
     const messageId = Number(e.currentTarget.getAttribute("data-id"));
     fetch(`/api/message/dialog?id=${messageId}`, {
       headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },

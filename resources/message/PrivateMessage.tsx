@@ -22,16 +22,12 @@ import {
   DialogTitle,
 } from "@material-ui/core";
 import { Link } from "react-router-dom";
-//import io from "socket.io-client";
-import PropTypes from "prop-types";
 import { User } from "../../models";
 import Cookies from "js-cookie";
 import DarkModeContext from "../DarkMode";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFeatherAlt } from "@fortawesome/free-solid-svg-icons";
 import { People as PeopleIcon } from "@material-ui/icons";
-
-//const socketio = io();
 
 interface StyleProps {
   darkMode: boolean;
@@ -85,18 +81,15 @@ const useStyles = makeStyles((theme: Theme) => ({
     height: 400,
     overflow: "hidden",
   },
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   tabPanels: (props: StyleProps) => ({
     overflow: "auto",
     height: 380,
     width: "100%",
     padding: props.breakpoint ? "32px" : "0px",
   }),
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   tab: (props: StyleProps) => ({
     color: props.darkMode ? "#dfe9f4" : "#192a3d",
   }),
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   modal: (props: StyleProps) => ({
     backgroundColor: props.darkMode ? "#192a3d" : "#dfe9f4",
     background: props.darkMode ? "#192a3d" : "#dfe9f4",
@@ -110,7 +103,6 @@ const useStyles = makeStyles((theme: Theme) => ({
   tabColor: {
     backgroundColor: "#0a1b26",
   },
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   message: (props: StyleProps) => ({
     backgroundColor: lighten(props.darkMode ? "#192a3d" : "#dfe9f4", 0.1),
     color: props.darkMode ? "#dfe9f4" : "#192a3d",
@@ -119,17 +111,12 @@ const useStyles = makeStyles((theme: Theme) => ({
     wordWrap: "break-word",
     padding: theme.spacing(1),
   }),
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   messageBox: (props: StyleProps) => ({
     maxWidth: props.breakpoint ? "40%" : "80%",
   }),
-
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   toggleDrawer: (props: StyleProps) => ({
     color: props.darkMode ? "#dfe9f4" : "#192a3d",
   }),
-
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   input: (props: StyleProps) => ({
     color: "#eee",
     width: props.breakpoint ? "80%" : "100%",
@@ -137,7 +124,6 @@ const useStyles = makeStyles((theme: Theme) => ({
     "& .MuiFormLabel-root": {
       color: "#79838a",
     },
-
     "& .MuiOutlinedInput-root": {
       backgroundColor: fade("#66d0f9", 0.1),
       color: "#eee",
@@ -150,17 +136,14 @@ const useStyles = makeStyles((theme: Theme) => ({
       borderColor: "#eee",
     },
   }),
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   tabPanel: (props: StyleProps) => ({
     width: props.breakpoint ? "40%" : "100%",
   }),
   newUser: {
     color: "#eee",
-
     "& .MuiFormLabel-root": {
       color: "#79838a",
     },
-
     "& .MuiOutlinedInput-root": {
       backgroundColor: fade("#66d0f9", 0.1),
       color: "#eee",
@@ -177,7 +160,6 @@ const useStyles = makeStyles((theme: Theme) => ({
     padding: theme.spacing(0),
     display: "flex",
   },
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   drawer: (props: StyleProps) => ({
     backgroundColor: props.darkMode ? "#080b17" : "#dff0f7",
     color: props.darkMode ? "#dff0f7" : "#080b17",
@@ -192,7 +174,6 @@ const TabPanel = (props: TabPanelProps): JSX.Element => {
   const darkMode = useContext(DarkModeContext);
 
   const classes = useStyles({ darkMode, breakpoint: breakpoint });
-  // eslint-disable-next-line react/prop-types
   const { children, value, index, ...other } = props;
   return (
     <Typography
@@ -564,11 +545,6 @@ const PrivateMessage = ({
       </DialogContent>
     </Dialog>
   );
-};
-
-PrivateMessage.propTypes = {
-  open: PropTypes.bool,
-  onClose: PropTypes.func,
 };
 
 export default PrivateMessage;

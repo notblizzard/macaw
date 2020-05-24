@@ -1,6 +1,5 @@
 import React from "react";
 import { Route, Redirect } from "react-router-dom";
-import PropType from "prop-types";
 import Cookies from "js-cookie";
 
 interface PrivateRouteProps {
@@ -28,10 +27,6 @@ const PrivateRoute = ({
       }
     />
   );
-};
-
-PrivateRoute.propTypes = {
-  children: PropType.element,
 };
 
 export default PrivateRoute;

@@ -13,7 +13,6 @@ import { useHistory } from "react-router-dom";
 import { GitHub as GitHubIcon } from "@material-ui/icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
-
 import Cookies from "js-cookie";
 import DarkModeContext from "../DarkMode";
 
@@ -72,6 +71,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
   },
 }));
+
 const Login = (): JSX.Element => {
   const darkMode = useContext(DarkModeContext);
 

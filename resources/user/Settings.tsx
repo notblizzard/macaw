@@ -12,7 +12,6 @@ import {
   Box,
 } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
-import PropType from "prop-types";
 import Cookies from "js-cookie";
 import DarkModeContext from "../DarkMode";
 
@@ -283,10 +282,6 @@ const Settings = ({ handleColor }: SettingsProps): JSX.Element => {
       </Box>
     </form>
   );
-};
-
-Settings.propTypes = {
-  handleColor: PropType.func,
 };
 
 export default Settings;

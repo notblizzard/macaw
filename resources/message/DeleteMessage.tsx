@@ -9,7 +9,6 @@ import {
   Typography,
 } from "@material-ui/core";
 import { makeStyles, Theme } from "@material-ui/core/styles";
-import PropTypes from "prop-types";
 import { useLocation } from "react-router-dom";
 import DarkModeContext from "../DarkMode";
 
@@ -23,7 +22,6 @@ interface DarkModeProps {
   darkMode: boolean;
 }
 const useStyles = makeStyles((theme: Theme) => ({
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   modal: (props: DarkModeProps) => ({
     backgroundColor: props.darkMode ? "#192a3d" : "#dfe9f4",
     color: props.darkMode ? "#dfe9f4" : "#192a3d",
@@ -88,12 +86,6 @@ const DeleteMessage = ({
       </DialogActions>
     </Dialog>
   );
-};
-
-DeleteMessage.propTypes = {
-  open: PropTypes.bool,
-  handleClose: PropTypes.func,
-  messageId: PropTypes.string,
 };
 
 export default DeleteMessage;

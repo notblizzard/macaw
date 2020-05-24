@@ -14,7 +14,6 @@ import {
 import { makeStyles, fade } from "@material-ui/core/styles";
 import Cookies from "js-cookie";
 import { useLocation } from "react-router-dom";
-import PropTypes from "prop-types";
 import DarkModeContext from "../DarkMode";
 
 interface DarkModeProps {
@@ -152,13 +151,6 @@ const NewMessage = ({
       </DialogActions>
     </Dialog>
   );
-};
-
-NewMessage.propTypes = {
-  open: PropTypes.bool,
-  handleClose: PropTypes.func,
-  color: PropTypes.string,
-  setNewMessage: PropTypes.func,
 };
 
 export default NewMessage;

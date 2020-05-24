@@ -16,7 +16,6 @@ import {
 } from "@material-ui/icons";
 import Gravatar from "./util/Gravatar";
 import qs from "querystring";
-import PropType from "prop-types";
 import PrivateMessage from "./message/PrivateMessage";
 import Cookies from "js-cookie";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -32,11 +31,9 @@ interface NavbarProps {
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   icons: (props: StyleProps) => ({
     color: props.darkMode ? "#eee" : "#222",
   }),
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   navBar: (props: StyleProps) => ({
     backgroundColor: props.darkMode ? "#15212f" : "#d2dfee",
     marginBottom: theme.spacing(4),
@@ -61,7 +58,6 @@ const useStyles = makeStyles((theme: Theme) => ({
       width: "auto",
     },
   },
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   searchIcon: (props: StyleProps) => ({
     padding: theme.spacing(0, 2),
     height: "100%",
@@ -75,7 +71,6 @@ const useStyles = makeStyles((theme: Theme) => ({
   inputRoot: {
     color: " inherit",
   },
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   input: (props: StyleProps) => ({
     color: props.darkMode ? "#080b17" : "#dff0f7",
     padding: theme.spacing(1, 1, 1, 0),
@@ -182,11 +177,6 @@ const Navbar = ({ color, socketio }: NavbarProps): JSX.Element => {
       </AppBar>
     </>
   );
-};
-
-Navbar.propTypes = {
-  //classes: PropTypes.object.isRequired,
-  color: PropType.string,
 };
 
 export default Navbar;

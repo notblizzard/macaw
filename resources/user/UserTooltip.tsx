@@ -1,20 +1,12 @@
 import React, { useState } from "react";
 import { Theme, makeStyles, Typography, Tooltip } from "@material-ui/core";
 import UserInfoCard from "./UserInfoCard";
-import PropType from "prop-types";
 import { Link } from "react-router-dom";
 import Cookies from "js-cookie";
 
-const useStyles = makeStyles((theme: Theme) => ({
-  tooltip: {
-    width: theme.spacing(40),
-    padding: "0 !important",
-  },
-  greyText: {
-    color: "#b8c5d9bd",
-  },
-}));
-
+interface UserTooltipProp {
+  username: string;
+}
 interface UserData {
   username: string;
   displayname: string;
@@ -32,6 +24,16 @@ interface UserData {
   isDifferentUser?: boolean;
 }
 
+const useStyles = makeStyles((theme: Theme) => ({
+  tooltip: {
+    width: theme.spacing(40),
+    padding: "0 !important",
+  },
+  greyText: {
+    color: "#b8c5d9bd",
+  },
+}));
+
 const defaultUserData: UserData = {
   id: 0,
   username: "",
@@ -46,10 +48,6 @@ const defaultUserData: UserData = {
   link: "",
   description: "",
 };
-
-interface UserTooltipProp {
-  username: string;
-}
 
 const UserTooltip = ({ username }: UserTooltipProp): JSX.Element => {
   const color = Cookies.get("color") || "default";
@@ -88,11 +86,6 @@ const UserTooltip = ({ username }: UserTooltipProp): JSX.Element => {
       </Link>
     </Tooltip>
   );
-};
-
-UserTooltip.propTypes = {
-  username: PropType.string,
-  color: PropType.string,
 };
 
 export default UserTooltip;

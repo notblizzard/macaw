@@ -7,7 +7,6 @@ import session from "express-session";
 import connectRedis from "connect-redis";
 import body from "body-parser";
 import { message, auth, oauth, user, conversation } from "./routes";
-import db from "./db";
 import cookie from "cookie-parser";
 import path from "path";
 import helmet from "helmet";
@@ -74,7 +73,6 @@ createConnection().then(() => {
   });
 
   websocket(io);
-  db();
 
   server.listen(process.env.PORT, () => {
     console.log(`Running on port ${process.env.PORT}`);

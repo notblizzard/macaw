@@ -28,7 +28,6 @@ import ViewMessage from "./ViewMessage";
 import DeleteMessage from "./DeleteMessage";
 import InfiniteScroll from "react-infinite-scroller";
 import ViewImage from "./ViewImage";
-import PropTypes from "prop-types";
 import Cookies from "js-cookie";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faThumbtack } from "@fortawesome/free-solid-svg-icons";
@@ -614,12 +613,6 @@ const UserMessage = ({
       </div>
     </InfiniteScroll>
   );
-};
-
-UserMessage.propTypes = {
-  dashboard: PropTypes.bool,
-  username: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), // can be "undefined"
-  color: PropTypes.string,
 };
 
 export default UserMessage;

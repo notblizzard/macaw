@@ -1,14 +1,7 @@
 import React from "react";
 import { Box, Typography, makeStyles } from "@material-ui/core";
 import { Link } from "react-router-dom";
-import PropTypes from "prop-types";
 import Cookies from "js-cookie";
-
-const useStyles = makeStyles(() => ({
-  userStat: {
-    margin: "4px",
-  },
-}));
 
 interface User {
   id: number;
@@ -29,6 +22,13 @@ interface User {
 interface UserStatProps {
   user: User;
 }
+
+const useStyles = makeStyles(() => ({
+  userStat: {
+    margin: "4px",
+  },
+}));
+
 const UserStat = ({ user }: UserStatProps): JSX.Element => {
   const classes = useStyles();
   const color = Cookies.get("color") || "default";
@@ -65,23 +65,6 @@ const UserStat = ({ user }: UserStatProps): JSX.Element => {
       </Box>
     </Box>
   );
-};
-
-UserStat.propTypes = {
-  user: PropTypes.shape({
-    id: PropTypes.string,
-    messageCount: PropTypes.number,
-    isDifferentUser: PropTypes.bool,
-    isFollowingUser: PropTypes.bool,
-    username: PropTypes.string,
-    displayname: PropTypes.string,
-    messages: PropTypes.array,
-    followers: PropTypes.array,
-    following: PropTypes.array,
-    user: PropTypes.any,
-    color: PropTypes.string,
-  }),
-  color: PropTypes.string,
 };
 
 export default UserStat;
