@@ -15,65 +15,68 @@ import csurf from "csurf";
 import connectFlash from "connect-flash";
 import websocket from "./websocket";
 import socketio from "socket.io";
-
+import { createConnection } from "typeorm";
 /* TODO.
 - fix search and settings colors.
 - space out login and register button on home page.
 - fix oauth.
 */
-const app = express();
 
-const RedisStore = connectRedis(session);
-const redisClient = redis.createClient();
+createConnection().then(() => {
+  const app = express();
 
-app.use(cookie());
-app.use(body.urlencoded({ extended: false }));
-app.use(body.json());
+  const RedisStore = connectRedis(session);
+  const redisClient = redis.createClient();
 
-app.use(
-  session({
-    store: new RedisStore({ client: redisClient }),
-    secret: process.env.SECRET_KEY as string,
-    resave: false,
-    cookie: {
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 * 1,
-    },
-    saveUninitialized: true,
-  }),
-);
+  app.use(cookie());
+  app.use(body.urlencoded({ extended: false }));
+  app.use(body.json());
 
-app.use(csurf({ cookie: true }));
+  app.use(
+    session({
+      store: new RedisStore({ client: redisClient }),
+      secret: process.env.SECRET_KEY as string,
+      resave: false,
+      cookie: {
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 1,
+      },
+      saveUninitialized: true,
+    }),
+  );
 
-app.use(helmet());
-app.use(passport.initialize());
-app.use(passport.session());
+  app.use(csurf({ cookie: true }));
 
-const server = http.createServer(app);
-const io = socketio(server);
+  app.use(helmet());
+  app.use(passport.initialize());
+  app.use(passport.session());
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(connectFlash());
-app.set("views", path.join(__dirname, "views/"));
+  const server = http.createServer(app);
+  const io = socketio(server);
 
-app.use(oauth);
-app.use(user);
-app.use(auth);
-app.use(message);
-app.use(conversation);
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(connectFlash());
+  app.set("views", path.join(__dirname, "views/"));
 
-app.use(express.static("dist"));
-app.use("/uploads", express.static("uploads"));
+  app.use(oauth);
+  app.use(user);
+  app.use(auth);
+  app.use(message);
+  app.use(conversation);
 
-app.get("*", (req, res) => {
-  res.cookie("XSRF-TOKEN", req.csrfToken());
-  res.sendFile("/views/index.html", { root: path.join(__dirname, ".") });
-});
+  app.use(express.static("dist"));
+  app.use("/uploads", express.static("uploads"));
 
-websocket(io);
-db();
+  app.get("*", (req, res) => {
+    res.cookie("XSRF-TOKEN", req.csrfToken());
+    res.sendFile("/views/index.html", { root: path.join(__dirname, ".") });
+  });
 
-server.listen(process.env.PORT, () => {
-  console.log(`Running on port ${process.env.PORT}`);
+  websocket(io);
+  db();
+
+  server.listen(process.env.PORT, () => {
+    console.log(`Running on port ${process.env.PORT}`);
+  });
 });
