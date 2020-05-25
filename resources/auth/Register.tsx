@@ -104,7 +104,6 @@ const Register = (): JSX.Element => {
     e.preventDefault();
     fetch("/register", {
       method: "POST",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,

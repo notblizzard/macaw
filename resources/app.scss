@@ -9,18 +9,18 @@ $colors: (
 );
 
 html {
-  height: 100vh;
+  height: 100%;
 }
 body {
-  height: 100vh;
+  font-family: "Roboto", sans-serif;
+  height: 100%;
   margin: 0;
 }
-.app {
-  min-height: 100vh;
+.MuiTypography-caption {
+  font-family: "Roboto", sans-serif;
 }
-
-.grey {
-  color: #b8c5d9bd;
+.app {
+  height: 100%;
 }
 
 @each $name, $value in $colors {

@@ -5,11 +5,6 @@ import { Request } from "express";
 import { passport } from "../authorization";
 import { Like } from "typeorm";
 
-/*
-interface SettingsError extends ValidationError {
-  constraints: {};
-}
-*/
 interface RequestUser extends Request {
   id: number;
   email: string;

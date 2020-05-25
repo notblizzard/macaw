@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import UserInfoCard from "./UserInfoCard";
 import Cookies from "js-cookie";
 import { makeStyles, Theme } from "@material-ui/core/styles";
+import { Helmet } from "react-helmet-async";
 
 interface User {
   id: number;
@@ -58,7 +59,6 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 const Following = (): JSX.Element => {
   const classes = useStyles();
-  // const color = Cookies.get("color") || "default";
   const { username } = useParams();
   const [user, setUser] = useState<UserData>({
     following: [
@@ -83,6 +83,7 @@ const Following = (): JSX.Element => {
 
   return (
     <Grid container>
+      <Helmet>{`${username}'s Follows`}</Helmet>
       {user.following.length === 0 ? (
         <h1>Following 0 Users</h1>
       ) : (

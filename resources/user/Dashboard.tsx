@@ -11,7 +11,7 @@ import {
 } from "@material-ui/core";
 import Cookies from "js-cookie";
 import DarkModeContext from "../DarkMode";
-
+import { Helmet } from "react-helmet-async";
 interface User {
   id: number;
   color: string;
@@ -82,6 +82,9 @@ const Dashboard = ({ socketio }: DashboardProps): JSX.Element => {
 
   return (
     <>
+      <Helmet>
+        <title>Dashboard</title>
+      </Helmet>
       <Hidden smUp>
         <Grid container spacing={4}>
           <SwipeableDrawer

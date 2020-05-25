@@ -54,6 +54,7 @@ const DeleteMessage = ({
 
   const handleMessageDelete = async (): Promise<void> => {
     socket.emit("delete message", { id: messageId, path: location.pathname });
+    handleClose();
   };
 
   return (

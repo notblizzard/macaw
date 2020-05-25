@@ -60,7 +60,6 @@ const UserInfoCard = ({ user }: UserInfoCardProps): JSX.Element => {
     const userId = e.currentTarget.getAttribute("data-id");
     await fetch("/api/message/follow", {
       method: "POST",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
@@ -102,7 +101,7 @@ const UserInfoCard = ({ user }: UserInfoCardProps): JSX.Element => {
         </Typography>
         <Grid container style={{ textAlign: "center" }}>
           <Grid item xs={4}>
-            <Typography variant="body2" className="grey">
+            <Typography variant="body2" className={classes.greyText}>
               Messages
             </Typography>
             <Typography
@@ -113,7 +112,7 @@ const UserInfoCard = ({ user }: UserInfoCardProps): JSX.Element => {
             </Typography>
           </Grid>
           <Grid item xs={4}>
-            <Typography variant="body2" className="grey">
+            <Typography variant="body2" className={classes.greyText}>
               Following
             </Typography>
             <Typography
@@ -124,7 +123,7 @@ const UserInfoCard = ({ user }: UserInfoCardProps): JSX.Element => {
             </Typography>
           </Grid>
           <Grid item xs={4}>
-            <Typography variant="body2" className="grey">
+            <Typography variant="body2" className={classes.greyText}>
               Followers
             </Typography>
             <Typography

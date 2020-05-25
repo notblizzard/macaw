@@ -360,7 +360,7 @@ router.post(
     message.file = req.file?.filename;
 
     await message.save();
-    return res.json({ success: true, message });
+    return res.json({ success: true, id: message.id });
   },
 );
 

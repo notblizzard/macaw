@@ -140,7 +140,6 @@ const ViewMessage = ({
     const messageId = e.currentTarget.getAttribute("data-id");
     await fetch("/api/message/like", {
       method: "POST",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
@@ -155,7 +154,6 @@ const ViewMessage = ({
     const messageId = e.currentTarget.getAttribute("data-id");
     await fetch("/api/message/repost", {
       method: "POST",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,

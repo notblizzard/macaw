@@ -3,6 +3,7 @@ import Gravatar from "../util/Gravatar";
 import { Grid, Box, Typography } from "@material-ui/core";
 import { Link, useParams } from "react-router-dom";
 import Cookies from "js-cookie";
+import { Helmet } from "react-helmet-async";
 
 interface UserData {
   followers: {
@@ -46,6 +47,9 @@ const Followers = (): JSX.Element => {
 
   return (
     <Grid container>
+      <Helmet>
+        <title>{`${username}'s Followers`}</title>
+      </Helmet>
       {user.followers.length === 0 ? (
         <Typography variant="h1">0 Followers</Typography>
       ) : (

@@ -2,6 +2,7 @@ import { User, Message } from "./models/";
 import ConversationMessage from "./models/ConversationMessage";
 import Conversation from "./models/Conversation";
 import { Socket, Server } from "socket.io";
+import uploader from "./uploader";
 
 interface UserSocket extends Socket {
   userId: number | undefined;
@@ -31,10 +32,12 @@ export default (io: Server): void => {
         socket.userId as number,
       );
       if (!user) return false;
-      const message: Message = new Message();
-      message.data = data.text;
-      message.user = user;
-      await message.save();
+      const message: Message | undefined = await Message.findOne({
+        where: { id: data.id },
+        relations: ["user"],
+      });
+      if (!message) return false;
+
       // only emit to user if they're on a page they control
       if (
         data.path === "/dashboard" ||

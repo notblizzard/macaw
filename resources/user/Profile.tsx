@@ -12,7 +12,7 @@ import {
 import UserMessage from "../message/UserMessage";
 import Cookies from "js-cookie";
 import DarkModeContext from "../DarkMode";
-
+import { Helmet } from "react-helmet-async";
 interface StyleProps {
   darkMode: boolean;
 }
@@ -88,6 +88,9 @@ const Profile = ({ socketio }: ProfileProps): JSX.Element => {
 
   return (
     <>
+      <Helmet>
+        <title>{username}</title>
+      </Helmet>
       <Hidden smUp>
         <Grid container spacing={4}>
           <SwipeableDrawer

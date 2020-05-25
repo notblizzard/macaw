@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogTitle,
   darken,
+  Box,
 } from "@material-ui/core";
 import { makeStyles, fade } from "@material-ui/core/styles";
 import Cookies from "js-cookie";
@@ -35,6 +36,9 @@ const useStyles = makeStyles(() => ({
     //fontSize: "10rem",
     textAlign: "center",
   }),
+  input: {
+    display: "none",
+  },
   modalForm: {
     color: "#eee",
     borderBottomColor: "#66d0f9",
@@ -63,6 +67,9 @@ const useStyles = makeStyles(() => ({
       color: darken("#97adc4", 0.1),
     },
   },
+  newMessageButtons: {
+    width: "100%",
+  },
 }));
 
 const NewMessage = ({
@@ -70,16 +77,22 @@ const NewMessage = ({
   handleClose,
   socketio,
 }: NewMessageProps): JSX.Element => {
+  const { current: socket } = useRef(socketio);
   const color = Cookies.get("color") || "default";
   const darkMode = useContext(DarkModeContext);
   const location = useLocation();
   const [text, setText] = useState("");
-  const fileRef = useRef(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const classes = useStyles({ darkMode });
   const textClass = classes[text.length <= 260 ? "messageGreen" : "messageRed"];
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    if (text.length <= 280) {
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void | boolean => {
+    if (e.target.value.length > 280) {
       e.preventDefault();
+      setText(text.slice(0, 280));
+      return false;
     }
     setText(e.target.value);
   };
@@ -89,11 +102,25 @@ const NewMessage = ({
   ): Promise<void> => {
     e.preventDefault();
     const formData = new FormData();
-    console.log(location.pathname);
     formData.append("data", text);
-    //formData.append("file", (fileRef?.current as HTMLFor?.files?.[0]);
-
-    socketio.emit("new message", { text, path: location.pathname });
+    formData.append("file", (fileRef.current as any).files[0]);
+    fetch("/api/message/new", {
+      method: "POST",
+      headers: {
+        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+      },
+      body: formData,
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          socket.emit("new message", {
+            path: location.pathname,
+            id: data.id,
+          });
+        }
+      });
+    setText("");
     handleClose();
   };
 
@@ -111,44 +138,50 @@ const NewMessage = ({
       <DialogTitle id="form-dialog-title">New Message</DialogTitle>
       <DialogContent>
         <form autoComplete="off" onSubmit={handleSubmit}>
-          <InputBase
-            fullWidth={true}
-            id="standard-basic"
-            onChange={handleChange}
-            multiline
-            rows="8"
-            classes={{ root: classes.modalForm }}
-          />
-          <Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              type="submit"
-              value="Submit"
-              className={`button-${color}`}
-            >
-              Submit
-            </Button>
-            <input
-              id="icon-button-file"
-              type="file"
-              name="file"
-              ref={fileRef}
-              //onChange={handleImageChange}
+          <Box display="flex" flexDirection="column" alignItems="center">
+            <InputBase
+              fullWidth={true}
+              id="standard-basic"
+              onChange={handleChange}
+              value={text}
+              multiline
+              rows="8"
+              classes={{ root: classes.modalForm }}
             />
-            <label htmlFor="icon-button-file">
-              <IconButton color="primary" component="span">
-                <PhotoButton className={classes.buttonUpload} />
-              </IconButton>
-            </label>
-          </Typography>
+            <Box
+              display="flex"
+              flexDirection="row"
+              alignItems="center"
+              justifyContent="space-around"
+              className={classes.newMessageButtons}
+            >
+              <input
+                id="icon-button-file"
+                type="file"
+                name="file"
+                accept="image/*"
+                ref={fileRef}
+                className={classes.input}
+              />
+              <label htmlFor="icon-button-file">
+                <IconButton color="primary" component="span">
+                  <PhotoButton className={classes.buttonUpload} />
+                </IconButton>
+              </label>
+              <Button
+                variant="contained"
+                color="primary"
+                type="submit"
+                value="Submit"
+                className={`button-${color}`}
+              >
+                Submit
+              </Button>
+              <Typography variant="body1">{280 - text.length}</Typography>
+            </Box>
+          </Box>
         </form>
       </DialogContent>
-      <DialogActions className={textClass}>
-        <Typography variant="h2" component="h2">
-          {280 - text.length}
-        </Typography>
-      </DialogActions>
     </Dialog>
   );
 };

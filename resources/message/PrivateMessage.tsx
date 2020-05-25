@@ -78,8 +78,12 @@ const useStyles = makeStyles((theme: Theme) => ({
   root: {
     flexGrow: 1,
     display: "flex",
-    height: 400,
+    //height: 400,
+    //paddingTop: theme.spacing(0),
     overflow: "hidden",
+  },
+  submitButton: {
+    height: "3.4rem",
   },
   tabPanels: (props: StyleProps) => ({
     overflow: "auto",
@@ -99,6 +103,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   }),
   tabs: {
     color: "#eee",
+    width: "40%",
   },
   tabColor: {
     backgroundColor: "#0a1b26",
@@ -137,7 +142,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
   }),
   tabPanel: (props: StyleProps) => ({
-    width: props.breakpoint ? "40%" : "100%",
+    width: props.breakpoint ? "60%" : "100%",
   }),
   newUser: {
     color: "#eee",
@@ -214,14 +219,11 @@ const PrivateMessage = ({
   const [conversations, setConversations] = useState<Conversation[]>(
     [] as Conversation[],
   );
-  const messageRef = useRef<HTMLInputElement>(null);
   const classes = useStyles({ darkMode, color, breakpoint });
 
   const scrollToBottom = (): void => {
-    if (messageRef.current !== null) {
-      //messageRef.current.scrollIntoView({ behavior: "smooth" });
-      window.scrollTo(0, messageRef?.current?.offsetTop);
-    }
+    const element: HTMLElement | null = document.getElementById("messageRef");
+    element?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -236,7 +238,10 @@ const PrivateMessage = ({
           setUserId(data.user.id);
         }
       });
-  }, []);
+    return (): void => {
+      scrollToBottom();
+    };
+  }, [value, open]);
 
   useEffect(() => {
     socket.on("new private message", (data: NewMessage) => {
@@ -248,10 +253,10 @@ const PrivateMessage = ({
       });
 
       setConversations(updatedConversations);
-      scrollToBottom();
     });
     return (): void => {
       socket.off("new private message");
+      scrollToBottom();
     };
   }, [conversations]);
 
@@ -270,7 +275,6 @@ const PrivateMessage = ({
     newValue: number,
   ): void => {
     setValue(newValue);
-    scrollToBottom();
   };
 
   const handleNewMessageChange = (
@@ -290,14 +294,13 @@ const PrivateMessage = ({
   ): void | boolean => {
     e.preventDefault();
     if (newMessage.trim().length === 0) return false;
-    const conversationId: string = e.currentTarget.getAttribute(
-      "data-id",
-    ) as string;
+    const conversationId: string = e.currentTarget.getAttribute("data-id")!;
     socket.emit("new private message", {
       conversationId,
       userId,
       data: newMessage,
     });
+    scrollToBottom();
   };
 
   const handleNewConversationSubmit = async (
@@ -306,7 +309,6 @@ const PrivateMessage = ({
     e.preventDefault();
     await fetch("/api/conversation/new-conversation", {
       method: "POST",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
@@ -345,41 +347,52 @@ const PrivateMessage = ({
               indicator: `indicator-${color}`,
             }}
           >
-            {conversations.map((conversation, index) => (
+            {conversations?.map((conversation, index) => (
               <Tab
-                key={conversation?.id}
+                key={conversation.id}
                 label={
-                  <Typography display="inline" className={classes.tab}>
+                  <Box display="flex" flexDirection="row">
                     <Gravatar
                       email={
-                        conversation?.users?.filter(
-                          (x) => x?.username !== username,
+                        conversation.users.filter(
+                          (user) => user.username !== username,
                         )[0].email
                       }
                       size={4}
                     />
-                    {
-                      conversation?.users?.filter(
-                        (x) => x?.username !== username,
-                      )[0].username
-                    }
-                  </Typography>
+                    <Typography className={classes.tab}>
+                      {
+                        conversation.users.filter(
+                          (user) => user.username !== username,
+                        )[0].username
+                      }
+                    </Typography>
+                  </Box>
                 }
                 {...a11yProps(index)}
               />
             ))}
             <form onSubmit={handleNewConversationSubmit}>
-              <TextField
-                name="newPrivateMessage"
-                onChange={handleNewUserChange}
-                variant="outlined"
-                fullWidth
-                label="New Conversation"
-                classes={{ root: classes.newUser }}
-              />
+              <Box display="flex" flexDirection="row" alignItems="center">
+                <TextField
+                  name="newPrivateMessage"
+                  onChange={handleNewUserChange}
+                  variant="outlined"
+                  fullWidth
+                  label="New Conversation"
+                  classes={{ root: classes.newUser }}
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  className={`button-${color} ${classes.submitButton}`}
+                >
+                  Submit
+                </Button>
+              </Box>
             </form>
           </Tabs>
-          {conversations.map((conversation, index) => (
+          {conversations?.map((conversation, index) => (
             <TabPanel value={value} index={index} key={conversation?.id}>
               {conversation?.messages?.map((message) => (
                 <>
@@ -402,7 +415,6 @@ const PrivateMessage = ({
                         {message?.data}
                       </Typography>
                       <Moment time={message?.createdAt} profile={false} />
-                      <div ref={messageRef}></div>
                     </Box>
                   </Box>
                 </>
@@ -425,10 +437,11 @@ const PrivateMessage = ({
                   type="submit"
                   variant="contained"
                   size="large"
-                  className={`button-${color}`}
+                  className={`button-${color} ${classes.submitButton}`}
                 >
                   Send <FontAwesomeIcon icon={faFeatherAlt} />
                 </Button>
+                <div id="messageRef"></div>
               </form>
             </TabPanel>
           ))}
@@ -451,7 +464,7 @@ const PrivateMessage = ({
                 indicator: `indicator-${color}`,
               }}
             >
-              {conversations.map((conversation, index) => (
+              {conversations?.map((conversation, index) => (
                 <Tab
                   key={conversation?.id}
                   label={
@@ -483,13 +496,20 @@ const PrivateMessage = ({
                   label="New Conversation"
                   classes={{ root: classes.newUser }}
                 />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  className={`button-${color} ${classes.submitButton}`}
+                >
+                  Submit
+                </Button>
               </form>
             </Tabs>
           </Drawer>
 
-          {conversations.map((conversation, index) => (
+          {conversations?.map((conversation, index) => (
             <TabPanel value={value} index={index} key={conversation?.id}>
-              {conversation?.messages?.map((message) => (
+              {conversation.messages.map((message) => (
                 <>
                   <Box
                     display="flex"
@@ -500,8 +520,8 @@ const PrivateMessage = ({
                         : "row"
                     }
                   >
-                    <Link to={`/@${message?.user?.username}`}>
-                      <Gravatar email={message?.user?.email} size={4} />
+                    <Link to={`/@${message.user.username}`}>
+                      <Gravatar email={message.user.email} size={4} />
                     </Link>
 
                     <Box className={classes.messageBox} display="block">
@@ -509,8 +529,7 @@ const PrivateMessage = ({
                         {" "}
                         {message?.data}
                       </Typography>
-                      <Moment time={message?.createdAt} profile={false} />
-                      <div ref={messageRef}></div>
+                      <Moment time={message.createdAt} profile={false} />
                     </Box>
                   </Box>
                 </>
@@ -533,11 +552,12 @@ const PrivateMessage = ({
                   type="submit"
                   variant="contained"
                   size="large"
-                  className={`button-${color}`}
+                  className={`button-${color} ${classes.submitButton}`}
                   fullWidth
                 >
                   Send <FontAwesomeIcon icon={faFeatherAlt} />
                 </Button>
+                <div id="messageRef"></div>
               </form>
             </TabPanel>
           ))}

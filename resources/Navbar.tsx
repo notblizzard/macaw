@@ -15,7 +15,6 @@ import {
   ExitToApp as ExitToAppIcon,
 } from "@material-ui/icons";
 import Gravatar from "./util/Gravatar";
-import qs from "querystring";
 import PrivateMessage from "./message/PrivateMessage";
 import Cookies from "js-cookie";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -35,7 +34,8 @@ const useStyles = makeStyles((theme: Theme) => ({
     color: props.darkMode ? "#eee" : "#222",
   }),
   navBar: (props: StyleProps) => ({
-    backgroundColor: props.darkMode ? "#15212f" : "#d2dfee",
+    backgroundColor: props.darkMode ? "#080b17" : "#dff0f7",
+    boxShadow: "none",
     marginBottom: theme.spacing(4),
   }),
   toolBar: {
@@ -43,8 +43,20 @@ const useStyles = makeStyles((theme: Theme) => ({
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  search: {
+  input: (props: StyleProps) => ({
+    color: "transparent", //props.darkMode ? "#080b17" : "#dff0f7",
+    padding: theme.spacing(1, 1, 1, 4),
+    transition: theme.transitions.create("width"),
+    width: theme.spacing(0),
+    "&:focus": {
+      color: props.darkMode ? "#dff0f7" : "#080b17",
+      width: theme.spacing(40),
+    },
+  }),
+  search: (props: StyleProps) => ({
+    //backgroundColor: props.darkMode ? "#eee" : "#222",
     backgroundColor: fade("#66d0f9", 0.1),
+
     position: "relative",
     borderRadius: theme.shape.borderRadius,
     "&:hover": {
@@ -57,29 +69,16 @@ const useStyles = makeStyles((theme: Theme) => ({
       marginLeft: theme.spacing(3),
       width: "auto",
     },
-  },
+  }),
   searchIcon: (props: StyleProps) => ({
-    padding: theme.spacing(0, 2),
+    padding: theme.spacing(0, 1),
     height: "100%",
     position: "absolute",
     pointerEvents: "none",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    color: props.darkMode ? "#eee" : "#222",
-  }),
-  inputRoot: {
-    color: " inherit",
-  },
-  input: (props: StyleProps) => ({
-    color: props.darkMode ? "#080b17" : "#dff0f7",
-    padding: theme.spacing(1, 1, 1, 0),
-    paddingLeft: theme.spacing(1), //`calc(1em + ${theme.spacing(4)}px)`,
-    transition: theme.transitions.create("width"),
-    width: "0rem",
-    "&:focus": {
-      width: "20ch",
-    },
+    color: props.darkMode ? "#dff0f7" : "#080b17",
   }),
 }));
 
@@ -88,7 +87,7 @@ const Navbar = ({ color, socketio }: NavbarProps): JSX.Element => {
   const history = useHistory();
   const classes = useStyles({ darkMode });
   const [open, setOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [search, setSearch] = useState("");
 
   const handleOpen = (): void => {
     setOpen(true);
@@ -108,18 +107,19 @@ const Navbar = ({ color, socketio }: NavbarProps): JSX.Element => {
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setSearchQuery(e.target.value);
+    setSearch(e.target.value);
   };
 
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    history.push(`/search?${qs.stringify({ qs: searchQuery })}`);
+    history.push(`/search?qs=${search}`);
+    setSearch("");
   };
 
   return (
     <>
       <PrivateMessage open={open} onClose={handleClose} socketio={socketio} />
-      <AppBar className={classes.navBar} position="static">
+      <AppBar className={classes.navBar} position="fixed">
         <Toolbar className={classes.toolBar}>
           <Box display="flex" alignItems="center">
             <Link to="/" className={`no-text-decoration-link-${color}`}>
@@ -129,7 +129,7 @@ const Navbar = ({ color, socketio }: NavbarProps): JSX.Element => {
               <Box className={classes.searchIcon}>
                 <SearchIcon />
               </Box>
-              <form method="GET" action="/search" onSubmit={handleSearchSubmit}>
+              <form onSubmit={handleSearchSubmit}>
                 <InputBase
                   placeholder="Search...."
                   classes={{

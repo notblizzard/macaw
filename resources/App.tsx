@@ -13,7 +13,14 @@ import GuestRoute from "./auth/GuestRoute";
 import Dashboard from "./user/Dashboard";
 import CreateIcon from "@material-ui/icons/CreateOutlined";
 import Navbar from "./Navbar";
-import { Fab, Container, makeStyles, Box, darken } from "@material-ui/core";
+import {
+  Fab,
+  Container,
+  makeStyles,
+  Box,
+  darken,
+  Theme,
+} from "@material-ui/core";
 import NewMessage from "./message/NewMessage";
 import Settings from "./user/Settings";
 import Profile from "./user/Profile";
@@ -23,18 +30,19 @@ import Search from "./Search";
 import Cookies from "js-cookie";
 import io from "socket.io-client";
 import DarkModeContext from "./DarkMode";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 
 const socketio = io();
 interface StyleProps {
   darkMode: boolean;
 }
 
-const useStyles = makeStyles(() => ({
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const useStyles = makeStyles((theme: Theme) => ({
   container: (props: StyleProps) => ({
     backgroundColor: props.darkMode ? "#080b17" : "#dff0f7",
     color: props.darkMode ? "#dff0f7" : "#080b17",
-    height: "100% !important",
+    minHeight: `calc(100% - ${theme.spacing(10)}px)`,
+    paddingTop: theme.spacing(10),
   }),
   moon: {
     color: "#dff0f7",
@@ -47,7 +55,6 @@ const useStyles = makeStyles(() => ({
     bottom: "4rem",
     right: 0,
   },
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   darkThemeButton: (props: StyleProps) => ({
     backgroundColor: props.darkMode ? "#dff0f7" : "#080b17",
     position: "fixed",
@@ -88,7 +95,6 @@ const App = (): JSX.Element => {
 
   useEffect(() => {
     fetch("/api/user/color", {
-      credentials: "include",
       headers: {
         "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
       },
@@ -121,60 +127,63 @@ const App = (): JSX.Element => {
   };
 
   return (
-    <Box className={classes.container}>
-      <DarkModeContext.Provider value={darkTheme}>
-        <BrowserRouter>
-          <NewMessage
-            open={open}
-            handleClose={handleClose}
-            socketio={socketio}
-          />
-          <Navbar color={color} socketio={socketio} />
-          <Container>
-            <Switch>
-              <Route path="/@:username/followers">
-                <Followers />
-              </Route>
-              <Route path="/@:username/following">
-                <Following />
-              </Route>
-              <Route path="/@:username">
-                <Profile socketio={socketio} />
-              </Route>
-              <Route path="/search">
-                <Search socketio={socketio} />
-              </Route>
-              <GuestRoute path="/register">
-                <Register />
-              </GuestRoute>
-              <GuestRoute path="/login">
-                <Login />
-              </GuestRoute>
-              <PrivateRoute path="/dashboard">
-                <Dashboard socketio={socketio} />
-              </PrivateRoute>
-              <PrivateRoute path="/settings">
-                <Settings handleColor={handleColor} />
-              </PrivateRoute>
-              <GuestRoute path="/">
-                <Home />
-              </GuestRoute>
-            </Switch>
-          </Container>
-        </BrowserRouter>
-      </DarkModeContext.Provider>
-      <Fab className={classes.darkThemeButton} onClick={toggleDarkTheme}>
-        {darkTheme ? <MoonIcon /> : <SunIcon />}
-      </Fab>
-      {Cookies.get("email") ? (
-        <Fab
-          className={"floating-new-message-button-" + color}
-          onClick={handleOpen}
-        >
-          <CreateIcon />
+    <HelmetProvider>
+      <Helmet titleTemplate={"%s | Macaw"} defaultTitle="Macaw" />
+      <Box className={classes.container}>
+        <DarkModeContext.Provider value={darkTheme}>
+          <BrowserRouter>
+            <NewMessage
+              open={open}
+              handleClose={handleClose}
+              socketio={socketio}
+            />
+            <Navbar color={color} socketio={socketio} />
+            <Container>
+              <Switch>
+                <Route path="/@:username/followers">
+                  <Followers />
+                </Route>
+                <Route path="/@:username/following">
+                  <Following />
+                </Route>
+                <Route path="/@:username">
+                  <Profile socketio={socketio} />
+                </Route>
+                <Route path="/search">
+                  <Search socketio={socketio} />
+                </Route>
+                <GuestRoute path="/register">
+                  <Register />
+                </GuestRoute>
+                <GuestRoute path="/login">
+                  <Login />
+                </GuestRoute>
+                <PrivateRoute path="/dashboard">
+                  <Dashboard socketio={socketio} />
+                </PrivateRoute>
+                <PrivateRoute path="/settings">
+                  <Settings handleColor={handleColor} />
+                </PrivateRoute>
+                <GuestRoute path="/">
+                  <Home />
+                </GuestRoute>
+              </Switch>
+            </Container>
+          </BrowserRouter>
+        </DarkModeContext.Provider>
+        <Fab className={classes.darkThemeButton} onClick={toggleDarkTheme}>
+          {darkTheme ? <MoonIcon /> : <SunIcon />}
         </Fab>
-      ) : null}
-    </Box>
+        {Cookies.get("email") ? (
+          <Fab
+            className={"floating-new-message-button-" + color}
+            onClick={handleOpen}
+          >
+            <CreateIcon />
+          </Fab>
+        ) : null}
+      </Box>
+    </HelmetProvider>
   );
 };
 

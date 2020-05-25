@@ -14,6 +14,7 @@ import {
 import { useHistory } from "react-router-dom";
 import Cookies from "js-cookie";
 import DarkModeContext from "../DarkMode";
+import { Helmet } from "react-helmet-async";
 
 interface UserSettings {
   description?: string;
@@ -119,7 +120,6 @@ const Settings = ({ handleColor }: SettingsProps): JSX.Element => {
     e.preventDefault();
     fetch("/api/user/settings", {
       method: "POST",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
@@ -149,6 +149,9 @@ const Settings = ({ handleColor }: SettingsProps): JSX.Element => {
 
   return (
     <form onSubmit={handleSubmit}>
+      <Helmet>
+        <title>Settings</title>
+      </Helmet>
       <Box display="flex" flexDirection="column" alignItems="center">
         <FormControl component="fieldset">
           <RadioGroup

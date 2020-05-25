@@ -104,7 +104,6 @@ const Login = (): JSX.Element => {
     e.preventDefault();
     fetch("/login", {
       method: "POST",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
