@@ -140,30 +140,34 @@ const App = (): JSX.Element => {
             <Navbar color={color} socketio={socketio} />
             <Container>
               <Switch>
-                <Route path="/@:username/followers">
-                  <Followers />
-                </Route>
-                <Route path="/@:username/following">
-                  <Following />
-                </Route>
-                <Route path="/@:username">
-                  <Profile socketio={socketio} />
-                </Route>
-                <Route path="/search">
-                  <Search socketio={socketio} />
-                </Route>
+                <Route path="/@:username/followers" component={Followers} />
+
+                <Route path="/@:username/following" component={Following} />
+
+                <Route
+                  path="/@:username"
+                  component={Profile}
+                  socketio={socketio}
+                />
+
+                <Route path="/search" component={Search} socketio={socketio} />
+
                 <GuestRoute path="/register">
                   <Register />
                 </GuestRoute>
+
                 <GuestRoute path="/login">
                   <Login />
                 </GuestRoute>
+
                 <PrivateRoute path="/dashboard">
                   <Dashboard socketio={socketio} />
                 </PrivateRoute>
+
                 <PrivateRoute path="/settings">
                   <Settings handleColor={handleColor} />
                 </PrivateRoute>
+
                 <GuestRoute path="/">
                   <Home />
                 </GuestRoute>
