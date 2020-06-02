@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Gravatar from "../util/Gravatar";
 import Moment from "../util/Moment";
 import {
@@ -79,7 +79,7 @@ interface StyleProps {
 interface UserMessageProps {
   dashboard: boolean;
   username: string | undefined;
-  socketio: SocketIOClient.Socket;
+  socket: SocketIOClient.Socket;
 }
 
 const useStyles = makeStyles({
@@ -142,46 +142,50 @@ const useStyles = makeStyles({
 const UserMessage = ({
   dashboard,
   username,
-  socketio,
+  socket,
 }: UserMessageProps): JSX.Element => {
   const color = Cookies.get("color") || "default";
   const theme = useTheme();
-  const { current: socket } = useRef(socketio);
   // true = desktop, false = mobile
   const breakpoint = useMediaQuery(theme.breakpoints.up("sm"));
   const darkMode = useContext(DarkModeContext);
   const classes = useStyles({ darkMode });
   const tagNames: string[] = ["a", "button", "i", "path", "svg", "span"];
-  const imageClassName = "MuiCardMedia-root";
   const [messageId, setMessageId] = useState(0);
   const [page, setPage] = useState(1);
   const [openImage, setOpenImage] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openView, setOpenView] = useState(false);
   const [imageName, setImageName] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [mediaOnly, setMediaOnly] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [user, setUser] = useState<User>({} as User);
-  const [dialog, setDialog] = useState<Message>({} as Message);
+  const [user, setUser] = useState<User>(null!);
+  const [dialog, setDialog] = useState<Message>(null!);
 
   const urlPath = dashboard ? "dashboard?" : `profile?username=${username}&`;
   const urlForMessages = `/api/message/${urlPath}page=${page}`;
 
-  useEffect(() => {
+  const loadMoreMessages = (): void => {
+    setIsLoading(true);
     fetch(urlForMessages, {
       headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          setUser(data.user);
-          setMessages(data.messages);
           setPage(page + 1);
+          setUser(data.user);
+          setMessages(messages.concat(data.messages));
+          setHasMore(data.messages.length >= 10);
         }
         setIsLoading(false);
       });
+  };
+
+  useEffect(() => {
+    loadMoreMessages();
   }, []);
 
   useEffect(() => {
@@ -207,7 +211,7 @@ const UserMessage = ({
       socket.off("new message");
       socket.off("delete message");
     };
-  }, [messages]);
+  }, [messages, socket, user?.pinned?.id]);
 
   const formatText = (word: string): JSX.Element | string => {
     if (word.startsWith("@")) {
@@ -223,23 +227,6 @@ const UserMessage = ({
     } else {
       return ` ${word} `;
     }
-  };
-
-  const loadMoreMessages = (): void => {
-    fetch(urlForMessages, {
-      headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setPage(page + 1);
-          setUser(data.user);
-          setMessages(messages.concat(data.messages));
-        } else {
-          setHasMore(false);
-        }
-        setIsLoading(false);
-      });
   };
 
   const handleLike = (
@@ -359,7 +346,7 @@ const UserMessage = ({
       return false;
     }
     // prevent dialog on clicking image
-    if (event.classList.contains(imageClassName)) return false;
+    if (event.classList.contains("MuiCardMedia-root")) return false;
 
     const messageId: string = e.currentTarget.getAttribute("data-id")!;
     fetch(`/api/message/dialog?id=${messageId}`, {
@@ -394,211 +381,227 @@ const UserMessage = ({
   const showAllMessages = (): void => setMediaOnly(false);
 
   return (
-    <InfiniteScroll
-      pageStart={1}
-      loadMore={loadMoreMessages}
-      hasMore={!isLoading && hasMore}
-      loader={
-        <Container>
-          <CircularProgress />
-        </Container>
-      }
-    >
-      <ViewMessage
-        color={color}
-        message={dialog}
-        open={openView}
-        user={user}
-        handleClose={handleDialogClose}
-      />
-      <DeleteMessage
-        open={openDelete}
-        socketio={socketio}
-        handleClose={handleDeleteClose}
-        messageId={messageId}
-      />
-      <ViewImage
-        open={openImage}
-        handleClose={handleImageClose}
-        imageName={imageName}
-      />
-      <Box display="flex" flexDirection="row">
-        <Typography
-          variant="h5"
-          onClick={showAllMessages}
-          className={`${mediaOnly ? `link-${color}` : "'"} ${
-            classes.mediaToggles
-          }`}
-        >
-          Messages
-        </Typography>
-        <Typography
-          variant="h5"
-          onClick={showMessagesWithMediaOnly}
-          className={`${mediaOnly ? "" : `link-${color}`} ${
-            classes.mediaToggles
-          }`}
-        >
-          Media Only
-        </Typography>
-      </Box>
-      {messages
-        ?.filter((message) => {
-          if (mediaOnly) {
-            if (message.file) {
-              return message;
-            }
-          } else {
-            return message;
+    <>
+      {user && (
+        <InfiniteScroll
+          pageStart={1}
+          loadMore={loadMoreMessages}
+          hasMore={!isLoading && hasMore}
+          loader={
+            <Container>
+              <CircularProgress />
+            </Container>
           }
-        })
-        .map((message: Message) => (
-          <Card
-            className={classes.message}
-            key={message.id}
-            raised={true}
-            onClick={handleDialogOpen}
-            data-id={message.id}
-          >
-            <CardContent>
-              <Grid container spacing={1}>
-                <Grid item xs={breakpoint ? 1 : 2}>
-                  <Gravatar
-                    size={breakpoint ? 8 : 6}
-                    email={message.user.email}
-                  />
-                </Grid>
-                <Grid item xs={breakpoint ? 11 : 10}>
+        >
+          <ViewMessage
+            color={color}
+            message={dialog}
+            open={openView}
+            user={user}
+            handleClose={handleDialogClose}
+          />
+          <DeleteMessage
+            open={openDelete}
+            socket={socket}
+            handleClose={handleDeleteClose}
+            messageId={messageId}
+          />
+          <ViewImage
+            open={openImage}
+            handleClose={handleImageClose}
+            imageName={imageName}
+          />
+          <Box display="flex" flexDirection="row">
+            <Typography
+              variant="h5"
+              onClick={showAllMessages}
+              className={`${mediaOnly ? `link-${color}` : "'"} ${
+                classes.mediaToggles
+              }`}
+            >
+              Messages
+            </Typography>
+            <Typography
+              variant="h5"
+              onClick={showMessagesWithMediaOnly}
+              className={`${mediaOnly ? "" : `link-${color}`} ${
+                classes.mediaToggles
+              }`}
+            >
+              Media Only
+            </Typography>
+          </Box>
+          {messages
+            .filter((message) => {
+              if (mediaOnly) {
+                if (message.file) {
+                  return message;
+                }
+              } else {
+                return message;
+              }
+            })
+            .map((message: Message) => (
+              <Card
+                className={classes.message}
+                key={message.id}
+                raised={true}
+                onClick={handleDialogOpen}
+                data-id={message.id}
+              >
+                <CardContent>
                   <Grid container spacing={1}>
-                    <Grid item xs={12}>
-                      {user.pinned?.id === message.id ? (
-                        <Typography variant="body2" className={classes.caption}>
-                          <FontAwesomeIcon
-                            icon={faThumbtack}
-                            className={`color-${color}`}
-                          />{" "}
-                          Pinned Message
-                        </Typography>
-                      ) : null}
-                      {message.reposted ? (
-                        <Typography variant="body2" className={classes.caption}>
-                          <RepeatIcon className={`color-${color}`} />
-                          {user.displayname} Reposted
-                        </Typography>
-                      ) : null}
-                      <Typography display="inline">
-                        <Link
-                          to={`/@${message.user.username}`}
-                          className={`username-link-${color}`}
-                        >
-                          <Box component="span" className={classes.displayname}>
-                            {message.user.displayname === undefined
-                              ? message.user.username
-                              : message.user.displayname}
-                          </Box>{" "}
-                          <Box component="span" className={classes.username}>
-                            @{message.user.username}
-                          </Box>
-                        </Link>{" "}
-                        <Moment
-                          time={
-                            message.reposted
-                              ? (message.messageCreatedAt as string)
-                              : message.createdAt
-                          }
-                          profile={false}
-                        />
-                      </Typography>
+                    <Grid item xs={breakpoint ? 1 : 2}>
+                      <Gravatar
+                        size={breakpoint ? 8 : 6}
+                        email={message.user.email}
+                      />
                     </Grid>
-                    <Grid item xs={12} className={classes.messageGrid}>
-                      <Typography display="inline">
-                        {message.data
-                          .split(" ")
-                          .map((word: string) => formatText(word))}
-                      </Typography>
-                      {message.file ? (
-                        <CardMedia
-                          onClick={handleImage}
-                          image={`/uploads/${message.file}`}
-                          data-image-name={message.file}
-                          className={classes.image}
-                        />
-                      ) : null}
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Box display="flex" justifyContent="space-between">
-                        <Box>
-                          <Tooltip title={"Like"} arrow>
-                            <IconButton
-                              onClick={handleLike}
-                              edge="start"
-                              data-id={message.id}
-                              className={
-                                message.liked ? classes.liked : classes.like
-                              }
+                    <Grid item xs={breakpoint ? 11 : 10}>
+                      <Grid container spacing={1}>
+                        <Grid item xs={12}>
+                          {user.pinned?.id === message.id ? (
+                            <Typography
+                              variant="body2"
+                              className={classes.caption}
                             >
-                              {message.liked ? (
-                                <StarIcon />
-                              ) : (
-                                <StarBorderIcon />
-                              )}{" "}
-                            </IconButton>
-                          </Tooltip>
-                          <Typography className={classes.inline}>
-                            {message.likes.length}
-                          </Typography>
-                          <Tooltip title={"Repost"} arrow>
-                            <IconButton
-                              onClick={handleRepost}
-                              data-id={message.id}
-                              className={
-                                message.reposted
-                                  ? classes.reposted
-                                  : classes.repost
-                              }
+                              <FontAwesomeIcon
+                                icon={faThumbtack}
+                                className={`color-${color}`}
+                              />{" "}
+                              Pinned Message
+                            </Typography>
+                          ) : null}
+                          {message.reposted ? (
+                            <Typography
+                              variant="body2"
+                              className={classes.caption}
                             >
-                              {message.reposted ? (
-                                <RepeatIcon className={"reposted"} />
-                              ) : (
-                                <RepeatIcon />
-                              )}{" "}
-                            </IconButton>
-                          </Tooltip>
-                          <Typography className={classes.inline}>
-                            {message.reposts.length}
-                          </Typography>
-                        </Box>
-                        <Box>
-                          {user.isDifferentUser ? null : (
-                            <Tooltip title={"Pin"} arrow>
-                              <IconButton
-                                onClick={handlePin}
-                                data-id={message.id}
-                                className={`pin-${color}`}
+                              <RepeatIcon className={`color-${color}`} />
+                              {user.displayname} Reposted
+                            </Typography>
+                          ) : null}
+                          <Typography display="inline">
+                            <Link
+                              to={`/@${message.user.username}`}
+                              className={`username-link-${color}`}
+                            >
+                              <Box
+                                component="span"
+                                className={classes.displayname}
                               >
-                                <FontAwesomeIcon icon={faThumbtack} />
-                              </IconButton>
-                            </Tooltip>
-                          )}
-                          <Tooltip title={"Delete"} arrow>
-                            <IconButton
-                              onClick={handleDelete}
-                              data-id={message.id}
-                              className={classes.delete}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      </Box>
+                                {message.user.displayname === undefined
+                                  ? message.user.username
+                                  : message.user.displayname}
+                              </Box>{" "}
+                              <Box
+                                component="span"
+                                className={classes.username}
+                              >
+                                @{message.user.username}
+                              </Box>
+                            </Link>{" "}
+                            <Moment
+                              time={
+                                message.reposted
+                                  ? (message.messageCreatedAt as string)
+                                  : message.createdAt
+                              }
+                              profile={false}
+                            />
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={12} className={classes.messageGrid}>
+                          <Typography display="inline">
+                            {message.data
+                              .split(" ")
+                              .map((word: string) => formatText(word))}
+                          </Typography>
+                          {message.file ? (
+                            <CardMedia
+                              onClick={handleImage}
+                              image={`/uploads/${message.file}`}
+                              data-image-name={message.file}
+                              className={classes.image}
+                            />
+                          ) : null}
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Box display="flex" justifyContent="space-between">
+                            <Box>
+                              <Tooltip title={"Like"} arrow>
+                                <IconButton
+                                  onClick={handleLike}
+                                  edge="start"
+                                  data-id={message.id}
+                                  className={
+                                    message.liked ? classes.liked : classes.like
+                                  }
+                                >
+                                  {message.liked ? (
+                                    <StarIcon />
+                                  ) : (
+                                    <StarBorderIcon />
+                                  )}{" "}
+                                </IconButton>
+                              </Tooltip>
+                              <Typography className={classes.inline}>
+                                {message.likes.length}
+                              </Typography>
+                              <Tooltip title={"Repost"} arrow>
+                                <IconButton
+                                  onClick={handleRepost}
+                                  data-id={message.id}
+                                  className={
+                                    message.reposted
+                                      ? classes.reposted
+                                      : classes.repost
+                                  }
+                                >
+                                  {message.reposted ? (
+                                    <RepeatIcon className={"reposted"} />
+                                  ) : (
+                                    <RepeatIcon />
+                                  )}{" "}
+                                </IconButton>
+                              </Tooltip>
+                              <Typography className={classes.inline}>
+                                {message.reposts.length}
+                              </Typography>
+                            </Box>
+                            <Box>
+                              {user.isDifferentUser ? null : (
+                                <Tooltip title={"Pin"} arrow>
+                                  <IconButton
+                                    onClick={handlePin}
+                                    data-id={message.id}
+                                    className={`pin-${color}`}
+                                  >
+                                    <FontAwesomeIcon icon={faThumbtack} />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+                              <Tooltip title={"Delete"} arrow>
+                                <IconButton
+                                  onClick={handleDelete}
+                                  data-id={message.id}
+                                  className={classes.delete}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          </Box>
+                        </Grid>
+                      </Grid>
                     </Grid>
                   </Grid>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        ))}
-    </InfiniteScroll>
+                </CardContent>
+              </Card>
+            ))}
+        </InfiniteScroll>
+      )}
+    </>
   );
 };
 

@@ -1,5 +1,4 @@
 import React, { useState, useContext } from "react";
-
 import {
   Repeat as RepeatIcon,
   StarBorder as StarBorderIcon,
@@ -175,132 +174,146 @@ const ViewMessage = ({
   };
 
   return (
-    <div className="message">
-      <ViewImage
-        open={openImage}
-        handleClose={handleImageClose}
-        imageName={imageName}
-      />
-      <Dialog
-        scroll="body"
-        open={open}
-        keepMounted
-        onClose={handleClose}
-        fullWidth={true}
-        maxWidth="md"
-        classes={{
-          paper: classes.message,
-        }}
-      >
-        <DialogContent>
-          {Object.keys(message).length !== 0 ? (
-            <div key={message.id}>
-              <Grid container spacing={1}>
-                <Grid item xs={breakpoint ? 1 : 2}>
-                  <Gravatar
-                    size={breakpoint ? 8 : 5}
-                    email={message.user.email}
-                  />
-                </Grid>
-                <Grid item xs={breakpoint ? 11 : 10}>
+    <>
+      {message && (
+        <>
+          <ViewImage
+            open={openImage}
+            handleClose={handleImageClose}
+            imageName={imageName}
+          />
+          <Dialog
+            scroll="body"
+            open={open}
+            keepMounted
+            onClose={handleClose}
+            fullWidth={true}
+            maxWidth="md"
+            classes={{
+              paper: classes.message,
+            }}
+          >
+            <DialogContent>
+              {Object.keys(message).length !== 0 ? (
+                <div key={message.id}>
                   <Grid container spacing={1}>
-                    <Grid item xs={12}>
-                      <Typography display="inline">
-                        <Link
-                          to={`/@${message.user.username}`}
-                          className={`username-link-${color}`}
-                        >
-                          <Box component="span" className={classes.displayname}>
-                            {message.user.displayname === undefined
-                              ? message.user.username
-                              : message.user.displayname}
-                          </Box>{" "}
-                          <Box component="span" className={classes.username}>
-                            @{message.user.username}
+                    <Grid item xs={breakpoint ? 1 : 2}>
+                      <Gravatar
+                        size={breakpoint ? 8 : 5}
+                        email={message.user.email}
+                      />
+                    </Grid>
+                    <Grid item xs={breakpoint ? 11 : 10}>
+                      <Grid container spacing={1}>
+                        <Grid item xs={12}>
+                          <Typography display="inline">
+                            <Link
+                              to={`/@${message.user.username}`}
+                              className={`username-link-${color}`}
+                            >
+                              <Box
+                                component="span"
+                                className={classes.displayname}
+                              >
+                                {message.user.displayname === undefined
+                                  ? message.user.username
+                                  : message.user.displayname}
+                              </Box>{" "}
+                              <Box
+                                component="span"
+                                className={classes.username}
+                              >
+                                @{message.user.username}
+                              </Box>
+                            </Link>{" "}
+                            <Moment
+                              time={
+                                message.reposted
+                                  ? (message.messageCreatedAt as string)
+                                  : message.createdAt
+                              }
+                              profile={false}
+                            />
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={12} className={classes.messageGrid}>
+                          <Typography display="inline">
+                            {message.data.split(" ").map((word: string) => {
+                              if (word.startsWith("@")) {
+                                return <UserTooltip username={word.slice(1)} />;
+                              } else if (word.startsWith("#")) {
+                                return (
+                                  <Link to={`/search?qs=%23${word.slice(1)}`}>
+                                    <Box
+                                      component="span"
+                                      className={`link-${color}`}
+                                    >
+                                      {word}
+                                    </Box>
+                                  </Link>
+                                );
+                              } else {
+                                return ` ${word} `;
+                              }
+                            })}
+                          </Typography>
+                          {message.file ? (
+                            <CardMedia
+                              onClick={handleImage}
+                              image={`/uploads/${message.file}`}
+                              title="test"
+                              data-image-name={message.file}
+                              className={classes.image}
+                            />
+                          ) : null}
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Box display="flex" justifyContent="space-between">
+                            <div>
+                              <IconButton
+                                onClick={handleLike}
+                                edge="start"
+                                data-id={message.id}
+                                className={
+                                  message.liked ? classes.liked : classes.like
+                                }
+                              >
+                                {message.liked ? (
+                                  <StarIcon />
+                                ) : (
+                                  <StarBorderIcon />
+                                )}{" "}
+                              </IconButton>
+                              {message.likes.length}
+                              <IconButton
+                                onClick={handleRepost}
+                                data-id={message.id}
+                                className={
+                                  message.reposted
+                                    ? classes.reposted
+                                    : classes.repost
+                                }
+                              >
+                                {message.reposted ? (
+                                  <RepeatIcon className={"reposted"} />
+                                ) : (
+                                  <RepeatIcon />
+                                )}{" "}
+                              </IconButton>
+                              {message.reposts.length}
+                            </div>
                           </Box>
-                        </Link>{" "}
-                        <Moment
-                          time={
-                            message.reposted
-                              ? (message.messageCreatedAt as string)
-                              : message.createdAt
-                          }
-                          profile={false}
-                        />
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} className={classes.messageGrid}>
-                      <Typography display="inline">
-                        {message.data.split(" ").map((word: string) => {
-                          if (word.startsWith("@")) {
-                            return <UserTooltip username={word.slice(1)} />;
-                          } else if (word.startsWith("#")) {
-                            return (
-                              <Link to={`/search?qs=%23${word.slice(1)}`}>
-                                <Box
-                                  component="span"
-                                  className={`link-${color}`}
-                                >
-                                  {word}
-                                </Box>
-                              </Link>
-                            );
-                          } else {
-                            return ` ${word} `;
-                          }
-                        })}
-                      </Typography>
-                      {message.file ? (
-                        <CardMedia
-                          onClick={handleImage}
-                          image={`/uploads/${message.file}`}
-                          title="test"
-                          data-image-name={message.file}
-                          className={classes.image}
-                        />
-                      ) : null}
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Box display="flex" justifyContent="space-between">
-                        <div>
-                          <IconButton
-                            onClick={handleLike}
-                            edge="start"
-                            data-id={message.id}
-                            className={
-                              message.liked ? classes.liked : classes.like
-                            }
-                          >
-                            {message.liked ? <StarIcon /> : <StarBorderIcon />}{" "}
-                          </IconButton>
-                          {message.likes.length}
-                          <IconButton
-                            onClick={handleRepost}
-                            data-id={message.id}
-                            className={
-                              message.reposted
-                                ? classes.reposted
-                                : classes.repost
-                            }
-                          >
-                            {message.reposted ? (
-                              <RepeatIcon className={"reposted"} />
-                            ) : (
-                              <RepeatIcon />
-                            )}{" "}
-                          </IconButton>
-                          {message.reposts.length}
-                        </div>
-                      </Box>
+                        </Grid>
+                      </Grid>
                     </Grid>
                   </Grid>
-                </Grid>
-              </Grid>
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
-    </div>
+                </div>
+              ) : null}
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
+    </>
   );
 };
 

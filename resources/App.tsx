@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { BrowserRouter, Route, Switch } from "react-router-dom";
+import { BrowserRouter, Route, Switch, useLocation } from "react-router-dom";
 import {
   Brightness2 as MoonIcon,
   Brightness5 as SunIcon,
@@ -10,7 +10,6 @@ import Home from "./Home";
 import Login from "./auth/Login";
 import PrivateRoute from "./auth/PrivateRoute";
 import GuestRoute from "./auth/GuestRoute";
-import Dashboard from "./user/Dashboard";
 import CreateIcon from "@material-ui/icons/CreateOutlined";
 import Navbar from "./Navbar";
 import {
@@ -32,7 +31,6 @@ import io from "socket.io-client";
 import DarkModeContext from "./DarkMode";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 
-const socketio = io();
 interface StyleProps {
   darkMode: boolean;
 }
@@ -69,8 +67,10 @@ const useStyles = makeStyles((theme: Theme) => ({
 }));
 
 const App = (): JSX.Element => {
+  //const socketio = io();
+
   const [color, setColor] = useState(Cookies.get("color") || "default");
-  const { current: socket } = useRef(socketio);
+  const { current: socket } = useRef(io());
   const [open, setOpen] = useState(false);
   const [darkTheme, setDarkTheme] = useState(
     Cookies.get("darkTheme") === "true" ? true : false,
@@ -82,14 +82,15 @@ const App = (): JSX.Element => {
   };
 
   useEffect(() => {
-    fetch("/api/user/id", {
+    fetch("/api/user/authenticate", {
       headers: {
         "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
       },
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data.success) socket.emit("authorize", { id: data.id });
+        if (data.success)
+          socket.emit("authenticate", { id: data.id, username: data.username });
       });
   }, []);
 
@@ -132,25 +133,25 @@ const App = (): JSX.Element => {
       <Box className={classes.container}>
         <DarkModeContext.Provider value={darkTheme}>
           <BrowserRouter>
-            <NewMessage
-              open={open}
-              handleClose={handleClose}
-              socketio={socketio}
-            />
-            <Navbar color={color} socketio={socketio} />
+            <NewMessage open={open} handleClose={handleClose} socket={socket} />
+            <Navbar color={color} socket={socket} />
             <Container>
               <Switch>
+                <Route
+                  path="/@:username"
+                  render={(props) => (
+                    <Profile {...props} socket={socket} dashboard={false} />
+                  )}
+                />
+
                 <Route path="/@:username/followers" component={Followers} />
 
                 <Route path="/@:username/following" component={Following} />
 
                 <Route
-                  path="/@:username"
-                  component={Profile}
-                  socketio={socketio}
+                  path="/search"
+                  render={(props) => <Search {...props} socket={socket} />}
                 />
-
-                <Route path="/search" component={Search} socketio={socketio} />
 
                 <GuestRoute path="/register">
                   <Register />
@@ -161,7 +162,7 @@ const App = (): JSX.Element => {
                 </GuestRoute>
 
                 <PrivateRoute path="/dashboard">
-                  <Dashboard socketio={socketio} />
+                  <Profile dashboard={true} socket={socket} />
                 </PrivateRoute>
 
                 <PrivateRoute path="/settings">

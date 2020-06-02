@@ -6,6 +6,8 @@ import uploader from "./uploader";
 
 interface UserSocket extends Socket {
   userId: number | undefined;
+  username: string;
+  path: string;
 }
 export default (io: Server): void => {
   const getUser = (otherUserId: number): Promise<UserSocket> => {
@@ -20,14 +22,38 @@ export default (io: Server): void => {
       });
     });
   };
+
+  const getUsersInPath = (socket: UserSocket): Promise<UserSocket[]> => {
+    let path = socket.path;
+    if (socket.path === "/dashboard") {
+      path = `/@${socket.username}`.toLowerCase();
+    }
+    return new Promise((resolve) => {
+      const users: UserSocket[] = [];
+      io.clients(async (err: Error, clients: string[]) => {
+        clients.forEach((client) => {
+          const user = io.sockets.connected[client] as UserSocket;
+          if (path === user.path?.toLowerCase()) {
+            console.log("found 1");
+            users.push(user);
+          }
+        });
+        return resolve(users);
+      });
+    });
+  };
   io.on("connection", (socket: UserSocket) => {
-    socket.on("authorize", (data) => {
+    socket.on("authenticate", (data) => {
       socket.userId = data.id;
+      socket.username = data.username;
+    });
+
+    socket.on("path", (path) => {
+      socket.path = path;
+      console.log("new path: " + socket.path);
     });
 
     socket.on("new message", async (data) => {
-      console.log(data);
-      console.log(`socket is ${socket.userId}`);
       const user: User | undefined = await User.findOne(
         socket.userId as number,
       );
@@ -38,14 +64,13 @@ export default (io: Server): void => {
       });
       if (!message) return false;
 
-      // only emit to user if they're on a page they control
-      if (
-        data.path === "/dashboard" ||
-        data.path.toLowerCase() === `/@${user.username.toLowerCase}`
-      ) {
+      const users = await getUsersInPath(socket);
+      if (socket.path === "/dashboard") {
         socket.emit("new message", message);
       }
+      users.forEach((user) => user.emit("new message", message));
     });
+
     socket.on("new private message", async (data) => {
       const user: User | undefined = await User.findOne(socket.userId);
 

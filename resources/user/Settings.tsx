@@ -84,6 +84,7 @@ const Settings = ({ handleColor }: SettingsProps): JSX.Element => {
     description: "",
     color: "",
   });
+
   const [errors, setErrors] = useState({
     username: [],
     displayname: [],

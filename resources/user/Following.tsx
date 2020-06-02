@@ -60,15 +60,8 @@ const useStyles = makeStyles((theme: Theme) => ({
 const Following = (): JSX.Element => {
   const classes = useStyles();
   const { username } = useParams();
-  const [user, setUser] = useState<UserData>({
-    following: [
-      {
-        isBeingFollowed: false,
-        id: 0,
-        following: {} as User,
-      },
-    ],
-  });
+  const [user, setUser] = useState<UserData>(null!);
+
   useEffect(() => {
     fetch(`/api/user/following?username=${username}`, {
       headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },

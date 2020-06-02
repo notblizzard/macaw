@@ -73,9 +73,14 @@ router.get("/api/user/profile", async (req, res) => {
   });
 });
 
-router.get("/api/user/id", passport.authenticate("jwt"), async (req, res) => {
-  return res.json({ success: true, id: (req.user as RequestUser).id });
-});
+router.get(
+  "/api/user/authenticate",
+  passport.authenticate("jwt"),
+  async (req, res) => {
+    const user = req.user as RequestUser;
+    return res.json({ success: true, id: user.id, username: user.username });
+  },
+);
 router.get(
   "/api/user/color",
   passport.authenticate("jwt"),

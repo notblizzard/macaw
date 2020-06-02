@@ -36,6 +36,7 @@ const UserInfo = ({ user }: UserInfoProps): JSX.Element => {
   const color = Cookies.get("color") || "default";
   const darkMode = useContext(DarkModeContext);
   const classes = useStyles({ darkMode });
+
   return (
     <Box>
       <Gravatar email={user.email} size={14}></Gravatar>

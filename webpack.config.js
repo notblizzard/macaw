@@ -11,7 +11,7 @@ const webpack = require("webpack");
 const path = require("path");
 
 module.exports = {
-  mode: "production",
+  // mode: "development",
   performance: {
     hints: false,
   },
@@ -21,6 +21,7 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: "[name].css",
     }),
+    // @ts-ignore
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
     //new BundleAnalyzerPlugin(),
 

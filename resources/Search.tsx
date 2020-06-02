@@ -42,7 +42,7 @@ interface StyleProps {
 }
 
 interface SearchProps {
-  socketio: SocketIOClient.Socket;
+  socket: SocketIOClient.Socket;
 }
 
 interface User {
@@ -156,7 +156,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-const Search = ({ socketio }: SearchProps): JSX.Element => {
+const Search = ({ socket }: SearchProps): JSX.Element => {
   const darkMode = useContext(DarkModeContext);
   const classes = useStyles({ darkMode });
   // const { current: socket } = useRef(socketio);
@@ -418,7 +418,7 @@ const Search = ({ socketio }: SearchProps): JSX.Element => {
         handleClose={handleDialogClose}
       />
       <DeleteMessage
-        socketio={socketio}
+        socket={socket}
         open={openDelete}
         handleClose={handleDeleteClose}
         messageId={messageId}

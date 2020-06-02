@@ -3,7 +3,6 @@ import { Photo as PhotoButton } from "@material-ui/icons";
 import {
   Button,
   Typography,
-  DialogActions,
   InputBase,
   IconButton,
   Dialog,
@@ -24,7 +23,7 @@ interface DarkModeProps {
 interface NewMessageProps {
   open: boolean;
   handleClose: () => void;
-  socketio: SocketIOClient.Socket;
+  socket: SocketIOClient.Socket;
 }
 
 const useStyles = makeStyles(() => ({
@@ -75,16 +74,14 @@ const useStyles = makeStyles(() => ({
 const NewMessage = ({
   open,
   handleClose,
-  socketio,
+  socket,
 }: NewMessageProps): JSX.Element => {
-  const { current: socket } = useRef(socketio);
   const color = Cookies.get("color") || "default";
   const darkMode = useContext(DarkModeContext);
   const location = useLocation();
   const [text, setText] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const classes = useStyles({ darkMode });
-  const textClass = classes[text.length <= 260 ? "messageGreen" : "messageRed"];
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>,

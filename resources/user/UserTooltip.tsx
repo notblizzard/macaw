@@ -27,32 +27,17 @@ interface UserData {
 const useStyles = makeStyles((theme: Theme) => ({
   tooltip: {
     width: theme.spacing(40),
-    padding: "0 !important",
+    padding: 0,
   },
   greyText: {
     color: "#b8c5d9bd",
   },
 }));
 
-const defaultUserData: UserData = {
-  id: 0,
-  username: "",
-  displayname: "",
-  messages: [],
-  followers: [],
-  following: [],
-  email: "",
-  color: "",
-  createdAt: "",
-  location: "",
-  link: "",
-  description: "",
-};
-
 const UserTooltip = ({ username }: UserTooltipProp): JSX.Element => {
   const color = Cookies.get("color") || "default";
   const classes = useStyles();
-  const [user, setUser] = useState<UserData>(defaultUserData);
+  const [user, setUser] = useState<UserData>(null!);
 
   const handleOpen = (): void => {
     if (!user.username) {
@@ -69,22 +54,26 @@ const UserTooltip = ({ username }: UserTooltipProp): JSX.Element => {
   };
 
   return (
-    <Tooltip
-      onOpen={handleOpen}
-      interactive={true}
-      classes={{ tooltip: classes.tooltip }}
-      placement="left-start"
-      title={<UserInfoCard user={user} />}
-    >
-      <Link to={`/@${username}`}>
-        <Typography
-          className={`no-text-decoration-link-${color}`}
-          display="inline"
+    <>
+      {user && (
+        <Tooltip
+          onOpen={handleOpen}
+          interactive={true}
+          classes={{ tooltip: classes.tooltip }}
+          placement="left-start"
+          title={<UserInfoCard user={user} />}
         >
-          @{username}
-        </Typography>
-      </Link>
-    </Tooltip>
+          <Link to={`/@${username}`}>
+            <Typography
+              className={`no-text-decoration-link-${color}`}
+              display="inline"
+            >
+              @{username}
+            </Typography>
+          </Link>
+        </Tooltip>
+      )}
+    </>
   );
 };
 

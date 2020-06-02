@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   Toolbar,
   AppBar,
@@ -8,7 +8,7 @@ import {
   Box,
 } from "@material-ui/core";
 import { fade, makeStyles, Theme } from "@material-ui/core/styles";
-import { Link, useHistory } from "react-router-dom";
+import { Link, useHistory, useLocation } from "react-router-dom";
 import {
   Search as SearchIcon,
   Settings as SettingsIcon,
@@ -26,7 +26,7 @@ interface StyleProps {
 
 interface NavbarProps {
   color: string;
-  socketio: SocketIOClient.Socket;
+  socket: SocketIOClient.Socket;
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -82,12 +82,17 @@ const useStyles = makeStyles((theme: Theme) => ({
   }),
 }));
 
-const Navbar = ({ color, socketio }: NavbarProps): JSX.Element => {
+const Navbar = ({ color, socket }: NavbarProps): JSX.Element => {
   const darkMode = useContext(DarkModeContext);
   const history = useHistory();
   const classes = useStyles({ darkMode });
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const location = useLocation();
+
+  useEffect(() => {
+    socket.emit("path", location.pathname);
+  }, [location, socket]);
 
   const handleOpen = (): void => {
     setOpen(true);
@@ -118,7 +123,9 @@ const Navbar = ({ color, socketio }: NavbarProps): JSX.Element => {
 
   return (
     <>
-      <PrivateMessage open={open} onClose={handleClose} socketio={socketio} />
+      {Cookies.get("email") && (
+        <PrivateMessage open={open} onClose={handleClose} socket={socket} />
+      )}
       <AppBar className={classes.navBar} position="fixed">
         <Toolbar className={classes.toolBar}>
           <Box display="flex" alignItems="center">

@@ -1,4 +1,4 @@
-import React, { useContext, useRef } from "react";
+import React, { useContext } from "react";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ interface DeleteMessageProps {
   open: boolean;
   handleClose: () => void;
   messageId: number;
-  socketio: SocketIOClient.Socket;
+  socket: SocketIOClient.Socket;
 }
 interface DarkModeProps {
   darkMode: boolean;
@@ -45,12 +45,11 @@ const DeleteMessage = ({
   open,
   handleClose,
   messageId,
-  socketio,
+  socket,
 }: DeleteMessageProps): JSX.Element => {
   const location = useLocation();
   const darkMode = useContext(DarkModeContext);
   const classes = useStyles({ darkMode });
-  const { current: socket } = useRef(socketio);
 
   const handleMessageDelete = async (): Promise<void> => {
     socket.emit("delete message", { id: messageId, path: location.pathname });

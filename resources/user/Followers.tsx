@@ -19,20 +19,8 @@ interface UserData {
 }
 const Followers = (): JSX.Element => {
   const { username } = useParams();
-  const [user, setUser] = useState<UserData>({
-    followers: [
-      {
-        isBeingFollowed: false,
-        id: 0,
-        follower: {
-          email: "",
-          username: "",
-          displayname: "",
-          description: "",
-        },
-      },
-    ],
-  });
+  const [user, setUser] = useState<UserData>(null!);
+
   useEffect(() => {
     fetch(`/api/user/followers?username=${username}`, {
       headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
@@ -46,33 +34,39 @@ const Followers = (): JSX.Element => {
   }, []);
 
   return (
-    <Grid container>
-      <Helmet>
-        <title>{`${username}'s Followers`}</title>
-      </Helmet>
-      {user.followers.length === 0 ? (
-        <Typography variant="h1">0 Followers</Typography>
-      ) : (
-        user.followers.map((data) => (
-          <Grid item xs={3} key={data.id}>
-            <Box display="flex" justifyContent="space-between">
-              <Gravatar email={data.follower.email} size={8} />
-            </Box>
-            <Typography variant="h6">
-              <Link to={"/@" + data.follower.username}>
-                {data.follower.displayname}
-              </Link>
-            </Typography>
-            <Typography variant="subtitle1">
-              @{data.follower.username}
-            </Typography>
-            <Typography variant="body1" style={{ marginBottom: "1rem" }}>
-              {data.follower.description}
-            </Typography>
+    <>
+      {user && (
+        <>
+          <Grid container>
+            <Helmet>
+              <title>{`${username}'s Followers`}</title>
+            </Helmet>
+            {user.followers.length === 0 ? (
+              <Typography variant="h1">0 Followers</Typography>
+            ) : (
+              user.followers.map((data) => (
+                <Grid item xs={3} key={data.id}>
+                  <Box display="flex" justifyContent="space-between">
+                    <Gravatar email={data.follower.email} size={8} />
+                  </Box>
+                  <Typography variant="h6">
+                    <Link to={"/@" + data.follower.username}>
+                      {data.follower.displayname}
+                    </Link>
+                  </Typography>
+                  <Typography variant="subtitle1">
+                    @{data.follower.username}
+                  </Typography>
+                  <Typography variant="body1" style={{ marginBottom: "1rem" }}>
+                    {data.follower.description}
+                  </Typography>
+                </Grid>
+              ))
+            )}
           </Grid>
-        ))
+        </>
       )}
-    </Grid>
+    </>
   );
 };
 
