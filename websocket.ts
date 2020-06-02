@@ -2,13 +2,28 @@ import { User, Message } from "./models/";
 import ConversationMessage from "./models/ConversationMessage";
 import Conversation from "./models/Conversation";
 import { Socket, Server } from "socket.io";
-import uploader from "./uploader";
 
 interface UserSocket extends Socket {
   userId: number | undefined;
   username: string;
   path: string;
 }
+
+interface NewMessage {
+  id: number;
+  conversationId: number;
+}
+
+interface NewPrivateMessage {
+  data: string;
+  conversationId: number;
+}
+
+interface DeleteMessage {
+  id: number;
+  path: string;
+}
+
 export default (io: Server): void => {
   const getUser = (otherUserId: number): Promise<UserSocket> => {
     return new Promise((resolve) => {
@@ -34,7 +49,6 @@ export default (io: Server): void => {
         clients.forEach((client) => {
           const user = io.sockets.connected[client] as UserSocket;
           if (path === user.path?.toLowerCase()) {
-            console.log("found 1");
             users.push(user);
           }
         });
@@ -48,12 +62,12 @@ export default (io: Server): void => {
       socket.username = data.username;
     });
 
-    socket.on("path", (path) => {
+    socket.on("path", (path: string) => {
       socket.path = path;
       console.log("new path: " + socket.path);
     });
 
-    socket.on("new message", async (data) => {
+    socket.on("new message", async (data: NewMessage) => {
       const user: User | undefined = await User.findOne(
         socket.userId as number,
       );
@@ -71,7 +85,7 @@ export default (io: Server): void => {
       users.forEach((user) => user.emit("new message", message));
     });
 
-    socket.on("new private message", async (data) => {
+    socket.on("new private message", async (data: NewPrivateMessage) => {
       const user: User | undefined = await User.findOne(socket.userId);
 
       if (!user) return false;
@@ -96,7 +110,7 @@ export default (io: Server): void => {
       otherUser.emit("new private message", conversationMessage);
     });
 
-    socket.on("delete message", async (data) => {
+    socket.on("delete message", async (data: DeleteMessage) => {
       const message: Message | undefined = await Message.findOne({
         where: { id: data.id },
         relations: ["user"],
@@ -112,7 +126,7 @@ export default (io: Server): void => {
       }
     });
 
-    socket.on("disconnecting", (reason) => {
+    socket.on("disconnecting", (_reason) => {
       socket.userId = undefined;
     });
   });
