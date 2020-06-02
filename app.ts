@@ -75,6 +75,6 @@ createConnection().then(() => {
   websocket(io);
 
   server.listen(process.env.PORT, () => {
-    console.log(`Running on port ${process.env.PORT}`);
+    console.log(`Running on port ${process.env.PORT}.`);
   });
 });
