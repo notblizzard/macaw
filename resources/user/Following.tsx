@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Grid } from "@material-ui/core";
 import { useParams } from "react-router-dom";
-import UserInfoCard from "./UserInfoCard";
+import UserCard from "./UserCard";
 import Cookies from "js-cookie";
 import { makeStyles, Theme } from "@material-ui/core/styles";
 import { Helmet } from "react-helmet-async";
@@ -72,21 +72,25 @@ const Following = (): JSX.Element => {
           setUser(data.user);
         }
       });
-  }, []);
+  }, [username]);
 
   return (
-    <Grid container>
-      <Helmet>{`${username}'s Follows`}</Helmet>
-      {user.following.length === 0 ? (
-        <h1>Following 0 Users</h1>
-      ) : (
-        user.following.map((data) => (
-          <Grid item xs={3} key={data.id} className={classes.card}>
-            <UserInfoCard user={data.following} />
-          </Grid>
-        ))
+    <>
+      {user && (
+        <Grid container>
+          <Helmet>{`${username}'s Follows`}</Helmet>
+          {user.following.length === 0 ? (
+            <h1>Following 0 Users</h1>
+          ) : (
+            user.following.map((data) => (
+              <Grid item xs={3} key={data.id} className={classes.card}>
+                <UserCard user={data.following} />
+              </Grid>
+            ))
+          )}
+        </Grid>
       )}
-    </Grid>
+    </>
   );
 };
 

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Theme, makeStyles, Typography, Tooltip } from "@material-ui/core";
-import UserInfoCard from "./UserInfoCard";
+import UserCard from "./UserCard";
 import { Link } from "react-router-dom";
 import Cookies from "js-cookie";
 
@@ -38,9 +38,10 @@ const UserTooltip = ({ username }: UserTooltipProp): JSX.Element => {
   const color = Cookies.get("color") || "default";
   const classes = useStyles();
   const [user, setUser] = useState<UserData>(null!);
+  const [loaded, setLoaded] = useState(false);
 
   const handleOpen = (): void => {
-    if (!user.username) {
+    if (!user) {
       fetch(`/api/user/tooltip?username=${username}`, {
         headers: { "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")! },
       })
@@ -48,6 +49,7 @@ const UserTooltip = ({ username }: UserTooltipProp): JSX.Element => {
         .then((data) => {
           if (data.success) {
             setUser(data.user);
+            setLoaded(true);
           }
         });
     }
@@ -55,24 +57,22 @@ const UserTooltip = ({ username }: UserTooltipProp): JSX.Element => {
 
   return (
     <>
-      {user && (
-        <Tooltip
-          onOpen={handleOpen}
-          interactive={true}
-          classes={{ tooltip: classes.tooltip }}
-          placement="left-start"
-          title={<UserInfoCard user={user} />}
-        >
-          <Link to={`/@${username}`}>
-            <Typography
-              className={`no-text-decoration-link-${color}`}
-              display="inline"
-            >
-              @{username}
-            </Typography>
-          </Link>
-        </Tooltip>
-      )}
+      <Tooltip
+        onOpen={handleOpen}
+        interactive={true}
+        classes={{ tooltip: classes.tooltip }}
+        placement="left-start"
+        title={loaded && <UserCard user={user} />}
+      >
+        <Link to={`/@${username}`}>
+          <Typography
+            className={`no-text-decoration-link-${color}`}
+            display="inline"
+          >
+            @{username}
+          </Typography>
+        </Link>
+      </Tooltip>
     </>
   );
 };

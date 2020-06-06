@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import UserInfo from "./UserInfo";
-import UserStat from "./UserStat";
+import UserHeader from "./UserHeader";
 import { useParams } from "react-router-dom";
 import {
   Grid,
@@ -92,7 +92,7 @@ const Profile = ({ socket, dashboard }: ProfileProps): JSX.Element => {
                 classes={{ paper: classes.drawer }}
               >
                 <UserInfo user={user} />
-                <UserStat user={user} />
+                <UserHeader user={user} />
               </SwipeableDrawer>
               <Grid item xs={12}>
                 <UserMessage
@@ -109,7 +109,7 @@ const Profile = ({ socket, dashboard }: ProfileProps): JSX.Element => {
                 <UserInfo user={user} />
               </Grid>
               <Grid item xs={10}>
-                <UserStat user={user} />
+                <UserHeader user={user} />
                 <UserMessage
                   dashboard={dashboard}
                   username={username}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import UserInfoCard from "./user/UserInfoCard";
+import UserCard from "./user/UserCard";
 import {
   Grid,
   makeStyles,
@@ -432,7 +432,7 @@ const Search = ({ socket }: SearchProps): JSX.Element => {
         <Grid container spacing={8}>
           {users.map((user) => (
             <Grid item xs={3} key={user.id}>
-              <UserInfoCard user={user} />
+              <UserCard user={user} />
             </Grid>
           ))}
         </Grid>

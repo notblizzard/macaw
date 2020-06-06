@@ -20,17 +20,17 @@ interface User {
   isFollowingUser?: boolean;
 }
 
-interface UserStatProps {
+interface UserHeaderProps {
   user: User;
 }
 
 const useStyles = makeStyles(() => ({
-  userStat: {
+  userHeader: {
     margin: "4px",
   },
 }));
 
-const UserStat = ({ user }: UserStatProps): JSX.Element => {
+const UserHeader = ({ user }: UserHeaderProps): JSX.Element => {
   const classes = useStyles();
   const color = Cookies.get("color") || "default";
   const csrf = Cookies.get("XSRF-TOKEN");
@@ -59,13 +59,13 @@ const UserStat = ({ user }: UserStatProps): JSX.Element => {
       flexDirection="row"
       className={`border-bottom-${color}`}
     >
-      <Box display="block" textAlign="center" className={classes.userStat}>
+      <Box display="block" textAlign="center" className={classes.userHeader}>
         <Typography variant="h5">Messages</Typography>
         <Typography variant="h3" className={`color-${color}`}>
           {user.messageCount}
         </Typography>
       </Box>
-      <Box display="block" textAlign="center" className={classes.userStat}>
+      <Box display="block" textAlign="center" className={classes.userHeader}>
         <Typography variant="h5">Followers</Typography>
         <Link
           to={`/@${user.username}/followers`}
@@ -74,7 +74,7 @@ const UserStat = ({ user }: UserStatProps): JSX.Element => {
           <Typography variant="h3">{user.followers.length}</Typography>
         </Link>
       </Box>
-      <Box display="block" textAlign="center" className={classes.userStat}>
+      <Box display="block" textAlign="center" className={classes.userHeader}>
         <Typography variant="h5">Following</Typography>
         <Link
           to={`/@${user.username}/following`}
@@ -94,4 +94,4 @@ const UserStat = ({ user }: UserStatProps): JSX.Element => {
   );
 };
 
-export default UserStat;
+export default UserHeader;

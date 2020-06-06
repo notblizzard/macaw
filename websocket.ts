@@ -2,7 +2,7 @@ import { User, Message } from "./models/";
 import ConversationMessage from "./models/ConversationMessage";
 import Conversation from "./models/Conversation";
 import { Socket, Server } from "socket.io";
-import UserStat from "./resources/user/UserStat";
+import UserStat from "./resources/user/UserHeader";
 
 interface UserSocket extends Socket {
   userId: number | undefined;

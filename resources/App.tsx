@@ -150,16 +150,16 @@ const App = (): JSX.Element => {
               <Grid item xs={11}>
                 <Container>
                   <Switch>
+                    <Route path="/@:username/followers" component={Followers} />
+
+                    <Route path="/@:username/following" component={Following} />
+
                     <Route
                       path="/@:username"
                       render={(props) => (
                         <Profile {...props} socket={socket} dashboard={false} />
                       )}
                     />
-
-                    <Route path="/@:username/followers" component={Followers} />
-
-                    <Route path="/@:username/following" component={Following} />
 
                     <Route
                       path="/search"

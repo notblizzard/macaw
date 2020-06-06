@@ -13,7 +13,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Cookies from "js-cookie";
 
-interface UserInfoCardProps {
+interface UserCardProps {
   user: {
     id: number;
     email: string;
@@ -45,11 +45,12 @@ const useStyles = makeStyles(() => ({
   },
   card: {
     color: "#eee",
+    boxShadow: "none",
     backgroundColor: "#193344",
   },
 }));
 
-const UserInfoCard = ({ user }: UserInfoCardProps): JSX.Element => {
+const UserCard = ({ user }: UserCardProps): JSX.Element => {
   const color = Cookies.get("color") || "default";
 
   const classes = useStyles();
@@ -139,4 +140,4 @@ const UserInfoCard = ({ user }: UserInfoCardProps): JSX.Element => {
   );
 };
 
-export default UserInfoCard;
+export default UserCard;
