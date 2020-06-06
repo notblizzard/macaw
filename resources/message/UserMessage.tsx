@@ -153,10 +153,12 @@ const UserMessage = ({
   const tagNames: string[] = ["a", "button", "i", "path", "svg", "span"];
   const [messageId, setMessageId] = useState(0);
   const [page, setPage] = useState(1);
-  const [openImage, setOpenImage] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openView, setOpenView] = useState(false);
-  const [imageName, setImageName] = useState("");
+  const [image, setImage] = useState({
+    name: "",
+    open: false,
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [mediaOnly, setMediaOnly] = useState(false);
@@ -189,8 +191,6 @@ const UserMessage = ({
   }, []);
 
   useEffect(() => {
-    // todo: watch for neww message if dashboard
-    // watch for other messages too if profile
     socket.on("new message", (message: Message) => {
       message.likes = [];
       message.reposts = [];
@@ -366,19 +366,31 @@ const UserMessage = ({
     e: React.MouseEvent<HTMLDivElement, MouseEvent>,
   ): void => {
     e.preventDefault();
-    setImageName(e.currentTarget.getAttribute("data-image-name") as string);
-    setOpenImage(true);
+    setImage({
+      name: e.currentTarget.getAttribute("data-image-name") as string,
+      open: true,
+    });
   };
 
-  const handleDialogClose = (): void => setOpenView(false);
+  const handleDialogClose = (): void => {
+    setOpenView(false);
+  };
 
-  const handleImageClose = (): void => setOpenImage(false);
+  const handleImageClose = (): void => {
+    setImage({ ...image, open: false });
+  };
 
-  const handleDeleteClose = (): void => setOpenDelete(false);
+  const handleDeleteClose = (): void => {
+    setOpenDelete(false);
+  };
 
-  const showMessagesWithMediaOnly = (): void => setMediaOnly(true);
+  const showMessagesWithMediaOnly = (): void => {
+    setMediaOnly(true);
+  };
 
-  const showAllMessages = (): void => setMediaOnly(false);
+  const showAllMessages = (): void => {
+    setMediaOnly(false);
+  };
 
   return (
     <>
@@ -407,9 +419,9 @@ const UserMessage = ({
             messageId={messageId}
           />
           <ViewImage
-            open={openImage}
+            open={image.open}
             handleClose={handleImageClose}
-            imageName={imageName}
+            imageName={image.name}
           />
           <Box display="flex" flexDirection="row">
             <Typography

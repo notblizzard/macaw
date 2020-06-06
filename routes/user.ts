@@ -67,6 +67,19 @@ router.get("/api/user/profile", async (req, res) => {
   user.messageCount = user.messages.length;
   delete user.messages;
 
+  if (req.user) {
+    const authUser: User | undefined = await User.findOne({
+      where: { id: (req.user as RequestUser).id },
+      relations: ["following", "following.following"],
+    });
+    if (!authUser) return false;
+
+    user.isDifferentUser = authUser.id !== user.id;
+    user.isFollowingUser = authUser.following
+      .map((following) => following.following.id)
+      .includes(user.id);
+  }
+
   return res.json({
     success: true,
     user,

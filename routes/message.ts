@@ -162,6 +162,7 @@ router.get(
     const relations = [
       "followers",
       "following",
+      "following.following",
       "reposts",
       "likes",
       "likes.message",
@@ -181,10 +182,14 @@ router.get(
 
     if (!user) return res.json({ success: false, error: "user doesn't exist" });
     const repostsIds: number[] = user.reposts.map((x) => x.message.id);
-
+    const followingUserIds: number[] = user.following.map(
+      (follow) => follow.following.id,
+    );
+    console.log(followingUserIds);
     let messages: Message[] = await Message.find({
       where: [
         { userId: user.id },
+        { userId: In(followingUserIds.length ? followingUserIds : [0]) },
         { id: In(repostsIds.length ? repostsIds : [0]) },
       ],
       relations: [

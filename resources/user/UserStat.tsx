@@ -1,5 +1,5 @@
-import React from "react";
-import { Box, Typography, makeStyles } from "@material-ui/core";
+import React, { useState } from "react";
+import { Box, Typography, makeStyles, Button } from "@material-ui/core";
 import { Link } from "react-router-dom";
 import Cookies from "js-cookie";
 
@@ -17,6 +17,7 @@ interface User {
   following: [];
   messageCount: number;
   isDifferentUser?: boolean;
+  isFollowingUser?: boolean;
 }
 
 interface UserStatProps {
@@ -32,6 +33,25 @@ const useStyles = makeStyles(() => ({
 const UserStat = ({ user }: UserStatProps): JSX.Element => {
   const classes = useStyles();
   const color = Cookies.get("color") || "default";
+  const csrf = Cookies.get("XSRF-TOKEN");
+  const [following, setFollowing] = useState(user.isFollowingUser);
+
+  const followUser = (e: React.MouseEvent<HTMLButtonElement>): void => {
+    fetch("/api/user/follow", {
+      method: "POST",
+      body: JSON.stringify({ id: user.id }),
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": csrf!,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setFollowing(data.following);
+        }
+      });
+  };
 
   return (
     <Box
@@ -62,6 +82,13 @@ const UserStat = ({ user }: UserStatProps): JSX.Element => {
         >
           <Typography variant="h3">{user.following.length}</Typography>
         </Link>
+      </Box>
+      <Box>
+        {user.isDifferentUser ? (
+          <Button onClick={followUser}>
+            {following ? "Following" : "Follow"}
+          </Button>
+        ) : null}
       </Box>
     </Box>
   );

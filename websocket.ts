@@ -2,6 +2,7 @@ import { User, Message } from "./models/";
 import ConversationMessage from "./models/ConversationMessage";
 import Conversation from "./models/Conversation";
 import { Socket, Server } from "socket.io";
+import UserStat from "./resources/user/UserStat";
 
 interface UserSocket extends Socket {
   userId: number | undefined;
@@ -38,7 +39,10 @@ export default (io: Server): void => {
     });
   };
 
-  const getUsersInPath = (socket: UserSocket): Promise<UserSocket[]> => {
+  const getUsersInPath = (
+    socket: UserSocket,
+    followers: number[],
+  ): Promise<UserSocket[]> => {
     let path = socket.path;
     if (socket.path === "/dashboard") {
       path = `/@${socket.username}`.toLowerCase();
@@ -49,6 +53,14 @@ export default (io: Server): void => {
         clients.forEach((client) => {
           const user = io.sockets.connected[client] as UserSocket;
           if (path === user.path?.toLowerCase()) {
+            users.push(user);
+          }
+          // update messages if the user is following the `socket`,
+          // and is on their dashboard
+          if (
+            user.path?.toLowerCase() === "/dashboard" &&
+            followers.includes(user.userId!)
+          ) {
             users.push(user);
           }
         });
@@ -68,17 +80,20 @@ export default (io: Server): void => {
     });
 
     socket.on("new message", async (data: NewMessage) => {
-      const user: User | undefined = await User.findOne(
-        socket.userId as number,
-      );
+      const user: User | undefined = await User.findOne({
+        where: { id: socket.userId as number },
+        relations: ["followers", "followers.follower"],
+      });
       if (!user) return false;
       const message: Message | undefined = await Message.findOne({
         where: { id: data.id },
         relations: ["user"],
       });
       if (!message) return false;
-
-      const users = await getUsersInPath(socket);
+      const followerUserIds = user.followers.map(
+        (follow) => follow.follower.id,
+      );
+      const users = await getUsersInPath(socket, followerUserIds);
       if (socket.path === "/dashboard") {
         socket.emit("new message", message);
       }
