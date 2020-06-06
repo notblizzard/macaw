@@ -19,6 +19,7 @@ import {
   Box,
   darken,
   Theme,
+  Grid,
 } from "@material-ui/core";
 import NewMessage from "./message/NewMessage";
 import Settings from "./user/Settings";
@@ -30,6 +31,7 @@ import Cookies from "js-cookie";
 import io from "socket.io-client";
 import DarkModeContext from "./DarkMode";
 import { Helmet, HelmetProvider } from "react-helmet-async";
+import PrivateMessage from "./message/PrivateMessage";
 
 interface StyleProps {
   darkMode: boolean;
@@ -52,6 +54,9 @@ const useStyles = makeStyles((theme: Theme) => ({
     position: "absolute",
     bottom: "4rem",
     right: 0,
+  },
+  navBarGrid: {
+    position: "fixed",
   },
   darkThemeButton: (props: StyleProps) => ({
     backgroundColor: props.darkMode ? "#dff0f7" : "#080b17",
@@ -133,47 +138,61 @@ const App = (): JSX.Element => {
       <Box className={classes.container}>
         <DarkModeContext.Provider value={darkTheme}>
           <BrowserRouter>
-            <NewMessage open={open} handleClose={handleClose} socket={socket} />
-            <Navbar color={color} socket={socket} />
-            <Container>
-              <Switch>
-                <Route
-                  path="/@:username"
-                  render={(props) => (
-                    <Profile {...props} socket={socket} dashboard={false} />
-                  )}
+            <Grid container>
+              <Grid item xs={1}>
+                <NewMessage
+                  open={open}
+                  handleClose={handleClose}
+                  socket={socket}
                 />
+                <Navbar color={color} socket={socket} />
+              </Grid>
+              <Grid item xs={11}>
+                <Container>
+                  <Switch>
+                    <Route
+                      path="/@:username"
+                      render={(props) => (
+                        <Profile {...props} socket={socket} dashboard={false} />
+                      )}
+                    />
 
-                <Route path="/@:username/followers" component={Followers} />
+                    <Route path="/@:username/followers" component={Followers} />
 
-                <Route path="/@:username/following" component={Following} />
+                    <Route path="/@:username/following" component={Following} />
 
-                <Route
-                  path="/search"
-                  render={(props) => <Search {...props} socket={socket} />}
-                />
+                    <Route
+                      path="/search"
+                      render={(props) => <Search {...props} socket={socket} />}
+                    />
 
-                <GuestRoute path="/register">
-                  <Register />
-                </GuestRoute>
+                    <GuestRoute path="/register">
+                      <Register />
+                    </GuestRoute>
 
-                <GuestRoute path="/login">
-                  <Login />
-                </GuestRoute>
+                    <GuestRoute path="/login">
+                      <Login />
+                    </GuestRoute>
 
-                <PrivateRoute path="/dashboard">
-                  <Profile dashboard={true} socket={socket} />
-                </PrivateRoute>
+                    <PrivateRoute path="/dashboard">
+                      <Profile dashboard={true} socket={socket} />
+                    </PrivateRoute>
 
-                <PrivateRoute path="/settings">
-                  <Settings handleColor={handleColor} />
-                </PrivateRoute>
+                    <PrivateRoute path="/private-messages">
+                      <PrivateMessage socket={socket} />
+                    </PrivateRoute>
 
-                <GuestRoute path="/">
-                  <Home />
-                </GuestRoute>
-              </Switch>
-            </Container>
+                    <PrivateRoute path="/settings">
+                      <Settings handleColor={handleColor} />
+                    </PrivateRoute>
+
+                    <GuestRoute path="/">
+                      <Home />
+                    </GuestRoute>
+                  </Switch>
+                </Container>
+              </Grid>
+            </Grid>
           </BrowserRouter>
         </DarkModeContext.Provider>
         <Fab className={classes.darkThemeButton} onClick={toggleDarkTheme}>

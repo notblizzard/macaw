@@ -53,7 +53,7 @@ router.post(
     });
 
     if (overlap?.length === 0) {
-      const conversation = new Conversation();
+      let conversation = new Conversation();
       conversation.users = [];
       conversation.users.push(user as User, userSendingTo);
       await conversation.save();
@@ -61,7 +61,11 @@ router.post(
       userSendingTo.conversations.push(conversation);
       await user?.save();
       await userSendingTo.save();
-      return res.json({ success: true });
+      conversation = (await Conversation.findOne({
+        where: { id: conversation.id },
+        relations: ["users", "messages"],
+      })) as Conversation;
+      return res.json({ success: true, conversation });
     } else {
       return res.json({ success: false, error: "conversation already exists" });
     }

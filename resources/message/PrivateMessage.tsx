@@ -20,6 +20,7 @@ import {
   useMediaQuery,
   IconButton,
   DialogTitle,
+  Grid,
 } from "@material-ui/core";
 import { Link } from "react-router-dom";
 import { User } from "../../models";
@@ -47,8 +48,6 @@ interface TabPanelProps {
 }
 
 interface PrivateMessageProps {
-  open: boolean;
-  onClose: () => void;
   socket: SocketIOClient.Socket;
 }
 
@@ -198,11 +197,7 @@ const TabPanel = (props: TabPanelProps): JSX.Element => {
   );
 };
 
-const PrivateMessage = ({
-  open,
-  onClose,
-  socket,
-}: PrivateMessageProps): JSX.Element => {
+const PrivateMessage = ({ socket }: PrivateMessageProps): JSX.Element => {
   const color = Cookies.get("color") || "default";
   const theme = useTheme();
   // true = desktop, false = mobile
@@ -305,42 +300,33 @@ const PrivateMessage = ({
     e: React.FormEvent<HTMLFormElement>,
   ): Promise<void> => {
     e.preventDefault();
-    await fetch("/api/conversation/new-conversation", {
+    fetch("/api/conversation/new-conversation", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
       },
       body: JSON.stringify({ username: newUser }),
-    });
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setConversations([...conversations.concat(data.conversation)]);
+        }
+      });
   };
 
   return (
     <>
       {conversations && (
-        <Dialog
-          open={open}
-          maxWidth="lg"
-          fullWidth={true}
-          onClose={onClose}
-          scroll="body"
-          onEnter={scrollToBottom}
-          classes={{
-            paper: classes.modal,
-          }}
-        >
+        <>
           <Hidden smUp>
-            <DialogTitle className={classes.dialogTitle}>
-              <IconButton
-                onClick={toggleDrawer}
-                className={classes.toggleDrawer}
-              >
-                <PeopleIcon />
-              </IconButton>
-            </DialogTitle>
+            <IconButton onClick={toggleDrawer} className={classes.toggleDrawer}>
+              <PeopleIcon />
+            </IconButton>
           </Hidden>
-          <DialogContent className={classes.root}>
-            <Hidden xsDown>
+          <Hidden xsDown>
+            <Box className={classes.root}>
               <Tabs
                 orientation="vertical"
                 value={value}
@@ -350,7 +336,7 @@ const PrivateMessage = ({
                   indicator: `indicator-${color}`,
                 }}
               >
-                {conversations?.map((conversation, index) => (
+                {conversations.map((conversation, index) => (
                   <Tab
                     key={conversation.id}
                     label={
@@ -395,9 +381,9 @@ const PrivateMessage = ({
                   </Box>
                 </form>
               </Tabs>
-              {conversations?.map((conversation, index) => (
-                <TabPanel value={value} index={index} key={conversation?.id}>
-                  {conversation?.messages?.map((message) => (
+              {conversations.map((conversation, index) => (
+                <TabPanel value={value} index={index} key={conversation.id}>
+                  {conversation.messages.map((message) => (
                     <>
                       <Box
                         display="flex"
@@ -451,128 +437,125 @@ const PrivateMessage = ({
                   </form>
                 </TabPanel>
               ))}
-            </Hidden>
-            <Hidden smUp>
-              <Drawer
-                anchor={"left"}
-                open={drawer}
-                onClose={toggleDrawer}
+            </Box>
+          </Hidden>
+          <Hidden smUp>
+            <Drawer
+              anchor={"left"}
+              open={drawer}
+              onClose={toggleDrawer}
+              classes={{
+                paper: classes.drawer,
+              }}
+            >
+              <Tabs
+                orientation="vertical"
+                value={value}
+                onChange={handleTabChange}
+                className={classes.tabs}
                 classes={{
-                  paper: classes.drawer,
+                  indicator: `indicator-${color}`,
                 }}
               >
-                <Tabs
-                  orientation="vertical"
-                  value={value}
-                  onChange={handleTabChange}
-                  className={classes.tabs}
-                  classes={{
-                    indicator: `indicator-${color}`,
-                  }}
-                >
-                  {conversations?.map((conversation, index) => (
-                    <Tab
-                      key={conversation?.id}
-                      label={
-                        <Typography display="inline" className={classes.tab}>
-                          <Gravatar
-                            email={
-                              conversation?.users?.filter(
-                                (x) => x?.username !== username,
-                              )[0].email
-                            }
-                            size={4}
-                          />
-                          {
+                {conversations?.map((conversation, index) => (
+                  <Tab
+                    key={conversation?.id}
+                    label={
+                      <Typography display="inline" className={classes.tab}>
+                        <Gravatar
+                          email={
                             conversation?.users?.filter(
                               (x) => x?.username !== username,
-                            )[0].username
+                            )[0].email
                           }
-                        </Typography>
-                      }
-                      {...a11yProps(index)}
-                    />
-                  ))}
-                  <form onSubmit={handleNewConversationSubmit}>
-                    <TextField
-                      name="newPrivateMessage"
-                      onChange={handleNewUserChange}
-                      variant="outlined"
-                      fullWidth
-                      label="New Conversation"
-                      classes={{ root: classes.newUser }}
-                    />
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      className={`button-${color} ${classes.submitButton}`}
-                    >
-                      Submit
-                    </Button>
-                  </form>
-                </Tabs>
-              </Drawer>
-
-              {conversations?.map((conversation, index) => (
-                <TabPanel value={value} index={index} key={conversation?.id}>
-                  {conversation.messages.map((message) => (
-                    <>
-                      <Box
-                        display="flex"
-                        style={{ margin: "8px" }}
-                        flexDirection={
-                          message?.user?.username === username
-                            ? "row-reverse"
-                            : "row"
+                          size={4}
+                        />
+                        {
+                          conversation?.users?.filter(
+                            (x) => x?.username !== username,
+                          )[0].username
                         }
-                      >
-                        <Link to={`/@${message.user.username}`}>
-                          <Gravatar email={message.user.email} size={4} />
-                        </Link>
-
-                        <Box className={classes.messageBox} display="block">
-                          <Typography
-                            variant="body1"
-                            className={classes.message}
-                          >
-                            {" "}
-                            {message?.data}
-                          </Typography>
-                          <Moment time={message.createdAt} profile={false} />
-                        </Box>
-                      </Box>
-                    </>
-                  ))}
-                  <form
-                    onSubmit={handleNewMessageSubmit}
-                    data-id={conversation?.id}
-                    style={{ padding: "8px" }}
+                      </Typography>
+                    }
+                    {...a11yProps(index)}
+                  />
+                ))}
+                <form onSubmit={handleNewConversationSubmit}>
+                  <TextField
+                    name="newPrivateMessage"
+                    onChange={handleNewUserChange}
+                    variant="outlined"
+                    fullWidth
+                    label="New Conversation"
+                    classes={{ root: classes.newUser }}
+                  />
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    className={`button-${color} ${classes.submitButton}`}
                   >
-                    <TextField
-                      name="newPrivateMessage"
-                      onChange={handleNewMessageChange}
-                      variant="outlined"
-                      label="Message"
-                      value={newMessage}
-                      classes={{ root: classes.input }}
-                    />
+                    Submit
+                  </Button>
+                </form>
+              </Tabs>
+            </Drawer>
 
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      size="large"
-                      className={`button-${color} ${classes.submitButton}`}
-                      fullWidth
+            {conversations?.map((conversation, index) => (
+              <TabPanel value={value} index={index} key={conversation?.id}>
+                {conversation.messages.map((message) => (
+                  <>
+                    <Box
+                      display="flex"
+                      style={{ margin: "8px" }}
+                      flexDirection={
+                        message?.user?.username === username
+                          ? "row-reverse"
+                          : "row"
+                      }
                     >
-                      Send <FontAwesomeIcon icon={faFeatherAlt} />
-                    </Button>
-                    <div id="messageRef"></div>
-                  </form>
-                </TabPanel>
-              ))}
-            </Hidden>
-          </DialogContent>
-        </Dialog>
+                      <Link to={`/@${message.user.username}`}>
+                        <Gravatar email={message.user.email} size={4} />
+                      </Link>
+
+                      <Box className={classes.messageBox} display="block">
+                        <Typography variant="body1" className={classes.message}>
+                          {" "}
+                          {message?.data}
+                        </Typography>
+                        <Moment time={message.createdAt} profile={false} />
+                      </Box>
+                    </Box>
+                  </>
+                ))}
+                <form
+                  onSubmit={handleNewMessageSubmit}
+                  data-id={conversation?.id}
+                  style={{ padding: "8px" }}
+                >
+                  <TextField
+                    name="newPrivateMessage"
+                    onChange={handleNewMessageChange}
+                    variant="outlined"
+                    label="Message"
+                    value={newMessage}
+                    classes={{ root: classes.input }}
+                  />
+
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    className={`button-${color} ${classes.submitButton}`}
+                    fullWidth
+                  >
+                    Send <FontAwesomeIcon icon={faFeatherAlt} />
+                  </Button>
+                  <div id="messageRef"></div>
+                </form>
+              </TabPanel>
+            ))}
+          </Hidden>
+        </>
       )}
     </>
   );

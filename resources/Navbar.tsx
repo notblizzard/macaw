@@ -1,8 +1,7 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import {
   Toolbar,
   AppBar,
-  InputBase,
   Typography,
   IconButton,
   Box,
@@ -13,9 +12,9 @@ import {
   Search as SearchIcon,
   Settings as SettingsIcon,
   ExitToApp as ExitToAppIcon,
+  QuestionAnswer as ConversationIcon,
 } from "@material-ui/icons";
 import Gravatar from "./util/Gravatar";
-import PrivateMessage from "./message/PrivateMessage";
 import Cookies from "js-cookie";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment } from "@fortawesome/free-solid-svg-icons";
@@ -32,15 +31,18 @@ interface NavbarProps {
 const useStyles = makeStyles((theme: Theme) => ({
   icons: (props: StyleProps) => ({
     color: props.darkMode ? "#eee" : "#222",
+    margin: theme.spacing(4),
   }),
   navBar: (props: StyleProps) => ({
     backgroundColor: props.darkMode ? "#080b17" : "#dff0f7",
     boxShadow: "none",
     marginBottom: theme.spacing(4),
+    position: "fixed",
+    width: "10%",
   }),
   toolBar: {
     display: "flex",
-    flexDirection: "row",
+    flexDirection: "column",
     justifyContent: "space-between",
   },
   input: (props: StyleProps) => ({
@@ -86,21 +88,11 @@ const Navbar = ({ color, socket }: NavbarProps): JSX.Element => {
   const darkMode = useContext(DarkModeContext);
   const history = useHistory();
   const classes = useStyles({ darkMode });
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
   const location = useLocation();
 
   useEffect(() => {
     socket.emit("path", location.pathname);
   }, [location, socket]);
-
-  const handleOpen = (): void => {
-    setOpen(true);
-  };
-
-  const handleClose = (): void => {
-    setOpen(false);
-  };
 
   const handleLogout = (): void => {
     fetch("/logout", {
@@ -111,63 +103,40 @@ const Navbar = ({ color, socket }: NavbarProps): JSX.Element => {
     });
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setSearch(e.target.value);
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
-    e.preventDefault();
-    history.push(`/search?qs=${search}`);
-    setSearch("");
-  };
-
   return (
     <>
-      {Cookies.get("email") && (
-        <PrivateMessage open={open} onClose={handleClose} socket={socket} />
-      )}
-      <AppBar className={classes.navBar} position="fixed">
+      <AppBar className={classes.navBar} position="relative">
         <Toolbar className={classes.toolBar}>
-          <Box display="flex" alignItems="center">
-            <Link to="/" className={`no-text-decoration-link-${color}`}>
-              <Typography>Macaw</Typography>
-            </Link>
-            <Box className={classes.search}>
-              <Box className={classes.searchIcon}>
-                <SearchIcon />
-              </Box>
-              <form onSubmit={handleSearchSubmit}>
-                <InputBase
-                  placeholder="Search...."
-                  classes={{
-                    input: classes.input,
-                  }}
-                  name="qs"
-                  onChange={handleSearchChange}
-                  inputProps={{ "aria-label": "search" }}
-                />
-              </form>
-            </Box>
-          </Box>
           {Cookies.get("email") ? (
-            <Box display="flex" flexDirection="row">
-              <Box display="flex" alignItems="center">
+            <>
+              <Box display="flex" alignItems="center" className={classes.icons}>
                 <Link to="/dashboard">
                   <Gravatar email={Cookies.get("email")!} size={5} />
                 </Link>
               </Box>
 
-              <IconButton onClick={handleOpen}>
-                <FontAwesomeIcon
-                  icon={faComment}
-                  className={`navbar-button-${color} ${classes.icons}`}
-                />
-              </IconButton>
+              <Link to="/private-messages">
+                <IconButton>
+                  <ConversationIcon
+                    className={`navbar-button-${color} ${classes.icons}`}
+                    fontSize="large"
+                  />
+                </IconButton>
+              </Link>
+              <Link to="/search">
+                <IconButton>
+                  <SearchIcon
+                    className={`navbar-button-${color} ${classes.icons}`}
+                    fontSize="large"
+                  />
+                </IconButton>
+              </Link>
 
               <Link to="/settings">
                 <IconButton>
                   <SettingsIcon
                     className={`navbar-button-${color} ${classes.icons}`}
+                    fontSize="large"
                   />
                 </IconButton>
               </Link>
@@ -176,9 +145,10 @@ const Navbar = ({ color, socket }: NavbarProps): JSX.Element => {
                 <ExitToAppIcon
                   onClick={handleLogout}
                   className={`navbar-button-${color} ${classes.icons}`}
+                  fontSize="large"
                 />
               </IconButton>
-            </Box>
+            </>
           ) : null}
         </Toolbar>
       </AppBar>
