@@ -7,9 +7,10 @@
   "scripts": {
     "test": "jest -i",
     "migrate": "ts-node ./node_modules/typeorm/cli.js migration:run",
-    "start": "tsc && node -r dotenv/config build/app",
-    "dev": "nodemon -r dotenv/config --ext ts --exec ts-node app",
-    "watch": "webpack --watch"
+    "start": "tsc && node -r dotenv/config build/main",
+    "dev": "nodemon -r dotenv/config --ext ts --exec ts-node main",
+    "watch": "webpack --watch",
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
