@@ -10,7 +10,7 @@
     "start": "tsc && node -r dotenv/config build/main",
     "dev": "nodemon -r dotenv/config --ext ts --exec ts-node main",
     "watch": "webpack --watch",
-    "build": "tsc"
+    "build": "webpack && tsc"
   },
   "repository": {
     "type": "git",
