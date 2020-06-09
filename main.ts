@@ -25,7 +25,7 @@ createConnection().then(() => {
   const app = express();
 
   const RedisStore = connectRedis(session);
-  const redisClient = redis.createClient();
+  const redisClient = redis.createClient(process.env.REDIS_URL || "");
 
   app.use(cookie());
   app.use(body.urlencoded({ extended: false }));
