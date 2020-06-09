@@ -5,6 +5,8 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 //const VueLoaderPlugin = require("vue-loader/lib/plugin");
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
   .BundleAnalyzerPlugin;
+const CopyPlugin = require("copy-webpack-plugin");
+
 //const CompressionPlugin = require("compression-webpack-plugin");
 //.BundleAnalyzerPlugin;
 const webpack = require("webpack");
@@ -18,6 +20,14 @@ module.exports = {
   entry: ["./resources/app.scss", "./resources/App.tsx"],
   devtool: "",
   plugins: [
+    new CopyPlugin({
+      patterns: [
+        {
+          from: path.join(__dirname, "/views/index.html"),
+          to: path.join(__dirname, "/build/views/index.html"),
+        },
+      ],
+    }),
     new MiniCssExtractPlugin({
       filename: "[name].css",
     }),
