@@ -14,6 +14,7 @@ import csurf from "csurf";
 import connectFlash from "connect-flash";
 import websocket from "./websocket";
 import socketio from "socket.io";
+import fs from "fs";
 import { createConnection } from "typeorm";
 /* TODO.
 - fix search and settings colors.
@@ -73,6 +74,11 @@ createConnection().then(() => {
   });
 
   websocket(io);
+
+  // create uploads directory.
+  if (!fs.existsSync("./uploads")) {
+    fs.mkdirSync("./uploads");
+  }
 
   server.listen(process.env.PORT, () => {
     console.log(`Running on port ${process.env.PORT}.`);
