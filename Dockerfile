@@ -14,4 +14,6 @@ RUN npm run build
 
 RUN npm run webpack
 
+RUN npm run migrate
+
 CMD node build/main
