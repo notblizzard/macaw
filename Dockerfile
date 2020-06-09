@@ -10,8 +10,8 @@ COPY . .
 
 EXPOSE 7000
 
-RUN npm run webpack
-
 RUN npm run build
+
+RUN npm run webpack
 
 CMD node build/main
