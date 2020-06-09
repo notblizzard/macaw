@@ -8,8 +8,8 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 8000
+EXPOSE 7000
 
 RUN npm run build
 
-CMD node build/app
+CMD node build/main
