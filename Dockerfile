@@ -1,4 +1,4 @@
-FROM node:14.4.0-buster
+FROM node:lts-buster
 
 WORKDIR /usr/src/app
 
