@@ -2,9 +2,7 @@ import passport from "passport";
 import { User } from "./models";
 import bcrypt from "bcrypt";
 import { Strategy as LocalStrategy } from "passport-local";
-import Google, {
-  OAuth2Strategy as GoogleStrategy,
-} from "passport-google-oauth";
+import passportGoogle from "passport-google-oauth20";
 import Github, { Strategy as GitHubStrategy } from "passport-github2";
 import { Strategy as JwtStrategy } from "passport-jwt";
 import { validate } from "class-validator";
@@ -25,12 +23,14 @@ interface GithubProfile extends Github.Profile {
   displayName: string;
 }
 
-interface GoogleProfile extends Google.Profile {
+interface GoogleProfile extends passportGoogle.Profile {
   emails?: { value: string; type?: string | undefined }[] | undefined;
   id: string;
   username?: string;
   displayName: string;
 }
+
+const GoogleStrategy = passportGoogle.Strategy;
 
 function register(
   username: string,
@@ -90,6 +90,7 @@ passport.use(
       clientID: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       callbackURL: process.env.GOOGLE_CLIENT_URL!,
+      scope: ["openid profile email"],
     },
     async (_accessToken, _refreshToken, profile: GoogleProfile, done) => {
       let user: User | undefined = await User.findOne({ googleId: profile.id });
@@ -100,7 +101,7 @@ passport.use(
         user.googleId = profile.id;
         await user.save();
       }
-      return done(null, user);
+      return done(undefined, user);
     },
   ),
 );

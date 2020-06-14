@@ -27,6 +27,11 @@ router.get(
       secure: false,
       httpOnly: true,
     });
+    res.cookie("email", (req.user as RequestUser).email, {
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14 * 1),
+      secure: false,
+      httpOnly: false,
+    });
     return res.redirect("/");
   },
 );
@@ -50,6 +55,11 @@ router.get(
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1),
       secure: false,
       httpOnly: true,
+    });
+    res.cookie("email", (req.user as RequestUser).email, {
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14 * 1),
+      secure: false,
+      httpOnly: false,
     });
     return res.redirect("/");
   },
