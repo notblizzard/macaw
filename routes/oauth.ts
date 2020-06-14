@@ -27,11 +27,7 @@ router.get(
       secure: false,
       httpOnly: true,
     });
-    return res.json({
-      success: true,
-      token,
-      email: (req.user as RequestUser).email,
-    });
+    return res.redirect("/");
   },
 );
 
@@ -55,11 +51,7 @@ router.get(
       secure: false,
       httpOnly: true,
     });
-    return res.json({
-      success: true,
-      token,
-      email: (req.user as RequestUser).email,
-    });
+    return res.redirect("/");
   },
 );
 
