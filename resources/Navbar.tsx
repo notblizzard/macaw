@@ -13,6 +13,7 @@ import {
   Settings as SettingsIcon,
   ExitToApp as ExitToAppIcon,
   QuestionAnswer as ConversationIcon,
+  Explore as ExploreIcon,
 } from "@material-ui/icons";
 import Gravatar from "./util/Gravatar";
 import Cookies from "js-cookie";
@@ -31,7 +32,7 @@ interface NavbarProps {
 const useStyles = makeStyles((theme: Theme) => ({
   icons: (props: StyleProps) => ({
     color: props.darkMode ? "#eee" : "#222",
-    margin: theme.spacing(4),
+    margin: theme.spacing(2),
   }),
   navBar: (props: StyleProps) => ({
     backgroundColor: props.darkMode ? "#080b17" : "#dff0f7",
@@ -135,6 +136,15 @@ const Navbar = ({ color, socket }: NavbarProps): JSX.Element => {
               <Link to="/settings">
                 <IconButton>
                   <SettingsIcon
+                    className={`navbar-button-${color} ${classes.icons}`}
+                    fontSize="large"
+                  />
+                </IconButton>
+              </Link>
+
+              <Link to="/explore">
+                <IconButton>
+                  <ExploreIcon
                     className={`navbar-button-${color} ${classes.icons}`}
                     fontSize="large"
                   />
