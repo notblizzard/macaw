@@ -153,6 +153,47 @@ router.post(
   },
 );
 
+router.get("/api/message/explore", async (req, res) => {
+  const skip = Number(req.query.page);
+
+  let messages: Message[] = await Message.find({
+    relations: [
+      "user",
+      "likes",
+      "reposts",
+      "likes.user",
+      "likes.user.messages",
+      "likes.user.likes",
+      "likes.user.reposts",
+    ],
+    order: {
+      createdAt: "DESC",
+    },
+    skip: (skip - 1) * 10,
+    take: 10,
+  });
+
+  if (req.user) {
+    const user: User | undefined = await User.findOne({
+      where: { id: (req.user as RequestUser).id },
+      relations: [
+        "following",
+        "following.following",
+        "following.follower",
+        "likes",
+        "likes.message",
+        "reposts",
+        "reposts.message",
+      ],
+    });
+    if (!user) return false;
+    messages = getLikes(messages, user as User);
+    messages = getReposts(user?.reposts, messages);
+    return res.json({ success: true, user, messages });
+  }
+  return res.json({ success: true, messages });
+});
+
 router.get(
   "/api/message/dashboard",
   passport.authenticate("jwt", { session: false }),

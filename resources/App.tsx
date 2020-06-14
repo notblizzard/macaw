@@ -4,6 +4,7 @@ import {
   Brightness2 as MoonIcon,
   Brightness5 as SunIcon,
 } from "@material-ui/icons";
+import Explore from "./Explore";
 import Register from "./auth/Register";
 import ReactDOM from "react-dom";
 import Home from "./Home";
@@ -150,6 +151,10 @@ const App = (): JSX.Element => {
               <Grid item xs={11}>
                 <Container>
                   <Switch>
+                    <Route
+                      path="/explore"
+                      render={(props) => <Explore {...props} socket={socket} />}
+                    />
                     <Route path="/@:username/followers" component={Followers} />
 
                     <Route path="/@:username/following" component={Following} />

@@ -9,7 +9,7 @@ import {
   makeStyles,
   Theme,
 } from "@material-ui/core";
-import UserMessage from "../message/UserMessage";
+import Messages from "../message/Messages";
 import Cookies from "js-cookie";
 import DarkModeContext from "../DarkMode";
 import { Helmet } from "react-helmet-async";
@@ -52,6 +52,7 @@ const Profile = ({ socket, dashboard }: ProfileProps): JSX.Element => {
   const { username } = useParams();
   const [user, setUser] = useState<User>(null!);
   let url: string;
+  const path = dashboard ? "dashboard" : "profile";
   if (dashboard) {
     url = "/api/user/dashboard";
   } else {
@@ -95,11 +96,7 @@ const Profile = ({ socket, dashboard }: ProfileProps): JSX.Element => {
                 <UserHeader user={user} />
               </SwipeableDrawer>
               <Grid item xs={12}>
-                <UserMessage
-                  dashboard={dashboard}
-                  username={username}
-                  socket={socket}
-                />
+                <Messages path={path} username={username} socket={socket} />
               </Grid>
             </Grid>
           </Hidden>
@@ -110,11 +107,7 @@ const Profile = ({ socket, dashboard }: ProfileProps): JSX.Element => {
               </Grid>
               <Grid item xs={10}>
                 <UserHeader user={user} />
-                <UserMessage
-                  dashboard={dashboard}
-                  username={username}
-                  socket={socket}
-                />
+                <Messages path={path} username={username} socket={socket} />
               </Grid>
             </Grid>
           </Hidden>

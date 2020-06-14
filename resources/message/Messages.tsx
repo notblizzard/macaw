@@ -76,9 +76,9 @@ interface StyleProps {
   darkMode: boolean;
 }
 
-interface UserMessageProps {
-  dashboard: boolean;
-  username: string | undefined;
+interface MessagesProps {
+  path: "dashboard" | "profile" | "explore";
+  username?: string;
   socket: SocketIOClient.Socket;
 }
 
@@ -139,11 +139,7 @@ const useStyles = makeStyles({
   },
 });
 
-const UserMessage = ({
-  dashboard,
-  username,
-  socket,
-}: UserMessageProps): JSX.Element => {
+const Messages = ({ path, username, socket }: MessagesProps): JSX.Element => {
   const color = Cookies.get("color") || "default";
   const theme = useTheme();
   // true = desktop, false = mobile
@@ -166,7 +162,9 @@ const UserMessage = ({
   const [user, setUser] = useState<User>(null!);
   const [dialog, setDialog] = useState<Message>(null!);
 
-  const urlPath = dashboard ? "dashboard?" : `profile?username=${username}&`;
+  const urlPath = ["dashboard", "explore"].includes(path)
+    ? `${path}?`
+    : `profile?username=${username}&`;
   const urlForMessages = `/api/message/${urlPath}page=${page}`;
 
   const loadMoreMessages = (): void => {
@@ -617,4 +615,4 @@ const UserMessage = ({
   );
 };
 
-export default UserMessage;
+export default Messages;
