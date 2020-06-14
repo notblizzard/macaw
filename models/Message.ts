@@ -33,7 +33,7 @@ export default class Message extends BaseEntity {
   file!: string;
 
   @ManyToOne(() => User, (user) => user.messages, {
-    onDelete: "CASCADE",
+    // onDelete: "CASCADE",
   })
   user!: User;
 
