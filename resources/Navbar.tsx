@@ -14,11 +14,13 @@ import {
   ExitToApp as ExitToAppIcon,
   QuestionAnswer as ConversationIcon,
   Explore as ExploreIcon,
+  Brightness2 as MoonIcon,
+  Brightness5 as SunIcon,
 } from "@material-ui/icons";
 import Gravatar from "./util/Gravatar";
 import Cookies from "js-cookie";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faComment } from "@fortawesome/free-solid-svg-icons";
+import { faSignInAlt, faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import DarkModeContext from "./DarkMode";
 interface StyleProps {
   darkMode: boolean;
@@ -27,6 +29,7 @@ interface StyleProps {
 interface NavbarProps {
   color: string;
   socket: SocketIOClient.Socket;
+  toggleDarkMode: () => void;
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -85,7 +88,11 @@ const useStyles = makeStyles((theme: Theme) => ({
   }),
 }));
 
-const Navbar = ({ color, socket }: NavbarProps): JSX.Element => {
+const Navbar = ({
+  color,
+  socket,
+  toggleDarkMode,
+}: NavbarProps): JSX.Element => {
   const darkMode = useContext(DarkModeContext);
   const history = useHistory();
   const classes = useStyles({ darkMode });
@@ -117,7 +124,7 @@ const Navbar = ({ color, socket }: NavbarProps): JSX.Element => {
               </Box>
 
               <Link to="/private-messages">
-                <IconButton>
+                <IconButton title="Conversations">
                   <ConversationIcon
                     className={`navbar-button-${color} ${classes.icons}`}
                     fontSize="large"
@@ -125,33 +132,22 @@ const Navbar = ({ color, socket }: NavbarProps): JSX.Element => {
                 </IconButton>
               </Link>
               <Link to="/search">
-                <IconButton>
+                <IconButton title="Search">
                   <SearchIcon
                     className={`navbar-button-${color} ${classes.icons}`}
                     fontSize="large"
                   />
                 </IconButton>
               </Link>
-
               <Link to="/settings">
-                <IconButton>
+                <IconButton title="Settings">
                   <SettingsIcon
                     className={`navbar-button-${color} ${classes.icons}`}
                     fontSize="large"
                   />
                 </IconButton>
               </Link>
-
-              <Link to="/explore">
-                <IconButton>
-                  <ExploreIcon
-                    className={`navbar-button-${color} ${classes.icons}`}
-                    fontSize="large"
-                  />
-                </IconButton>
-              </Link>
-
-              <IconButton>
+              <IconButton title="Logout">
                 <ExitToAppIcon
                   onClick={handleLogout}
                   className={`navbar-button-${color} ${classes.icons}`}
@@ -159,7 +155,36 @@ const Navbar = ({ color, socket }: NavbarProps): JSX.Element => {
                 />
               </IconButton>
             </>
-          ) : null}
+          ) : (
+            <>
+              <Link to="/login">
+                <IconButton title="Login">
+                  <FontAwesomeIcon
+                    icon={faSignInAlt}
+                    className={`navbar-button-${color} ${classes.icons}`}
+                    fontSize="large"
+                  />
+                </IconButton>
+              </Link>
+              <Link to="/register">
+                <IconButton title="Register">
+                  <FontAwesomeIcon
+                    icon={faUserPlus}
+                    className={`navbar-button-${color} ${classes.icons}`}
+                    fontSize="large"
+                  />
+                </IconButton>
+              </Link>
+            </>
+          )}
+          <Link to="/explore">
+            <IconButton>
+              <ExploreIcon
+                className={`navbar-button-${color} ${classes.icons}`}
+                fontSize="large"
+              />
+            </IconButton>
+          </Link>
         </Toolbar>
       </AppBar>
     </>

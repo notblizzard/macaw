@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { BrowserRouter, Route, Switch, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Route,
+  Switch,
+  useLocation,
+  Redirect,
+} from "react-router-dom";
 import {
   Brightness2 as MoonIcon,
   Brightness5 as SunIcon,
@@ -88,29 +94,31 @@ const App = (): JSX.Element => {
   };
 
   useEffect(() => {
-    fetch("/api/user/authenticate", {
-      headers: {
-        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success)
-          socket.emit("authenticate", { id: data.id, username: data.username });
-      });
-  }, []);
-
-  useEffect(() => {
-    fetch("/api/user/color", {
-      headers: {
-        "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) setColor(data.color);
-      });
-  }, []);
+    if (Cookies.get("email")) {
+      fetch("/api/user/authenticate", {
+        headers: {
+          "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success)
+            socket.emit("authenticate", {
+              id: data.id,
+              username: data.username,
+            });
+        });
+      fetch("/api/user/color", {
+        headers: {
+          "X-CSRF-TOKEN": Cookies.get("XSRF-TOKEN")!,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) setColor(data.color);
+        });
+    }
+  }, [socket]);
 
   // we pass down color to navbar and privatemessage through here
   // instead of with Cookies.get("color")
@@ -124,7 +132,7 @@ const App = (): JSX.Element => {
     setOpen(false);
   };
 
-  const toggleDarkTheme = (): void => {
+  const toggleDarkMode = (): void => {
     const darkThemeCurrentValue = Cookies.get("darkTheme");
     Cookies.set(
       "darkTheme",
@@ -146,7 +154,11 @@ const App = (): JSX.Element => {
                   handleClose={handleClose}
                   socket={socket}
                 />
-                <Navbar color={color} socket={socket} />
+                <Navbar
+                  color={color}
+                  socket={socket}
+                  toggleDarkMode={toggleDarkMode}
+                />
               </Grid>
               <Grid item xs={11}>
                 <Container>
@@ -192,7 +204,7 @@ const App = (): JSX.Element => {
                     </PrivateRoute>
 
                     <GuestRoute path="/">
-                      <Home />
+                      <Redirect to="/explore" />
                     </GuestRoute>
                   </Switch>
                 </Container>
@@ -200,7 +212,7 @@ const App = (): JSX.Element => {
             </Grid>
           </BrowserRouter>
         </DarkModeContext.Provider>
-        <Fab className={classes.darkThemeButton} onClick={toggleDarkTheme}>
+        <Fab className={classes.darkThemeButton} onClick={toggleDarkMode}>
           {darkTheme ? <MoonIcon /> : <SunIcon />}
         </Fab>
         {Cookies.get("email") ? (

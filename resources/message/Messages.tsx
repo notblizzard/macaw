@@ -175,8 +175,9 @@ const Messages = ({ path, username, socket }: MessagesProps): JSX.Element => {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
+          console.log(data.user);
           setPage(page + 1);
-          setUser(data.user);
+          setUser(data.user ?? null!);
           setMessages(messages.concat(data.messages));
           setHasMore(data.messages.length >= 10);
         }
@@ -194,7 +195,7 @@ const Messages = ({ path, username, socket }: MessagesProps): JSX.Element => {
       message.reposts = [];
       // todo: fix if message count is currently 0
       // current will fail if user has ZERO messages when this fires
-      if (messages[0]?.id === user.pinned?.id) {
+      if (messages[0]?.id === user?.pinned?.id) {
         setMessages([messages[0], message, ...messages.slice(1)]);
       } else {
         setMessages([message, ...messages]);
@@ -279,7 +280,7 @@ const Messages = ({ path, username, socket }: MessagesProps): JSX.Element => {
         if (data.success) {
           setUser({
             ...user,
-            pinned: { ...user.pinned, id: data.pinned.id },
+            pinned: { ...user?.pinned, id: data.pinned.id },
           });
           const messageIndex = messages
             .map((message) => message.id)
@@ -392,7 +393,7 @@ const Messages = ({ path, username, socket }: MessagesProps): JSX.Element => {
 
   return (
     <>
-      {user && (
+      {messages && (
         <InfiniteScroll
           pageStart={1}
           loadMore={loadMoreMessages}
@@ -470,7 +471,7 @@ const Messages = ({ path, username, socket }: MessagesProps): JSX.Element => {
                     <Grid item xs={breakpoint ? 11 : 10}>
                       <Grid container spacing={1}>
                         <Grid item xs={12}>
-                          {user.pinned?.id === message.id ? (
+                          {user?.pinned?.id === message.id ? (
                             <Typography
                               variant="body2"
                               className={classes.caption}
@@ -488,7 +489,7 @@ const Messages = ({ path, username, socket }: MessagesProps): JSX.Element => {
                               className={classes.caption}
                             >
                               <RepeatIcon className={`color-${color}`} />
-                              {user.displayname} Reposted
+                              {user?.displayname} Reposted
                             </Typography>
                           ) : null}
                           <Typography display="inline">
@@ -580,7 +581,7 @@ const Messages = ({ path, username, socket }: MessagesProps): JSX.Element => {
                               </Typography>
                             </Box>
                             <Box>
-                              {user.isDifferentUser ? null : (
+                              {user?.isDifferentUser ? null : (
                                 <Tooltip title={"Pin"} arrow>
                                   <IconButton
                                     onClick={handlePin}

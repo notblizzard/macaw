@@ -69,7 +69,12 @@ createConnection().then(() => {
   app.use("/uploads", express.static("uploads"));
 
   app.get("*", (req, res) => {
-    res.cookie("XSRF-TOKEN", req.csrfToken());
+    res.cookie("XSRF-TOKEN", req.csrfToken(), {
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14 * 1),
+      secure: false,
+      httpOnly: false,
+      sameSite: "strict",
+    });
     res.sendFile("/views/index.html", { root: path.join(__dirname, ".") });
   });
 

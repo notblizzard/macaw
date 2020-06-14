@@ -25,7 +25,9 @@ const Explore = ({ socket }: ExploreProps): JSX.Element => {
   const classes = useStyles();
   return (
     <Box>
-      <Typography variant="h4">Explore Macaw</Typography>
+      <Typography variant="h4" align="center">
+        Explore Macaw
+      </Typography>
       <Messages path="explore" socket={socket} />
     </Box>
   );

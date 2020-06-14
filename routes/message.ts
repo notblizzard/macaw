@@ -191,7 +191,7 @@ router.get("/api/message/explore", async (req, res) => {
     messages = getReposts(user?.reposts, messages);
     return res.json({ success: true, user, messages });
   }
-  return res.json({ success: true, messages });
+  return res.json({ success: true, messages, user: null });
 });
 
 router.get(
