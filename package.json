@@ -7,7 +7,7 @@
   "scripts": {
     "test": "jest -i",
     "migrate": "ts-node ./node_modules/typeorm/cli.js migration:run",
-    "start": "tsc && node -r dotenv/config build/main",
+    "start": "pm2 start --node-args=\"-r dotenv/config\" build/main.js --name=macaw",
     "dev": "nodemon -r dotenv/config --ext ts --exec ts-node main",
     "watch": "webpack --watch",
     "webpack": "webpack",
@@ -115,6 +115,7 @@
     "passport-local": "^1.0.0",
     "pg": "^7.18.2",
     "pg-hstore": "^2.3.3",
+    "pm2": "^4.4.0",
     "prettier": "^2.0.2",
     "react": "^16.13.1",
     "react-content-loader": "^5.0.4",
