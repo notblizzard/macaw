@@ -2,7 +2,9 @@ import passport from "passport";
 import { User } from "./models";
 import bcrypt from "bcrypt";
 import { Strategy as LocalStrategy } from "passport-local";
-import passportGoogle from "passport-google-oauth20";
+import passportGoogle, {
+  Strategy as GoogleStrategy,
+} from "passport-google-oauth20";
 import Github, { Strategy as GitHubStrategy } from "passport-github2";
 import { Strategy as JwtStrategy } from "passport-jwt";
 import { validate } from "class-validator";
@@ -29,8 +31,6 @@ interface GoogleProfile extends passportGoogle.Profile {
   username?: string;
   displayName: string;
 }
-
-const GoogleStrategy = passportGoogle.Strategy;
 
 function register(
   username: string,

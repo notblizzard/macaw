@@ -16,11 +16,8 @@ import websocket from "./websocket";
 import socketio from "socket.io";
 import fs from "fs";
 import { createConnection } from "typeorm";
-/* TODO.
-- fix search and settings colors.
-- space out login and register button on home page.
-- fix oauth.
-*/
+
+const PORT = process.env.PORT || 7000;
 
 createConnection().then(() => {
   const app = express();
@@ -81,11 +78,9 @@ createConnection().then(() => {
   websocket(io);
 
   // create uploads directory.
-  if (!fs.existsSync("./uploads")) {
-    fs.mkdirSync("./uploads");
+  if (!fs.existsSync("uploads")) {
+    fs.mkdirSync("uploads");
   }
 
-  server.listen(process.env.PORT, () => {
-    console.log(`Running on port ${process.env.PORT}.`);
-  });
+  server.listen(PORT, () => console.log(`Running on port ${PORT}.`));
 });

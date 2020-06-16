@@ -10,6 +10,8 @@ COPY . .
 
 EXPOSE 7000
 
+RUN mkdir uploads
+
 RUN npm run build
 
 RUN npm run webpack
