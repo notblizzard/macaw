@@ -2,9 +2,11 @@ import "reflect-metadata";
 import express from "express";
 import { passport } from "./authorization";
 import http from "http";
+/*
 import redis from "redis";
 import session from "express-session";
 import connectRedis from "connect-redis";
+*/
 import body from "body-parser";
 import { message, auth, oauth, user, conversation } from "./routes";
 import cookie from "cookie-parser";
@@ -22,13 +24,14 @@ const PORT = process.env.PORT || 7000;
 createConnection().then(() => {
   const app = express();
 
-  const RedisStore = connectRedis(session);
-  const redisClient = redis.createClient(process.env.REDIS_URL || "");
+  // const RedisStore = connectRedis(session);
+  // const redisClient = redis.createClient(process.env.REDIS_URL || "");
 
   app.use(cookie());
   app.use(body.urlencoded({ extended: false }));
   app.use(body.json());
 
+  /*
   app.use(
     session({
       store: new RedisStore({ client: redisClient }),
@@ -41,6 +44,7 @@ createConnection().then(() => {
       saveUninitialized: true,
     }),
   );
+  */
 
   app.use(csurf({ cookie: true }));
 
