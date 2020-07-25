@@ -38,14 +38,14 @@ const useStyles = makeStyles(() => ({
   input: {
     display: "none",
   },
-  modalForm: {
-    color: "#eee",
+  modalForm: (props: DarkModeProps) => ({
+    color: props.darkMode ? "#dfe9f4" : "#192a3d",
     borderBottomColor: "#66d0f9",
     borderColor: "#66d0f9",
     backgroundColor: fade("#66d0f9", 0.1),
     borderRadius: "0",
     paddingInline: "1rem",
-  },
+  }),
   messageGreen: {
     color: "#66ffb2",
     justifyContent: "center",
