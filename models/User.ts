@@ -26,6 +26,7 @@ import Repost from "./Repost";
 import Follow from "./Follow";
 import Conversation from "./Conversation";
 import ConversationMessage from "./ConversationMessage";
+import Notification from "./Notification";
 import { isNotEmptyString } from "../validators";
 
 @Entity()
@@ -127,6 +128,11 @@ export default class User extends BaseEntity {
     onDelete: "CASCADE",
   })
   followers!: Follow[];
+
+  @OneToMany(() => Notification, (notification) => notification.targetUser, {
+    onDelete: "CASCADE",
+  })
+  notifications!: Notification[];
 
   @OneToOne(() => Message, { onDelete: "CASCADE" })
   @JoinColumn()

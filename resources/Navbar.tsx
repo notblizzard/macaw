@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Toolbar,
   AppBar,
@@ -20,7 +20,11 @@ import {
 import Gravatar from "./util/Gravatar";
 import Cookies from "js-cookie";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSignInAlt, faUserPlus } from "@fortawesome/free-solid-svg-icons";
+import {
+  faSignInAlt,
+  faUserPlus,
+  faBell,
+} from "@fortawesome/free-solid-svg-icons";
 import DarkModeContext from "./DarkMode";
 interface StyleProps {
   darkMode: boolean;
@@ -93,6 +97,7 @@ const Navbar = ({
   socket,
   toggleDarkMode,
 }: NavbarProps): JSX.Element => {
+  const [notificationCount, setNotificationCount] = useState(0);
   const darkMode = useContext(DarkModeContext);
   const history = useHistory();
   const classes = useStyles({ darkMode });
@@ -100,6 +105,15 @@ const Navbar = ({
 
   useEffect(() => {
     socket.emit("path", location.pathname);
+    if (Cookies.get("email")) {
+      fetch("/api/user/notifications?count=true")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setNotificationCount(data.notifications);
+          }
+        });
+    }
   }, [location, socket]);
 
   const handleLogout = (): void => {
@@ -129,6 +143,26 @@ const Navbar = ({
                     className={`navbar-button-${color} ${classes.icons}`}
                     fontSize="large"
                   />
+                </IconButton>
+              </Link>
+
+              <Link to="/notifications">
+                <IconButton title="Notifications">
+                  <span className="fa-layers fa-fw">
+                    <FontAwesomeIcon
+                      icon={faBell}
+                      className={`navbar-button-${color} ${classes.icons}`}
+                      fontSize="large"
+                    />
+                    {notificationCount > 0 && (
+                      <span
+                        className="fa-layers-counter fa-2x"
+                        style={{ backgroundColor: "#2a99db" }}
+                      >
+                        {notificationCount}
+                      </span>
+                    )}
+                  </span>
                 </IconButton>
               </Link>
               <Link to="/search">

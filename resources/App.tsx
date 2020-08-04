@@ -19,6 +19,7 @@ import PrivateRoute from "./auth/PrivateRoute";
 import GuestRoute from "./auth/GuestRoute";
 import CreateIcon from "@material-ui/icons/CreateOutlined";
 import Navbar from "./Navbar";
+import Notifications from "./user/Notifications";
 import {
   Fab,
   Container,
@@ -195,6 +196,9 @@ const App = (): JSX.Element => {
                       <Profile dashboard={true} socket={socket} />
                     </PrivateRoute>
 
+                    <PrivateRoute path="/notifications">
+                      <Notifications />
+                    </PrivateRoute>
                     <PrivateRoute path="/private-messages">
                       <PrivateMessage socket={socket} />
                     </PrivateRoute>

@@ -1,7 +1,7 @@
 import {MigrationInterface, QueryRunner} from "typeorm";
 
-export class InitialMigration1592256884898 implements MigrationInterface {
-    name = 'InitialMigration1592256884898'
+export class InitialMigration1596579022338 implements MigrationInterface {
+    name = 'InitialMigration1596579022338'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE "like" ("id" SERIAL NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "userId" integer, "messageId" integer, CONSTRAINT "PK_eff3e46d24d416b52a7e0ae4159" PRIMARY KEY ("id"))`, undefined);
@@ -9,6 +9,7 @@ export class InitialMigration1592256884898 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE "message" ("id" SERIAL NOT NULL, "data" character varying NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "file" character varying, "userId" integer, CONSTRAINT "PK_ba01f0a3e0123651915008bc578" PRIMARY KEY ("id"))`, undefined);
         await queryRunner.query(`CREATE TABLE "follow" ("id" SERIAL NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "followingId" integer, "followerId" integer, CONSTRAINT "PK_fda88bc28a84d2d6d06e19df6e5" PRIMARY KEY ("id"))`, undefined);
         await queryRunner.query(`CREATE TABLE "conversation_message" ("id" SERIAL NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "data" character varying NOT NULL, "userId" integer, "conversationId" integer, CONSTRAINT "PK_2f8286c3560b52dba8428ac182e" PRIMARY KEY ("id"))`, undefined);
+        await queryRunner.query(`CREATE TABLE "notification" ("id" SERIAL NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "type" character varying NOT NULL, "unread" boolean NOT NULL DEFAULT true, "targetUserId" integer, "originUserId" integer, "messageId" integer, CONSTRAINT "PK_705b6c7cdf9b2c2ff7ac7872cb7" PRIMARY KEY ("id"))`, undefined);
         await queryRunner.query(`CREATE TABLE "user" ("id" SERIAL NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "username" character varying NOT NULL, "displayname" character varying, "password" character varying, "email" character varying NOT NULL, "description" character varying, "link" character varying, "githubId" character varying, "googleId" character varying, "location" character varying, "color" character varying DEFAULT 'blue', "pinnedId" integer, CONSTRAINT "UQ_78a916df40e02a9deb1c4b75edb" UNIQUE ("username"), CONSTRAINT "UQ_e12875dfb3b1d92d7d7c5377e22" UNIQUE ("email"), CONSTRAINT "REL_eb8ead2b46234e61294767a449" UNIQUE ("pinnedId"), CONSTRAINT "PK_cace4a159ff9f2512dd42373760" PRIMARY KEY ("id"))`, undefined);
         await queryRunner.query(`CREATE TABLE "conversation" ("id" SERIAL NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_864528ec4274360a40f66c29845" PRIMARY KEY ("id"))`, undefined);
         await queryRunner.query(`CREATE TABLE "user_conversations_conversation" ("userId" integer NOT NULL, "conversationId" integer NOT NULL, CONSTRAINT "PK_32949b370b6a6f3413bb1eda505" PRIMARY KEY ("userId", "conversationId"))`, undefined);
@@ -26,6 +27,9 @@ export class InitialMigration1592256884898 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "follow" ADD CONSTRAINT "FK_550dce89df9570f251b6af2665a" FOREIGN KEY ("followerId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE`, undefined);
         await queryRunner.query(`ALTER TABLE "conversation_message" ADD CONSTRAINT "FK_ff1351ea6a73b268e1d9ddc4665" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE NO ACTION`, undefined);
         await queryRunner.query(`ALTER TABLE "conversation_message" ADD CONSTRAINT "FK_b15f4550c3629ec9002803cfe20" FOREIGN KEY ("conversationId") REFERENCES "conversation"("id") ON DELETE CASCADE ON UPDATE NO ACTION`, undefined);
+        await queryRunner.query(`ALTER TABLE "notification" ADD CONSTRAINT "FK_42071de20bb698f8b759c492ddd" FOREIGN KEY ("targetUserId") REFERENCES "user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`, undefined);
+        await queryRunner.query(`ALTER TABLE "notification" ADD CONSTRAINT "FK_bffefecd6bbebe53d920e2972ac" FOREIGN KEY ("originUserId") REFERENCES "user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`, undefined);
+        await queryRunner.query(`ALTER TABLE "notification" ADD CONSTRAINT "FK_e77398d5c03520ca87c7c03ca9f" FOREIGN KEY ("messageId") REFERENCES "message"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`, undefined);
         await queryRunner.query(`ALTER TABLE "user" ADD CONSTRAINT "FK_eb8ead2b46234e61294767a449a" FOREIGN KEY ("pinnedId") REFERENCES "message"("id") ON DELETE CASCADE ON UPDATE NO ACTION`, undefined);
         await queryRunner.query(`ALTER TABLE "user_conversations_conversation" ADD CONSTRAINT "FK_25944e737d295aabbe9c3ea1ecf" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE NO ACTION`, undefined);
         await queryRunner.query(`ALTER TABLE "user_conversations_conversation" ADD CONSTRAINT "FK_005394704c1c42e3da287a73991" FOREIGN KEY ("conversationId") REFERENCES "conversation"("id") ON DELETE CASCADE ON UPDATE NO ACTION`, undefined);
@@ -39,6 +43,9 @@ export class InitialMigration1592256884898 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "user_conversations_conversation" DROP CONSTRAINT "FK_005394704c1c42e3da287a73991"`, undefined);
         await queryRunner.query(`ALTER TABLE "user_conversations_conversation" DROP CONSTRAINT "FK_25944e737d295aabbe9c3ea1ecf"`, undefined);
         await queryRunner.query(`ALTER TABLE "user" DROP CONSTRAINT "FK_eb8ead2b46234e61294767a449a"`, undefined);
+        await queryRunner.query(`ALTER TABLE "notification" DROP CONSTRAINT "FK_e77398d5c03520ca87c7c03ca9f"`, undefined);
+        await queryRunner.query(`ALTER TABLE "notification" DROP CONSTRAINT "FK_bffefecd6bbebe53d920e2972ac"`, undefined);
+        await queryRunner.query(`ALTER TABLE "notification" DROP CONSTRAINT "FK_42071de20bb698f8b759c492ddd"`, undefined);
         await queryRunner.query(`ALTER TABLE "conversation_message" DROP CONSTRAINT "FK_b15f4550c3629ec9002803cfe20"`, undefined);
         await queryRunner.query(`ALTER TABLE "conversation_message" DROP CONSTRAINT "FK_ff1351ea6a73b268e1d9ddc4665"`, undefined);
         await queryRunner.query(`ALTER TABLE "follow" DROP CONSTRAINT "FK_550dce89df9570f251b6af2665a"`, undefined);
@@ -56,6 +63,7 @@ export class InitialMigration1592256884898 implements MigrationInterface {
         await queryRunner.query(`DROP TABLE "user_conversations_conversation"`, undefined);
         await queryRunner.query(`DROP TABLE "conversation"`, undefined);
         await queryRunner.query(`DROP TABLE "user"`, undefined);
+        await queryRunner.query(`DROP TABLE "notification"`, undefined);
         await queryRunner.query(`DROP TABLE "conversation_message"`, undefined);
         await queryRunner.query(`DROP TABLE "follow"`, undefined);
         await queryRunner.query(`DROP TABLE "message"`, undefined);

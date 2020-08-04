@@ -4,6 +4,7 @@ import Repost from "../models/Repost";
 import uploader from "../uploader";
 import { In } from "typeorm";
 import passport from "passport";
+import Notification from "../models/Notification";
 
 interface RequestUser extends Request {
   id: number;
@@ -516,6 +517,13 @@ router.post(
       like.user = user;
       like.message = message;
       await like.save();
+
+      const notification = new Notification();
+      notification.originUser = user;
+      notification.targetUser = message.user;
+      notification.type = "like";
+      notification.message = message;
+      await notification.save();
 
       return res.json({ success: true, liked: true, like });
     }

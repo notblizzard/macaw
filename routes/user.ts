@@ -4,6 +4,7 @@ import { validate } from "class-validator";
 import { Request } from "express";
 import { passport } from "../authorization";
 import { Like } from "typeorm";
+import Notification from "../models/Notification";
 
 interface RequestUser extends Request {
   id: number;
@@ -44,6 +45,75 @@ router.get(
     return res.json({ success: true, user });
   },
 );
+
+router.get(
+  "/api/user/notifications",
+  passport.authenticate("jwt"),
+  async (req, res) => {
+    const count = req.query.count;
+    if (count) {
+      const user: ProfileUser | undefined = await User.findOne({
+        where: { id: (req.user as RequestUser).id },
+        relations: ["notifications"],
+      })!;
+
+      // console.log(user?.notifications);
+
+      return res.json({
+        success: true,
+        notifications: user?.notifications.filter((notification) => {
+          return notification.unread;
+        }).length,
+      });
+    } else {
+      const user: ProfileUser | undefined = await User.findOne({
+        where: { id: (req.user as RequestUser).id },
+        relations: [
+          "notifications",
+          "notifications.targetUser",
+          "notifications.originUser",
+          "notifications.message",
+        ],
+      });
+
+      console.log(user);
+      // set all unread messages to read
+      /* user!.notifications = user!.notifications.map((notification) => {
+        notification.unread = false;
+        return notification;
+      });*/
+      // console.log(user);
+      await Notification.createQueryBuilder()
+        .update(Notification)
+        .set({ unread: false })
+        .where({ targetUser: user })
+        .execute();
+      // await User.createQueryBuilder("user").update(User).set({});
+      //await user!.save();
+      //console.log(user);
+      return res.json({
+        success: true,
+        notifications: user!.notifications,
+      });
+    }
+  },
+);
+
+router.get(
+  "/api/user/notification-count",
+  passport.authenticate("jwt"),
+  async (req, res) => {
+    const user: ProfileUser | undefined = await User.findOne({
+      where: { id: (req.user as RequestUser).id },
+      relations: ["notifications"],
+    })!;
+    return res.json({
+      success: true,
+      notifications: user?.notifications.length,
+    });
+  },
+);
+
 router.get("/api/user/profile", async (req, res) => {
   // cleaner to get the username first
   const username: string | undefined = await User.createQueryBuilder("user")
