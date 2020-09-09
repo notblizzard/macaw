@@ -30,6 +30,9 @@ const useStyles = makeStyles(() => ({
   text: (props: StyleProps) => ({
     color: props.darkMode ? "#b8c5d9bd" : "#070b0fbd",
   }),
+  description: {
+    wordBreak: "break-all",
+  },
 }));
 
 const UserInfo = ({ user }: UserInfoProps): JSX.Element => {
@@ -46,7 +49,7 @@ const UserInfo = ({ user }: UserInfoProps): JSX.Element => {
       <Typography variant="body1" className={classes.text}>
         @{user.username}
       </Typography>
-      <Typography variant="body1">
+      <Typography variant="body1" className={classes.description}>
         {user.description
           ? user.description.split(" ").map((word) => {
               if (word.includes("@")) {

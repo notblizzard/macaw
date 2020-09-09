@@ -284,45 +284,50 @@ router.get(
   },
 );
 
-router.post("/api/user/settings/", async (req, res) => {
-  const errorList: Errors = {};
-  const user: User | undefined = await User.findOne(
-    (req.user as RequestUser).id,
-  );
-  if (!user) return false;
-  if (user.id !== user.id) {
-    return res.json({ success: false, error: "invalid user" }); //todo
-  }
-  user.username = req.body.username;
-  user.description = req.body.description;
-  user.displayname = req.body.displayname;
-  user.location = req.body.location;
-  user.link = req.body.link;
-  user.color = req.body.color;
-  validate(user, { validationError: { target: false } }).then(
-    async (errors) => {
-      if (errors.length > 0) {
-        errors.map((error) => {
-          errorList[error.property] = Object.values(error.constraints);
-        });
-        return res.json({ success: false, errors: errorList });
-      }
-      try {
-        await user.save();
-        return res.json({ success: true, user });
-      } catch (e) {
-        if (
-          e.name === "QueryFailedError" &&
-          e.detail.includes("already exists.")
-        ) {
-          // unique username
-          errorList.username = ["username already exists."];
+router.post(
+  "/api/user/settings/",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    const errorList: Errors = {};
+    console.log(req.user as RequestUser);
+    const user: User | undefined = await User.findOne(
+      (req.user as RequestUser).id,
+    );
+    if (!user) return false;
+    if (user.id !== user.id) {
+      return res.json({ success: false, error: "invalid user" }); //todo
+    }
+    user.username = req.body.username;
+    user.description = req.body.description;
+    user.displayname = req.body.displayname;
+    user.location = req.body.location;
+    user.link = req.body.link;
+    user.color = req.body.color;
+    validate(user, { validationError: { target: false } }).then(
+      async (errors) => {
+        if (errors.length > 0) {
+          errors.map((error) => {
+            errorList[error.property] = Object.values(error.constraints);
+          });
           return res.json({ success: false, errors: errorList });
         }
-      }
-    },
-  );
-});
+        try {
+          await user.save();
+          return res.json({ success: true, user });
+        } catch (e) {
+          if (
+            e.name === "QueryFailedError" &&
+            e.detail.includes("already exists.")
+          ) {
+            // unique username
+            errorList.username = ["username already exists."];
+            return res.json({ success: false, errors: errorList });
+          }
+        }
+      },
+    );
+  },
+);
 
 router.post(
   "/api/user/follow",
