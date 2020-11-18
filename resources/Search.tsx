@@ -86,7 +86,7 @@ interface Like {
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
-  input: {
+  input: (props: StyleProps) => ({
     color: "#eee",
     borderColor: "#eee !important",
     "& .MuiFormLabel-root": {
@@ -94,7 +94,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
     "& .MuiOutlinedInput-root": {
       marginBottom: "4rem",
-      color: "#eee",
+      color: props.darkMode ? "#eee" : "#222",
       borderColor: "#eee !important",
       backgroundColor: fade("#66d0f9", 0.1),
       "&.Mui-focused fieldset": {
@@ -105,7 +105,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     "&:focus": {
       borderColor: "#eee",
     },
-  },
+  }),
   mediaToggles: {
     padding: "1rem",
     cursor: "pointer",
@@ -407,9 +407,11 @@ const Search = ({ socket }: SearchProps): JSX.Element => {
           }}
         />
       </form>
-      <Typography variant="h4" style={{ paddingBottom: "4rem" }}>
-        Search Results for {`"${urlParams.get("qs")}"`}{" "}
-      </Typography>
+      {urlParams.get("qs") && (
+        <Typography variant="h4" style={{ paddingBottom: "4rem" }}>
+          Search Results for {`"${urlParams.get("qs")}"`}{" "}
+        </Typography>
+      )}
       <ViewMessage
         color={color}
         message={dialog}
