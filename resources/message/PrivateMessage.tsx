@@ -130,7 +130,8 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
     "& .MuiOutlinedInput-root": {
       backgroundColor: fade("#66d0f9", 0.1),
-      color: "#eee",
+      color: props.darkMode ? "#eee" : "#222",
+
       "&.Mui-focused fieldset": {
         borderColor: "#09a6f4",
         color: "#eee",
@@ -141,7 +142,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
   }),
   tabPanel: (props: StyleProps) => ({
-    width: props.breakpoint ? "60%" : "100%",
+    width: props.breakpoint ? "50%" : "100%",
   }),
   newUser: {
     color: "#eee",
