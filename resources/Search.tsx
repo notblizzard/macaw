@@ -110,9 +110,9 @@ const useStyles = makeStyles((theme: Theme) => ({
     padding: "1rem",
     cursor: "pointer",
   },
-  card: {
-    backgroundColor: "#193344",
-  },
+  card: (props: StyleProps) => ({
+    backgroundColor: props.darkMode ? "#192a3d" : "#e3edf7",
+  }),
   username: (props: StyleProps) => ({
     color: props.darkMode ? "#b8c5d9bd" : "#070b0fbd",
     fontSize: "1rem",
@@ -121,12 +121,12 @@ const useStyles = makeStyles((theme: Theme) => ({
     color: props.darkMode ? "#eee" : "#222",
     fontSize: "1rem",
   }),
-  message: {
-    backgroundColor: "#192a3d",
+  message: (props: StyleProps) => ({
+    backgroundColor: props.darkMode ? "#192a3d" : "#e3edf7",
     border: 0,
-    color: "#eee",
+    color: props.darkMode ? "#eee" : "#222",
     marginTop: "1rem",
-  },
+  }),
   image: {
     height: "400px",
   },
