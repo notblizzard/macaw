@@ -1,27 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  BrowserRouter,
-  Route,
-  Switch,
-  useLocation,
-  Redirect,
-} from "react-router-dom";
-import {
-  Brightness2 as MoonIcon,
-  Brightness5 as SunIcon,
-} from "@material-ui/icons";
+import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 import Explore from "./Explore";
 import Register from "./auth/Register";
 import ReactDOM from "react-dom";
-import Home from "./Home";
 import Login from "./auth/Login";
 import PrivateRoute from "./auth/PrivateRoute";
 import GuestRoute from "./auth/GuestRoute";
-import CreateIcon from "@material-ui/icons/CreateOutlined";
 import Navbar from "./Navbar";
 import Notifications from "./user/Notifications";
 import {
-  Fab,
   Container,
   makeStyles,
   Box,
@@ -159,6 +146,7 @@ const App = (): JSX.Element => {
                   color={color}
                   socket={socket}
                   toggleDarkMode={toggleDarkMode}
+                  handleNewMessageOpen={handleOpen}
                 />
               </Grid>
               <Grid item xs={11}>
@@ -216,17 +204,6 @@ const App = (): JSX.Element => {
             </Grid>
           </BrowserRouter>
         </DarkModeContext.Provider>
-        <Fab className={classes.darkThemeButton} onClick={toggleDarkMode}>
-          {darkTheme ? <MoonIcon /> : <SunIcon />}
-        </Fab>
-        {Cookies.get("email") ? (
-          <Fab
-            className={"floating-new-message-button-" + color}
-            onClick={handleOpen}
-          >
-            <CreateIcon />
-          </Fab>
-        ) : null}
       </Box>
     </HelmetProvider>
   );
