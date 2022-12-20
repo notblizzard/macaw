@@ -49,7 +49,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 const Profile = ({ socket, dashboard }: ProfileProps): JSX.Element => {
   const darkMode = useContext(DarkModeContext);
   const classes = useStyles({ darkMode });
-  const { username } = useParams();
+  const { username } = useParams<{ username: string }>();
   const [user, setUser] = useState<User>(null!);
   let url: string;
   const path = dashboard ? "dashboard" : "profile";

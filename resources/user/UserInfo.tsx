@@ -61,7 +61,7 @@ const UserInfo = ({ user }: UserInfoProps): JSX.Element => {
           : null}
       </Typography>
       <Typography className={classes.text}>
-        <CalendarTodayIcon /> <Moment time={user.createdAt} profile={true} />
+        Joined <Moment time={user.createdAt} profile={true} />
       </Typography>
       {user.location ? (
         <Typography className={classes.text}>

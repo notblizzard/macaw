@@ -2,7 +2,6 @@ import { User, Message } from "./models/";
 import ConversationMessage from "./models/ConversationMessage";
 import Conversation from "./models/Conversation";
 import { Socket, Server } from "socket.io";
-import UserStat from "./resources/user/UserHeader";
 
 interface UserSocket extends Socket {
   userId: number | undefined;
@@ -80,12 +79,12 @@ export default (io: Server): void => {
     });
 
     socket.on("new message", async (data: NewMessage) => {
-      const user: User | undefined = await User.findOne({
+      const user: User | null = await User.findOne({
         where: { id: socket.userId as number },
         relations: ["followers", "followers.follower"],
       });
       if (!user) return false;
-      const message: Message | undefined = await Message.findOne({
+      const message: Message | null = await Message.findOne({
         where: { id: data.id },
         relations: ["user"],
       });
@@ -101,15 +100,15 @@ export default (io: Server): void => {
     });
 
     socket.on("new private message", async (data: NewPrivateMessage) => {
-      const user: User | undefined = await User.findOne(socket.userId);
+      const user: User | null = await User.findOne({
+        where: { id: socket.userId },
+      });
 
       if (!user) return false;
-      const conversation: Conversation | undefined = await Conversation.findOne(
-        {
-          where: { id: data.conversationId },
-          relations: ["users"],
-        },
-      );
+      const conversation: Conversation | null = await Conversation.findOne({
+        where: { id: data.conversationId },
+        relations: ["users"],
+      });
       if (!conversation) return false;
       const otherUserId = conversation?.users.filter(
         (user) => user.id !== socket.userId,
@@ -126,7 +125,7 @@ export default (io: Server): void => {
     });
 
     socket.on("delete message", async (data: DeleteMessage) => {
-      const message: Message | undefined = await Message.findOne({
+      const message: Message | null = await Message.findOne({
         where: { id: data.id },
         relations: ["user"],
       });

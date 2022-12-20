@@ -11,7 +11,7 @@ import { validate } from "class-validator";
 import { Request } from "express";
 
 interface PassportUser {
-  id: string;
+  id?: string;
 }
 
 interface GithubProfile extends Github.Profile {
@@ -26,7 +26,7 @@ interface GithubProfile extends Github.Profile {
 }
 
 interface GoogleProfile extends passportGoogle.Profile {
-  emails?: { value: string; type?: string | undefined }[] | undefined;
+  emails?: { value: string; verified: "true" | "false" }[] | undefined;
   id: string;
   username?: string;
   displayName: string;
@@ -47,8 +47,8 @@ function register(
   validate(user, { validationError: { target: false } }).then(
     async (errors) => {
       if (errors.length > 0) {
-        const errorList = errors.flatMap((x) => Object.values(x.constraints));
-        return next(errorList, undefined);
+        // const errorList = errors.flatMap((x) => Object.values(x.constraints));
+        //return next(errorList, undefined);
       }
       bcrypt.hash(password, 10, async (_err, hash) => {
         user.password = hash;
@@ -64,7 +64,7 @@ passport.serializeUser((user: PassportUser, done) => {
 });
 
 passport.deserializeUser(async (id: number, done) => {
-  const user = await User.findOne(id);
+  const user = await User.findOneBy(id as any);
   done(null, user);
 });
 
@@ -93,7 +93,9 @@ passport.use(
       scope: ["openid profile email"],
     },
     async (_accessToken, _refreshToken, profile: GoogleProfile, done) => {
-      let user: User | undefined = await User.findOne({ googleId: profile.id });
+      let user: User | null = await User.findOne({
+        where: { googleId: profile.id },
+      });
       if (!user) {
         user = new User();
         user.username = profile.displayName;
@@ -120,7 +122,7 @@ passport.use(
       profile: GithubProfile,
       done: (arg0: null, arg1: User) => void,
     ) => {
-      let user: User | undefined = await User.findOne({
+      let user: User | null = await User.findOne({
         where: [
           { googleId: profile.id },
           {
@@ -148,7 +150,9 @@ const options = {
 
 passport.use(
   new JwtStrategy(options, async (jwtPayload, done) => {
-    const user: User | undefined = await User.findOne({ id: jwtPayload.id });
+    const user: User | null = await User.findOne({
+      where: { id: jwtPayload.id },
+    });
     if (!user) {
       done(null, false);
     } else {

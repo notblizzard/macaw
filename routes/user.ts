@@ -21,6 +21,7 @@ interface ProfileUser extends User {
   isDifferentUser?: boolean;
   isFollowingUser?: boolean;
   messageCount?: number;
+  message?: [];
 }
 
 interface FollowUser extends Follow {
@@ -33,7 +34,7 @@ router.get(
   "/api/user/dashboard",
   passport.authenticate("jwt"),
   async (req, res) => {
-    const user: ProfileUser | undefined = await User.findOne({
+    const user: ProfileUser | null = await User.findOne({
       where: { id: (req.user as RequestUser).id },
       relations: ["following", "followers", "messages"],
     });
@@ -41,7 +42,7 @@ router.get(
       return res.json({ success: false, error: "user does not exist." });
     }
     user.messageCount = user.messages.length;
-    delete user.messages;
+    delete (user as any).messages;
     return res.json({ success: true, user });
   },
 );
@@ -52,7 +53,7 @@ router.get(
   async (req, res) => {
     const count = req.query.count;
     if (count) {
-      const user: ProfileUser | undefined = await User.findOne({
+      const user: ProfileUser | null = await User.findOne({
         where: { id: (req.user as RequestUser).id },
         relations: ["notifications"],
       })!;
@@ -66,7 +67,7 @@ router.get(
         }).length,
       });
     } else {
-      const user: ProfileUser | undefined = await User.findOne({
+      const user: ProfileUser | null = await User.findOne({
         where: { id: (req.user as RequestUser).id },
         relations: [
           "notifications",
@@ -103,7 +104,7 @@ router.get(
   "/api/user/notification-count",
   passport.authenticate("jwt"),
   async (req, res) => {
-    const user: ProfileUser | undefined = await User.findOne({
+    const user: ProfileUser | null = await User.findOne({
       where: { id: (req.user as RequestUser).id },
       relations: ["notifications"],
     })!;
@@ -125,7 +126,7 @@ router.get("/api/user/profile", async (req, res) => {
     return res.json({ success: false, error: "user does not exist." });
   }
 
-  const user: ProfileUser | undefined = await User.findOne({
+  const user: ProfileUser | null = await User.findOne({
     where: { username },
     relations: ["following", "followers", "messages"],
   })!;
@@ -135,10 +136,10 @@ router.get("/api/user/profile", async (req, res) => {
       error: "user does not exist",
     });
   user.messageCount = user.messages.length;
-  delete user.messages;
+  delete (user as any).messages;
 
   if (req.user) {
-    const authUser: User | undefined = await User.findOne({
+    const authUser: User | null = await User.findOne({
       where: { id: (req.user as RequestUser).id },
       relations: ["following", "following.following"],
     });
@@ -169,7 +170,7 @@ router.get(
   passport.authenticate("jwt"),
   async (req, res) => {
     if (!req.user) return res.json({ success: true, color: "default" });
-    const user: User | undefined = await User.findOne({
+    const user: User | null = await User.findOne({
       where: { id: (req.user as RequestUser).id },
       select: ["color"],
     });
@@ -180,8 +181,8 @@ router.get(
 );
 
 router.get("/api/user/followers", async (req, res) => {
-  const user: ProfileUser | undefined = await User.findOne({
-    where: { username: Like(req.query.username) },
+  const user: ProfileUser | null = await User.findOne({
+    where: { username: Like(req.query.username as string) },
     relations: [
       "followers",
       "followers.follower",
@@ -192,9 +193,9 @@ router.get("/api/user/followers", async (req, res) => {
   });
   if (!user) return res.json({ success: false, error: "invalid user" });
   if (req.user) {
-    const authUser: User | undefined = await User.findOne(
-      (req.user as RequestUser).id,
-    );
+    const authUser: User | null = await User.findOne({
+      where: { id: (req.user as RequestUser).id },
+    });
     if (!authUser) return false;
 
     user.followers.map((follow: FollowUser) => {
@@ -208,8 +209,8 @@ router.get("/api/user/followers", async (req, res) => {
 });
 
 router.get("/api/user/following", async (req, res) => {
-  const user: ProfileUser | undefined = await User.findOne({
-    where: { username: Like(req.query.username) },
+  const user: ProfileUser | null = await User.findOne({
+    where: { username: Like(req.query.username as string) },
     relations: [
       "following",
       "following.following",
@@ -220,7 +221,7 @@ router.get("/api/user/following", async (req, res) => {
   });
   if (!user) return res.json({ success: false, error: "invalid user" });
   if (req.user) {
-    const authUser: User | undefined = await User.findOne({
+    const authUser: User | null = await User.findOne({
       where: { id: (req.user as RequestUser).id },
       relations: ["following", "following.following"],
     });
@@ -244,7 +245,7 @@ router.get("/api/user/tooltip", async (req, res) => {
 
   //.then((x) => x.username);
   if (!username) return res.json({ error: "user doesnt exist" });
-  const user: ProfileUser | undefined = await User.findOne({
+  const user: ProfileUser | null = await User.findOne({
     where: { username: username },
     relations: ["messages", "followers", "following", "reposts", "likes"],
     select: [
@@ -261,7 +262,7 @@ router.get("/api/user/tooltip", async (req, res) => {
   });
   if (!user) return false;
   if (req.user) {
-    const authUser: User | undefined = await User.findOne({
+    const authUser: User | null = await User.findOne({
       where: { id: (req.user as RequestUser).id },
       relations: ["following", "following.following"],
     });
@@ -290,9 +291,9 @@ router.post(
   async (req, res) => {
     const errorList: Errors = {};
     console.log(req.user as RequestUser);
-    const user: User | undefined = await User.findOne(
-      (req.user as RequestUser).id,
-    );
+    const user: User | null = await User.findOne({
+      where: { id: (req.user as RequestUser).id },
+    });
     if (!user) return false;
     if (user.id !== user.id) {
       return res.json({ success: false, error: "invalid user" }); //todo
@@ -306,15 +307,15 @@ router.post(
     validate(user, { validationError: { target: false } }).then(
       async (errors) => {
         if (errors.length > 0) {
-          errors.map((error) => {
+          /*errors.map((error) => {
             errorList[error.property] = Object.values(error.constraints);
           });
-          return res.json({ success: false, errors: errorList });
+          return res.json({ success: false, errors: errorList });*/
         }
         try {
           await user.save();
           return res.json({ success: true, user });
-        } catch (e) {
+        } catch (e: any) {
           if (
             e.name === "QueryFailedError" &&
             e.detail.includes("already exists.")
@@ -333,25 +334,27 @@ router.post(
   "/api/user/follow",
   passport.authenticate("jwt", { session: false }),
   async (req, res) => {
-    const userThatWillBeFollowing: User | undefined = await User.findOne(
-      (req.user as RequestUser).id,
-    );
+    const userThatWillBeFollowing: User | null = await User.findOne({
+      where: { id: (req.user as RequestUser).id },
+    });
     if (!userThatWillBeFollowing) {
       return res.json({ success: false, error: "user does not exist." });
     }
-    const userThatWillBeFollowed: User | undefined = await User.findOne(
-      req.body.id,
-    );
+    const userThatWillBeFollowed: User | null = await User.findOne(req.body.id);
     if (!userThatWillBeFollowed)
       return res.json({
         success: false,
         error: "user attempting to be followed does not exist.",
       });
 
-    const follow: Follow | undefined = await Follow.findOne({
+    const follow: Follow | null = await Follow.findOne({
       where: {
-        follower: userThatWillBeFollowing,
-        following: userThatWillBeFollowed,
+        follower: {
+          id: userThatWillBeFollowing.id,
+        },
+        following: {
+          id: userThatWillBeFollowed.id,
+        },
       },
     });
     if (follow) {

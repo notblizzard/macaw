@@ -18,7 +18,7 @@ interface UserData {
   }[];
 }
 const Followers = (): JSX.Element => {
-  const { username } = useParams();
+  const { username } = useParams<{ username: string }>();
   const [user, setUser] = useState<UserData>(null!);
 
   useEffect(() => {

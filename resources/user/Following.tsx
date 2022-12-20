@@ -59,7 +59,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 const Following = (): JSX.Element => {
   const classes = useStyles();
-  const { username } = useParams();
+  const { username } = useParams<{ username: string }>();
   const [user, setUser] = useState<UserData>(null!);
 
   useEffect(() => {

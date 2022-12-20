@@ -11,6 +11,7 @@ interface RequestUser {
 }
 
 const router = Router();
+//
 
 router.post("/login", passport.authenticate("local"), (req, res) => {
   const token = jwt.sign(
@@ -40,7 +41,9 @@ router.post("/login", passport.authenticate("local"), (req, res) => {
 });
 
 router.get("/logout", (req, res) => {
-  req.logout();
+  req.logout((done) => {
+    return;
+  });
   res.clearCookie("token");
   res.clearCookie("email");
   return res.json({ success: true });

@@ -13,7 +13,7 @@ router.get(
   "/api/conversation/conversations",
   passport.authenticate("jwt", { session: false }),
   async (req, res) => {
-    const user: User | undefined = await User.findOne({
+    const user: User | null = await User.findOne({
       where: { id: (req.user as RequestUser).id },
       relations: [
         "conversations",
@@ -35,7 +35,7 @@ router.post(
       where: { id: (req.user as RequestUser).id },
       relations: ["conversations", "conversationMessages"],
     });
-    const userSendingTo: User | undefined = await User.findOne({
+    const userSendingTo: User | null = await User.findOne({
       where: { username: TypeORMLike(req.body.username) },
       relations: ["conversations", "conversationMessages"],
     });
