@@ -101,15 +101,7 @@ const Profile = ({ socket, dashboard }: ProfileProps): JSX.Element => {
             </Grid>
           </Hidden>
           <Hidden xsDown>
-            <Grid container spacing={4}>
-              <Grid item xs={2}>
-                <UserInfo user={user} />
-              </Grid>
-              <Grid item xs={8}>
-                <UserHeader user={user} />
-                <Messages path={path} username={username} socket={socket} />
-              </Grid>
-            </Grid>
+            <Messages path={path} username={username} socket={socket} />
           </Hidden>
         </>
       )}

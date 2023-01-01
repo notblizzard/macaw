@@ -101,3 +101,11 @@ body {
     background-color: $value !important;
   }
 }
+.navbar-link {
+  color: #222;
+  text-decoration: none;
+}
+.navbar-text {
+  font-size: 1rem;
+  font-weight: bold;
+}

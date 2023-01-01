@@ -16,6 +16,7 @@ import {
   Explore as ExploreIcon,
   Brightness2 as MoonIcon,
   Brightness5 as SunIcon,
+  House as HouseIcon,
 } from "@material-ui/icons";
 import CreateIcon from "@material-ui/icons/CreateOutlined";
 
@@ -151,18 +152,27 @@ const Navbar = ({
                   <Gravatar email={Cookies.get("email")!} size={5} />
                 </Link>
               </Box>
-
-              <Link to="/private-messages">
-                <IconButton title="Conversations">
+              <Link to="/dashboard" className="navbar-link">
+                <Box display="flex" alignItems="center" alignContent={"center"}>
+                  <HouseIcon
+                    className={`navbar-button-${color} ${classes.icons}`}
+                    fontSize="large"
+                  />
+                  <span className="navbar-text">Dashboard</span>
+                </Box>
+              </Link>
+              <Link to="/private-messages" className="navbar-link">
+                <Box display="flex" alignItems="center" alignContent="center">
                   <ConversationIcon
                     className={`navbar-button-${color} ${classes.icons}`}
                     fontSize="large"
                   />
-                </IconButton>
+                  <span className="navbar-text">Messages</span>
+                </Box>
               </Link>
-
-              <Link to="/notifications">
-                <IconButton title="Notifications">
+              <Link to="/notifications" className="navbar-link">
+                {" "}
+                <Box display="flex" alignItems="center" alignContent="center">
                   <span
                     className={`fa-layers fa-fw navbar-button-${color} ${classes.icons}`}
                   >
@@ -180,24 +190,27 @@ const Navbar = ({
                       </span>
                     )}
                   </span>
-                </IconButton>
+                  <span className="navbar-text">Notifications</span>
+                </Box>
               </Link>
-              <Link to="/search">
-                <IconButton title="Search">
+              <Link to="/search" className="navbar-link">
+                <Box display="flex" alignItems="center" alignContent="center">
                   <SearchIcon
                     className={`navbar-button-${color} ${classes.icons}`}
                     fontSize="large"
                   />
-                </IconButton>
+                  <span className="navbar-text">Search</span>
+                </Box>
               </Link>
-              <Link to="/settings">
-                <IconButton title="Settings">
+              <Box display="flex" alignItems="center" alignContent="center">
+                <Link to="/settings">
                   <SettingsIcon
                     className={`navbar-button-${color} ${classes.icons}`}
                     fontSize="large"
                   />
-                </IconButton>
-              </Link>
+                  <span className="navbar-text">Settings</span>
+                </Link>
+              </Box>
               <IconButton title="Logout">
                 <ExitToAppIcon
                   onClick={handleLogout}

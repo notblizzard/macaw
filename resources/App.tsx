@@ -27,6 +27,7 @@ import io from "socket.io-client";
 import DarkModeContext from "./DarkMode";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import PrivateMessage from "./message/PrivateMessage";
+import Dashboard from "./user/Dashboard";
 
 interface StyleProps {
   darkMode: boolean;
@@ -181,7 +182,7 @@ const App = (): JSX.Element => {
                     </GuestRoute>
 
                     <PrivateRoute path="/dashboard">
-                      <Profile dashboard={true} socket={socket} />
+                      <Dashboard dashboard={true} socket={socket} />
                     </PrivateRoute>
 
                     <PrivateRoute path="/notifications">
